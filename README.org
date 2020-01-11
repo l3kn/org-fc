@@ -330,10 +330,10 @@ If your not interested in implementing your own card types or
 contributing to this package, you can skip this section.
 
 *** Components
-**** =org-flashcards.el=
+**** =org-fc.el=
 Main file.
-**** =org-fc-main.el=
-Main flashcards view displaying card / position / review statistics.
+**** =org-fc-dashboard.el=
+Dashboard displaying card / position / review statistics.
 **** =org-fc-review.el=
 Functions related to reviewing cards, updating the review data drawer
 and logging review results.
@@ -354,30 +354,13 @@ flashcards due for review.
 
 All of these parameters can be configured using the variables defined
 in =org-fc-sm2.el=.
-**** =org-fc-tsv.el=
-Functions for parsing the tsv output of awk scripts
 **** =org-fc-awk.el=
 Functions for interacting with the awk indexer / filter / stats scripts.
-**** =org-fc-refactor.el=
-Functions for refactoring collections of cards
-in case the card format changes.
-**** =org-fc-org.el=
-Functions for interacting with org-mode files, mostly for hiding /
-showing parts of them during review.
-**** =org-fc-assert.el=
-Helper functions for writing unit-tests for functions.
+**** =org-fc-overlay.el=
+Functions for hiding / revealing parts of org-mode buffers.
 **** =org-fc-type-<name>.el=
 Implementations of flashcard types, for more details, see the "Card
 Types" section of this document.
-**** TODO =org-fc-audio.el=
-Functions for attaching audio files to flashcards and playing them.
-**** TODO =org-fc-benchmark.el=
-Benchmarks to detect performance regressions in the code.
-**** TODO =org-fc-indexer-lisp.el=
-Slow flashcard indexer written in EmacsLisp for use on systems where
-=awk= is not available.
-
-Not working at the moment.
 **** TODO Document core api of each file
 *** Coding Style
 Components are split into multiple smaller files,
