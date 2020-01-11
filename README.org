@@ -1,0 +1,464 @@
+* Org Flashcards
+Spaced-repetition system for use with Emacs org-mode.
+
+#+CAPTION: Review Demo
+[[file:images/review.png]]
+
+** Introduction
+In the most abstract sense, this package deals with
+
+1. Attaching timestamped review information to headlines
+2. Querying all headings where reviews are due
+3. Reviewing due *positions* of headings
+
+As mentioned in step 3, a heading can have multiple *positions*,
+e.g. to implement cloze-deletions where multiple items are reviewed
+independently from each other.
+
+In the reviewing step, display functions can be registered by card
+type. This allows easy addition of user-defined card types without
+having to think about storing and updating review data.
+
+Review functions are called with point on the headline of the card
+that should be reviewed and get passed a single argument,
+the position to be reviewed.
+
+They are expected to return either ~'quit~ to end the review or one of
+~'again~, ~'hard~, ~'good~, ~'ease~, to rate the card.
+
+While the primary application is learning information using spaced
+repetition, at the end, the API should be flexible enough to implement
+other kinds of repeating tasks where it is necessary to store data in
+addition to the next date.
+
+One example would be storing one exercise per heading, using the
+positions to store one or more sets and logging the number of
+repetitions done on each "review".
+
+** Stability
+This package should be considered *unstable*.  I use it on a daily
+basis but the API might change in breaking ways.
+
+If that happens, I'll add a changelog entry with updating
+instructions.  In case the card format changes, I'll include code to
+update existing collections of cards.
+** Prior Art
+There are a few other packages for implementing a SRS based on org-mode.
+
+The biggest difference between this package and the ones I've found so
+far:
+
+1. Use of =awk= for quickly finding cards due for review
+2. Support for multiple *positions* in a card
+
+Below, I've listed a few packages that are actively maintained and
+implement a lot of useful functionality.
+
+- [[https://gitlab.com/phillord/org-drill/][phillord/org-drill]]
+- [[https://github.com/abo-abo/pamparam][abo-abo/pamparam]]
+
+Thanks to the maintainers and all contributors for their work on these
+packages!
+
+*** TODO Mention supermemo, anki, memosyne
+** Design Criteria
+*** Performance
+All user-facing commands (especially during review) should be as fast
+as possible (<300ms).
+
+Using the =awk= indexer, searching 2500 org files (~200k lines in
+total) for due flashcards takes around ~500ms on my laptop (Thinkpad
+L470, SSD).
+
+Using the lisp indexer based on ~org-map-entries~,
+searching a single 6500 line file with 333 flashcards takes ~1000ms,
+indexing the same file with =awk= takes around ~50ms.
+*** All Relevant Data Kept Org Files
+For easy version control
+*** Multiple Cards per Org-Mode Heading
+*** Easy Implementation of Custom Card Types
+** Getting Started
+Before using this package, a few variables have to be set:
+
+- ~org-fc-directories~ :: list of directories to search for flashcards
+- ~org-fc-source-path~ :: should be set to the absolute path of the
+  cloned repository
+
+*** TODO Example setup using =use-package=
+*** TODO Basic Hydra
+*** TODO Demo File
+A file demonstrating all card types is included.
+~M-x org-fc-demo~ starts a review of this file.
+
+Note that the review data of the cards in this file *is not updated*.
+** Marking Headlines as Cards
+A *card* is an org-mode headline with a =:fc:= tag attached to it.
+Each card can have multiple *positions* reviewed independently from
+each other, e.g. one for each hole of a cloze card.
+
+Review data (ease, interval in days, box, due date) is stored in a table
+in a drawer inside the card.
+
+#+begin_src org
+:REVIEW_DATA:
+| position | ease | box | interval | due                    |
+|----------+------+-----+----------+------------------------|
+|        2 | 2.65 |   6 |   107.13 |    2020-04-07T01:01:00 |
+|        1 | 2.65 |   6 |   128.19 |    2020-04-29T06:44:00 |
+|        0 | 2.95 |   6 |   131.57 |    2020-04-30T18:03:00 |
+:END:
+#+end_src
+
+Review results are appended to a csv file to avoid cluttering the org
+files.
+
+Each card needs at least two properties, an *unique* ~:ID:~ and a
+~:FC_TYPE:~.  In addition to that, the date a card was created
+(i.e. the headline was marked as a flashcard) is stored to allow
+making statistics for how many cards were created in the last day /
+week / month.
+
+#+begin_src org
+:PROPERTIES:
+:ID:       4ffe66a7-7b5c-4811-bd3e-02b5c0862f55
+:FC_TYPE:  normal
+:FC_CREATED: 2019-10-11T14:08:32
+:END:
+#+end_src
+
+Card types (should) implement a ~org-fc-type-...-init~ command that
+initializes these properties and sets up the review data drawer
+
+All timestamps created and used by org-flashcards use ISO8601 format
+with second precision and without a timezone (timezone UTC0).
+
+This prevents flashcard due dates from showing up in the org-agenda
+and allows filtering for due cards by string-comparing a timestamp
+with one of the current time.
+** Review
+A review session can be started using ~org-fc-review-all~
+to review all cards that are due, or using ~org-fc-review-buffer~ to
+review only cards in the current buffer.
+
+*** Display of Cards during Review
+TODO: Add image
+
+Headlines are presented for review by hiding the all top level
+headings before and after the one the heading to be reviewed is
+located in.
+
+This is done through the function ~org-fc-org-narrow-tree~.
+~org-fc-show-all~ can be used to remove all overlays (i.e. reset the
+display of the buffer).
+
+All parent headings are shown but their body text (~section~) is
+hidden.
+
+If the file has a ~#+TITLE:~ keyword this is shown, too.
+
+To hide the title during review (e.g. for a "Definition" flashcard),
+add a ~:notitle:~ tag to the heading.
+
+To hide the heading text of the current card during review, add a
+~:noheading:~ tag.
+*** Implementation of Card Review
+Review is implemented by storing due cards in a global variable.  The
+buffer the card is displayed in never leaves =org-mode=, [[https://github.com/abo-abo/hydra][abo-abo/hydra]]
+is used to show review statistics (number of cards remaining, percent
+again/hard/good/easy) and prompt for user actions.
+
+1. jump to the file + id of the current card
+2. set it up for review (i.e. hiding parts of the buffer)
+3. open a hydra prompting to flip the card
+4. flip the card or quit the review session
+5. open a hydra prompting for a rating
+6. rate the card or quit the review session
+7. set the current card to the next card due
+8. continue at 1.
+
+If an error occurs during review, ~org-fc-review-quit~ can be used to
+reset the current buffer and the review state.
+** (Un)suspending Cards
+Cards can be suspended (excluded from review) by adding a =suspended=
+tag, either by hand or using the ~org-fc-suspend-card~ command.
+
+All cards in the current buffer can be suspended using the
+~org-fc-suspend-buffer~ command.
+
+The reason for using a per-headline tag instead of a file keyword is
+that this way cards stay suspended when moved to another buffer.
+
+Cards can be un-suspended using the ~org-fc-unsuspend-card~ and
+~org-fc-unsuspend-buffer~ commands.
+
+If the card being unsuspended was not due for review yet,
+or was due less than 10% of its interval ago, its review data is not
+reset. If it was due by more than that, its review data is reset to
+the initial values.
+** Statistics
+~org-fc-dashboard~ shows a buffer with statistics for review performance
+and cards / card types.
+*** TODO Replace with R scripts run on the review history / card index
+*** Review History
+The review history is stored in a tsv file, to avoid cluttering org
+files. This makes it easy to calculate review statistics.
+
+At first, I used an org drawer to store the review history but that
+added to much overhead to the files (in one instance 6.5k lines of
+review history for a file of 9.5k lines in total).
+
+Columns:
+1. Date in ISO8601 format, second precision
+2. Filename
+3. Card ID
+4. Position
+5. Ease (before review)
+6. Box (before review)
+7. Interval (before review)
+8. Rating
+
+More advanced review algorithms might need to use the review history
+of a card. In this case, the card ID + position should be used to look
+up the review history, as the filename can change when moving cards
+from file to file.
+** Card Types
+*** Normal Cards
+During review, the heading is shown with its "Back" subheading
+collapsed, when flipping the card, the back heading is shown,
+then the user is asked to rate the review performance.
+
+Positions: =front=
+*** Text-Input Cards
+On review, the user is asked to type in a string which is then
+compared to the one stored in the ~:ANSWER:~ property of the card.
+
+Positions: =front=
+*** Double Cards
+Similar to normal cards, but reviewed both in the "Front -> Back"
+direction and in the "Back -> Front" direction.
+
+Positions: =front=, =back=
+*** Cloze Cards
+The cards text contains one or more *holes*.  During review, one hole
+is hidden while the text of (some) remaining ones is shown.
+
+Flipping the card reveals the text of the hidden hole.
+
+Card titles can contain holes, too.
+
+Positions: =0=, =1=, ...
+
+Cloze cards can have a number of sub-types.
+
+**** TODO Document type-specific properties
+**** TODO Implement & document type-changing functions
+**** Deletion ~'deletion~
+Only one hole is hidden.
+**** Enumerations ~'enumeration~
+All holes *behind* the currently review one are hidden, too.
+
+Useful for memorizing lists where the order of items is important.
+**** Context ~'context~
+Holes ~org-fc-type-cloze-context~ (default 1) around the currently
+reviewed one are shown.
+
+Useful for memorizing longer lists where the order of items is important.
+**** Hole Syntax
+Deletions can have the following forms
+
+- ~{{text}}~
+- ~{{text}@id}~
+- ~{{text}{hint}}~
+- ~{{text}{hint}@id}~
+
+~text~ should not contain any "}",
+unless it is part of a ~$latex$~ block.
+In this case, ~latex~ should not contain any "$".
+
+Holes *inside* latex blocks are not handled correctly at the moment.
+As a workaround, create multiple smaller latex blocks and wrap each in
+a hole.
+*** TODO Listening Cards
+When reviewing the card, an audio file is played.
+Flipping the card, a transcription / translation is revealed.
+
+Useful for learning to understand sentences spoken in a foreign
+language.
+*** Compact Cards
+For cards without a "Back" heading, the headline text is considered as
+the front, the main text as the back.
+
+This is useful for cards with a short front text, e.g. when learning
+definitions of words.
+*** Defining Own Card Types
+To define a custom card type,
+you need to implement three functions:
+
+- ~(...-init)~ to initialize a heading as a flashcard of this type,
+  setting up the cards properties & review data.
+  Should be marked as ~(interactive)~.
+- ~(...-setup position)~ to setup ~position~ of the card for review
+- ~(...-flip)~ to flip the card
+- ~(...-update)~ to update the review data of the card, e.g. if a new
+  hole is added to a cloze card
+
+All of these are called with ~(point)~ on the cards heading.
+
+Take a look at the =org-fc-type-<name>.el= files to see how these
+functions could be implemented.
+** TODO Custom Review Spacing Algorithms                          :longterm:
+The interfaces defined by this package should be flexible enough to
+allow implementing custom review spacing algorithms.
+
+This is not possible at the moment because the awk scripts and the
+functions for reading / updating the review data drawer make strong
+assumptions about the format of the review data.
+
+A good implementation of this should allow using different spacing
+algorithms based on a ~:FC_SPACING:~ property in the card.
+** TODO Sharing Decks                                             :longterm:
+It should be possible to share sets of cards by removing the review
+data and syncing them with git.
+
+At least one of the existing emacs flashcard packages implements this
+functionality.
+** Incremental Reading
+- [[https://github.com/alphapapa/org-web-tools]]
+*** TODO Supermemo link
+** Internals
+If your not interested in implementing your own card types or
+contributing to this package, you can skip this section.
+
+*** Components
+**** =org-flashcards.el=
+Main file.
+**** =org-fc-main.el=
+Main flashcards view displaying card / position / review statistics.
+**** =org-fc-review.el=
+Functions related to reviewing cards, updating the review data drawer
+and logging review results.
+**** =org-fc-sm2.el=
+Implementation of the [[https://www.supermemo.com/en/archives1990-2015/english/ol/sm2][SM2]] review spacing algorithm,
+modified to behave like the algorithm used by [[https://apps.ankiweb.net/docs/manual.html#what-algorithm][Anki]].
+
+It uses four ratings (again, hard, good, easy) instead of the six used
+in the supermemo variant.
+
+The first few reviews are done in fixed intervals
+(0.01 days / approx 15 minutes, 1 day, 6 days).
+
+After these intervals, reviews are scheduled by multiplying the cards
+current interval with its ease (initially 2.5, bound to be >= 1.3 and
+<= 5.0), then multiplying a random factor ~1 to avoid "chunking" of
+flashcards due for review.
+
+All of these parameters can be configured using the variables defined
+in =org-fc-sm2.el=.
+**** =org-fc-tsv.el=
+Functions for parsing the tsv output of awk scripts
+**** =org-fc-awk.el=
+Functions for interacting with the awk indexer / filter / stats scripts.
+**** =org-fc-refactor.el=
+Functions for refactoring collections of cards
+in case the card format changes.
+**** =org-fc-org.el=
+Functions for interacting with org-mode files, mostly for hiding /
+showing parts of them during review.
+**** =org-fc-assert.el=
+Helper functions for writing unit-tests for functions.
+**** =org-fc-type-<name>.el=
+Implementations of flashcard types, for more details, see the "Card
+Types" section of this document.
+**** TODO =org-fc-audio.el=
+Functions for attaching audio files to flashcards and playing them.
+**** TODO =org-fc-benchmark.el=
+Benchmarks to detect performance regressions in the code.
+**** TODO =org-fc-indexer-lisp.el=
+Slow flashcard indexer written in EmacsLisp for use on systems where
+=awk= is not available.
+
+Not working at the moment.
+**** TODO Document core api of each file
+*** Coding Style
+Components are split into multiple smaller files,
+with each function prefixed by the files base-name.
+
+Public functions are named ~basename-functionname~,
+internal helper functions are named ~basename--functionname~.
+*** Testing
+Unit-testing is done using ~org-fc-assert-...~ macros
+defined in =org-fc-assert.el=.
+
+These assertions are placed right after the function definition
+and run when the file is loaded. If an assertion fails,
+an ~'org-fc-assertion-error~ is raised.
+
+**** TODO Integration Testing
+Integration testing is done by providing an input org file, a set of
+operations to be performed on it and an org file with the expected
+output.
+
+Tests are run by copying the input file to a temporary file, executing
+the operations on it, then comparing it to the expected output.
+
+Files for this live in the =fixtures/= folder.
+*** dash.el
+The code in this package uses [[https://github.com/magnars/dash.el#threading-macros][threading macros]] and list functions
+(often in their anaphoric form) from [[https://github.com/magnars/dash.el][magnars/dash.el]].
+
+Make sure to read that documentation before going reading / working on
+the source code.
+*** =awk=
+~find~ is used to generate a list of =.org= files in
+~org-fc-directories~, these are then passed to =awk= scripts
+to generate lists of cards and card-positions.
+
+Only files starting with ~[a-Z0-9_]~ and a ~.org~ extension are
+indexed to exclude temp / hidden files.
+This can be customized with the ~org-fc-find-name~ variable.
+
+[[https://www.gnu.org/software/gawk/][gawk]] is a programming language for processing / parsing text.
+
+Assuming the input org files are well formatted, they can be
+efficiently parsed using regexeps and a small number of state
+variables.
+
+=awk= scripts in this package come in three types:
+
+1. Indexing, for generating lists of cards / positions
+3. Filtering, e.g. for selecting only unsuspended cards due now
+2. Aggregation, for generating statistics from these lists
+
+- =awk/indexer_cards.awk= :: list all card headings
+- =awk/indexer_positions.awk= :: list all card positions
+- =awk/filter_due.awk= :: select only unsuspended cards due right now
+- =awk/stats_cards.awk= :: stats over cards
+- =awk/stats_positions.awk= :: stats over positions
+- =awk/stats_reviews.awk= :: stats over the reviews tsv file
+
+These scripts use the =gawk= version of =awk= which should be
+available on any modern Linux / UNIX distribution.
+
+Configurable tags and properties can be passed to the indexer scripts as
+variables. If a tag or property is not passed to the script,
+a default value is used.
+
+*** Format
+Output is generated in *tab separated* form and *does not* include a
+header with column names. For the indexing scripts, the first two
+columns are the filename and the ID of the heading.
+
+The ~org-fc-tsv-parse~ function can be used to parse a tsv
+string into a plist, given a list of headers with optional type
+specifications.
+
+=0= (false) and =1= (true) are used for boolean values (e.g. for the
+"suspended" column).
+
+Dates are converted to ISO-8601 format, no timezone, minute-precision
+(e.g. =2019-10-09T16:49=).
+
+Unlike the format used by org mode, timestamps in ISO-8601 format can
+be compared lexicographically.
+
+Processing script output *tab separated* key-value pairs with no header.

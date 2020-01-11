@@ -1,0 +1,70 @@
+#+TITLE: Org-Flashcards Demo File
+
+* Normal Card                                                            :fc:
+:PROPERTIES:
+:ID:       9f80ab65-dbff-41b3-902f-0e8e177debbe
+:FC_CREATED: [2019-01-03 Fri 17:47]
+:FC_TYPE:  normal
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                 |
+|----------+------+-----+----------+---------------------|
+| front    | 2.50 |   4 |    13.69 | 2020-01-25T06:47:55 |
+:END:
+Front of the card
+** Back
+:PROPERTIES:
+:ID:       1a9a5308-119c-4398-a715-da3b87d1c7e1
+:END:
+Back of the card
+* Compact Double Card                                                    :fc:
+:PROPERTIES:
+:ID:       d3e290c2-a7f0-4d10-9a0a-6c1ecec3c29e
+:FC_CREATED: [2019-01-03 Fri 17:47]
+:FC_TYPE:  double
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                 |
+|----------+------+-----+----------+---------------------|
+| front    | 2.50 |   4 |    14.38 | 2020-01-25T23:25:30 |
+| back     | 2.50 |   4 |    14.95 | 2020-01-26T13:02:32 |
+:END:
+For cards without a "Back" heading, the headings main text is
+considered as the back side.
+* Cloze Deletion                                                         :fc:
+:PROPERTIES:
+:ID:       2ffc8b34-b2b5-4472-9295-714b5422679d
+:FC_CREATED: [2019-01-03 Fri 17:47]
+:FC_TYPE:  cloze
+:FC_CLOZE_MAX: 1
+:FC_CLOZE_TYPE: deletion
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                 |
+|----------+------+-----+----------+---------------------|
+|        0 | 2.50 |   3 |     6.00 | 2019-01-17T12:32:41 |
+|        1 | 2.50 |   4 |    13.91 | 2020-01-25T12:14:46 |
+:END:
+A {{cloze deletion}@0} can have multiple {{holes}@1}.
+* Cloze Enumeration                                                      :fc:
+:PROPERTIES:
+:FC_CREATED: [2019-01-03 Fri 17:48]
+:FC_TYPE:  cloze
+:ID:       5eac5801-0ef5-4957-a818-e3f9f08a7d59
+:FC_CLOZE_MAX: 3
+:FC_CLOZE_TYPE: enumeration
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                 |
+|----------+------+-----+----------+---------------------|
+|        0 | 2.50 |   2 |     1.00 | 2019-01-12T12:32:37 |
+|        1 | 2.50 |   3 |     6.00 | 2019-01-17T12:32:39 |
+|        2 | 2.50 |   2 |     1.00 | 2019-01-12T12:32:31 |
+|        3 | 2.50 |   2 |     1.00 | 2019-01-12T12:32:48 |
+:END:
+Enumerations are useful for
+
+- {{Learning}@0}
+- {{Lists}@1}
+- {{of}@2}
+- {{items}@3}
