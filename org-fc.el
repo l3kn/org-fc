@@ -14,7 +14,7 @@
 
 ;; TODO: a combination of (load-path) and (buffer-file-name) could be
 ;; used for this
-(defcustom org-fc-source-path "~/src/org-flashcards/"
+(defcustom org-fc-source-path "~/src/org-fc/"
   "Location of the org-fc sources, used to generate absolute
   paths to the awk scripts"
   :type 'string

@@ -9,6 +9,11 @@
 (defvar org-fc-type-cloze-context 1
   "Number of surrounding cards to show for 'context' type cards")
 
+(defface org-fc-type-cloze-hole-face
+  '((t (:bold t)))
+  "Face for org-fc cloze card holes."
+  :group 'org-fc)
+
 (defvar org-fc-type-cloze-hole-re
   (rx
    (seq
@@ -100,7 +105,10 @@
     (if (plist-member overlays :after-hint)
         (org-fc-hide-overlay (plist-get overlays :after-hint)))
     (org-fc-hide-overlay (plist-get overlays :hint))
-    (delete-overlay (plist-get overlays :text)))
+    ;; (delete-overlay (plist-get overlays :text))
+    (org-fc-show-overlay
+     (plist-get overlays :text)
+     'org-fc-type-cloze-hole-face))
   (org-fc-review-rate-hydra/body))
 
 (defun org-fc-type-cloze-setup (position)
