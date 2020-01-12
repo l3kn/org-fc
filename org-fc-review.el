@@ -86,18 +86,19 @@
              (id (plist-get card :id))
              (type (plist-get card :type))
              (position (plist-get card :position)))
-        ;; TODO: org-id-goto already jumps to the file
-        ;; Check if buffer was already open,
-        ;; set flag in session (kill buffer?)
-        (with-current-buffer (find-file path)
-          (goto-char (point-min))
-          (org-fc-id-goto id path)
-          (org-fc-show-all)
-          (org-fc-narrow-tree)
-          (org-fc-hide-drawers)
-          (org-fc-show-latex)
-          (outline-hide-subtree)
-          (funcall (org-fc-type-setup-fn type) position)))
+        (let ((buffer (find-buffer-visiting path)))
+          (with-current-buffer (find-file path)
+            ;; If buffer was already open, don't kill it after rating the card
+            (if buffer (setq-local org-fc-reviewing-existing-buffer t))
+            (goto-char (point-min))
+            (org-fc-show-all)
+            (org-fc-id-goto id path)
+            ;; Make sure the headline the card is in is expanded
+            (org-reveal)
+            (org-fc-narrow-tree)
+            (org-fc-hide-drawers)
+            (org-fc-show-latex)
+            (funcall (org-fc-type-setup-fn type) position))))
     (progn
       (message "Review Done")
       (setq org-fc-review--current-session nil)
@@ -157,7 +158,8 @@ a review session."
       (org-fc-review-update-data path id position rating)
       (save-buffer)
       ;; TODO: Conditional kill
-      (kill-buffer)
+      (unless org-fc-reviewing-existing-buffer
+        (kill-buffer))
       (org-fc-review-next-card))))
 
 (defun org-fc-review-update-data (path id position rating)

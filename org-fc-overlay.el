@@ -6,10 +6,10 @@
   "Value of point at the end of the previous line.
 Returns nil if there is no previous line."
   (save-excursion
-    (beginning-of-line)
-    (if (bobp)
-        nil
-      (progn (backward-char)
+  (beginning-of-line)
+  (if (bobp)
+    nil
+  (progn (backward-char)
              (point)))))
 
 (defun org-fc-overlay--point-after-title ()
@@ -61,6 +61,13 @@ Returns nil if there is no title keyword."
   (overlay-put o 'category 'org-fc-hidden)
   (overlay-put o 'invisible t)
   (overlay-put o 'display ""))
+
+(defun org-fc-show-overlay (o &optional face)
+  "Show the overlay O using an optional font FACE."
+  (overlay-put o 'category 'org-fc-hidden)
+  (overlay-put o 'invisible nil)
+  (if face
+      (overlay-put o 'face face)))
 
 ;;;; Hiding Drawers
 
