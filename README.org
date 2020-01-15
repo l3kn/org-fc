@@ -76,8 +76,8 @@ indexing the same file with =awk= takes around ~50ms.
 Before using this package, a few variables have to be set:
 
 - ~org-fc-source-path~ :: should be set to the absolute path of the
-- ~org-fc-directories~ :: list of directories to search for flashcards
   cloned repository
+- ~org-fc-directories~ :: list of directories to search for flashcards
 - ~org-fc-review-history-file~ :: where to store the review history
 
 Here is how that could look like using [[https://github.com/jwiegley/use-package/][use-package]]:
