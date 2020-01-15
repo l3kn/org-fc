@@ -1,0 +1,38 @@
+#+TITLE: Review Internals
+
+* Implementation
+Review is implemented by storing due cards in a global variable.  The
+buffer the card is displayed in never leaves =org-mode=, [[https://github.com/abo-abo/hydra][abo-abo/hydra]]
+is used to show review statistics (number of cards remaining, percent
+again/hard/good/easy) and prompt for user actions.
+
+1. jump to the file + id of the current card
+2. set it up for review (i.e. hiding parts of the buffer)
+3. open a hydra prompting to flip the card
+4. flip the card or quit the review session
+5. open a hydra prompting for a rating
+6. rate the card or quit the review session
+7. set the current card to the next card due
+8. continue at 1.
+
+If an error occurs during review, ~org-fc-review-quit~ can be used to
+reset the current buffer and the review state.
+* Display of Cards
+Headlines are presented for review by hiding the all top level
+headings before and after the one the heading to be reviewed is
+located in.
+
+This is done through the function ~org-fc-org-narrow-tree~.
+~org-fc-show-all~ can be used to remove all overlays (i.e. reset the
+display of the buffer).
+
+All parent headings are shown but their body text (~section~) is
+hidden.
+
+If the file has a ~#+TITLE:~ keyword this is shown, too.
+
+To hide the title during review (e.g. for a "Definition" flashcard),
+add a ~:notitle:~ tag to the heading.
+
+To hide the heading text of the current card during review, add a
+~:noheading:~ tag.

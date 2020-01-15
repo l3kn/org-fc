@@ -33,15 +33,9 @@ the position to be reviewed.
 They are expected to return either ~'quit~ to end the review or one of
 ~'again~, ~'hard~, ~'good~, ~'ease~, to rate the card.
 
-While the primary application is learning information using spaced
-repetition, at the end, the API should be flexible enough to implement
-other kinds of repeating tasks where it is necessary to store data in
-addition to the next date.
-
-One example would be storing one exercise per heading, using the
-positions to store one or more sets and logging the number of
-repetitions done on each "review".
-
+See also:
+- [[file:doc/alternative_applications.org][Alternative Applications]]
+- [[file:doc/incremental_reading.org][Incremental Reading]] (todo)
 ** Updating the Card Format
 I hope the current card / log format is flexible enough to accommodate
 upcoming changes.
@@ -123,10 +117,11 @@ A file demonstrating all card types is included.
 ~M-x org-fc-demo~ starts a review of this file.
 
 Note that the review data of the cards in this file *is not updated*.
-** Using this Package
+** Card Types
+This package comes with a few predefined card types.
+They are documented in [[file:doc/card_types.org][Card Types]].
 
-See also:
-- [[file:doc/incremental_reading.org][Incremental Reading]] (todo)
+[[file:demo.org][demo.org]] includes examples for each of these types.
 ** Marking Headlines as Cards
 A *card* is an org-mode headline with a =:fc:= tag attached to it.
 Each card can have multiple *positions* reviewed independently from
@@ -171,6 +166,31 @@ with second precision and without a timezone (timezone UTC0).
 This prevents flashcard due dates from showing up in the org-agenda
 and allows filtering for due cards by string-comparing a timestamp
 with one of the current time.
+** (Un)suspending Cards
+Cards can be suspended (excluded from review) by adding a =suspended=
+tag, either by hand or using the ~org-fc-suspend-card~ command.
+
+All cards in the current buffer can be suspended using the
+~org-fc-suspend-buffer~ command.
+
+The reason for using a per-headline tag instead of a file keyword is
+that this way cards stay suspended when moved to another buffer.
+
+Cards can be un-suspended using the ~org-fc-unsuspend-card~ and
+~org-fc-unsuspend-buffer~ commands.
+
+If the card being unsuspended was not due for review yet,
+or was due less than 10% of its interval ago, its review data is not
+reset. If it was due by more than that, its review data is reset to
+the initial values.
+** Spacing Algorithm
+This package uses a modified version of the SM2 spacing algorithm,
+based on the one used by Anki.
+
+See also:
+- [[file:doc/custom_spacing_algorithms.org][Custom Spacing Algorithms]] (todo)
+- [[https://apps.ankiweb.net/docs/manual.html#what-algorithm][Anki Manual - Algorithm]]
+- [[https://www.supermemo.com/en/archives1990-2015/english/ol/sm2][SuperMemo - SM2 Algorithm]]
 ** Review
 Reviewing cards is done by opening the file the card is in,
 using a special narrowing function to hide other headings
@@ -196,61 +216,9 @@ Ideally, don't use any other hotkeys while in a review session.
 This exits the review hydra without ending the current review session
 making it necessary to do so manually (~org-fc-review-quit~).
 
-*** Display of Cards during Review
-TODO: Add image
-
-Headlines are presented for review by hiding the all top level
-headings before and after the one the heading to be reviewed is
-located in.
-
-This is done through the function ~org-fc-org-narrow-tree~.
-~org-fc-show-all~ can be used to remove all overlays (i.e. reset the
-display of the buffer).
-
-All parent headings are shown but their body text (~section~) is
-hidden.
-
-If the file has a ~#+TITLE:~ keyword this is shown, too.
-
-To hide the title during review (e.g. for a "Definition" flashcard),
-add a ~:notitle:~ tag to the heading.
-
-To hide the heading text of the current card during review, add a
-~:noheading:~ tag.
-*** Implementation of Card Review
-Review is implemented by storing due cards in a global variable.  The
-buffer the card is displayed in never leaves =org-mode=, [[https://github.com/abo-abo/hydra][abo-abo/hydra]]
-is used to show review statistics (number of cards remaining, percent
-again/hard/good/easy) and prompt for user actions.
-
-1. jump to the file + id of the current card
-2. set it up for review (i.e. hiding parts of the buffer)
-3. open a hydra prompting to flip the card
-4. flip the card or quit the review session
-5. open a hydra prompting for a rating
-6. rate the card or quit the review session
-7. set the current card to the next card due
-8. continue at 1.
-
-If an error occurs during review, ~org-fc-review-quit~ can be used to
-reset the current buffer and the review state.
-** (Un)suspending Cards
-Cards can be suspended (excluded from review) by adding a =suspended=
-tag, either by hand or using the ~org-fc-suspend-card~ command.
-
-All cards in the current buffer can be suspended using the
-~org-fc-suspend-buffer~ command.
-
-The reason for using a per-headline tag instead of a file keyword is
-that this way cards stay suspended when moved to another buffer.
-
-Cards can be un-suspended using the ~org-fc-unsuspend-card~ and
-~org-fc-unsuspend-buffer~ commands.
-
-If the card being unsuspended was not due for review yet,
-or was due less than 10% of its interval ago, its review data is not
-reset. If it was due by more than that, its review data is reset to
-the initial values.
+See also:
+- [[file:doc/review_internals.org][Review Internals]]
+- [[file:doc/review_history.org][Review History]]
 ** Dashboard / Statistics
 ~org-fc-dashboard~ shows a buffer with statistics for review performance
 and cards / card types.
@@ -259,12 +227,6 @@ See also:
 
 - [[file:doc/review_history.org][Review History]]
 - [[file:doc/advanced_statistics.org][Advanced Statistics]] (todo)
-** Card Types
-This package comes with a few predefined card types.
-They are documented in [[file:doc/card_types.org][Card Types]].
-
-[[file:demo.org][demo.org]] includes examples for each of these types.
 ** Other Documentation
 - [[file:doc/internals.org][Internals]]
-- [[file:doc/custom_spacing_algorithms.org][Custom Spacing Algorithms]] (todo)
 - [[file:doc/sharing_decks.org][Sharing Decks]] (todo)
