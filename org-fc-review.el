@@ -1,3 +1,4 @@
+(require 'org-fc-sm2)
 
 ;;; Configuration
 
@@ -89,7 +90,9 @@
         (let ((buffer (find-buffer-visiting path)))
           (with-current-buffer (find-file path)
             ;; If buffer was already open, don't kill it after rating the card
-            (if buffer (setq-local org-fc-reviewing-existing-buffer t))
+            (if buffer 
+	      (setq-local org-fc-reviewing-existing-buffer t)
+	      (setq-local org-fc-reviewing-existing-buffer nil))
             (goto-char (point-min))
             (org-fc-show-all)
             (org-fc-id-goto id path)
@@ -267,7 +270,7 @@ END is the start of the line with :END: on it."
       (org-table-align))))
 
 (defun org-fc-review-data-default (position)
-  (list position org-fc-sm2-initial-ease 0 0
+  (list position org-fc-sm2-ease-initial 0 0
         (org-fc-timestamp-now)))
 
 (defun org-fc-review-data-update (positions)

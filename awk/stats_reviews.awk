@@ -1,5 +1,5 @@
 BEGIN {
-    FS="\t"
+    FS = "\t"
     t_day = time_days_ago(1);
     t_week = time_days_ago(7);
     t_month = time_days_ago(30);
