@@ -107,6 +107,7 @@ Here is how that could look like using [[https://github.com/jwiegley/use-package
     (setq org-fc-directories '("~/org"))
     (setq org-fc-review-history-file "~/org/fc_reviews.tsv"))
 #+end_src
+
 *** Default Hydra
 [[file:org-fc-hydra.el]] defines a hydra for accessing commonly used
 org-fc commands and for marking headlines as flashcards.
@@ -117,11 +118,15 @@ It can be loaded and bound to a hotkey like this:
   (require 'org-fc-hydra)
   (global-set-key (kbd "C-c f") 'org-fc-hydra/body)
 #+end_src
-*** TODO Demo File
+*** Demo Mode
 A file demonstrating all card types is included.
 ~M-x org-fc-demo~ starts a review of this file.
 
 Note that the review data of the cards in this file *is not updated*.
+** Using this Package
+
+See also:
+- [[file:doc/incremental_reading.org][Incremental Reading]] (todo)
 ** Marking Headlines as Cards
 A *card* is an org-mode headline with a =:fc:= tag attached to it.
 Each card can have multiple *positions* reviewed independently from
@@ -246,122 +251,20 @@ If the card being unsuspended was not due for review yet,
 or was due less than 10% of its interval ago, its review data is not
 reset. If it was due by more than that, its review data is reset to
 the initial values.
-** Statistics
+** Dashboard / Statistics
 ~org-fc-dashboard~ shows a buffer with statistics for review performance
 and cards / card types.
-*** TODO Replace with R scripts run on the review history / card index
-*** Review History
-The review history is stored in a tsv file, to avoid cluttering org
-files. This makes it easy to calculate review statistics.
 
-At first, I used an org drawer to store the review history but that
-added to much overhead to the files (in one instance 6.5k lines of
-review history for a file of 9.5k lines in total).
+See also:
 
-Columns:
-1. Date in ISO8601 format, second precision
-2. Filename
-3. Card ID
-4. Position
-5. Ease (before review)
-6. Box (before review)
-7. Interval (before review)
-8. Rating
-
-More advanced review algorithms might need to use the review history
-of a card. In this case, the card ID + position should be used to look
-up the review history, as the filename can change when moving cards
-from file to file.
+- [[file:doc/review_history.org][Review History]]
+- [[file:doc/advanced_statistics.org][Advanced Statistics]] (todo)
 ** Card Types
-*** Normal Cards
-During review, the heading is shown with its "Back" subheading
-collapsed, when flipping the card, the back heading is shown,
-then the user is asked to rate the review performance.
+This package comes with a few predefined card types.
+They are documented in [[file:doc/card_types.org][Card Types]].
 
-Positions: =front=
-*** Text-Input Cards
-On review, the user is asked to type in a string which is then
-compared to the one stored in the ~:ANSWER:~ property of the card.
-
-Positions: =front=
-*** Double Cards
-Similar to normal cards, but reviewed both in the "Front -> Back"
-direction and in the "Back -> Front" direction.
-
-Positions: =front=, =back=
-*** Cloze Cards
-The cards text contains one or more *holes*.  During review, one hole
-is hidden while the text of (some) remaining ones is shown.
-
-Flipping the card reveals the text of the hidden hole,
-using ~org-fc-type-cloze-hole-face~ to highlight it.
-
-Card titles can contain holes, too.
-
-Positions: =0=, =1=, ...
-
-Cloze cards can have a number of sub-types.
-
-**** TODO Document type-specific properties
-**** TODO Implement & document type-changing functions
-**** Deletion ~'deletion~
-Only one hole is hidden.
-**** Enumerations ~'enumeration~
-All holes *behind* the currently review one are hidden, too.
-
-Useful for memorizing lists where the order of items is important.
-**** Context ~'context~
-Holes ~org-fc-type-cloze-context~ (default 1) around the currently
-reviewed one are shown.
-
-Useful for memorizing longer lists where the order of items is important.
-**** Hole Syntax
-Deletions can have the following forms
-
-- ~{{text}}~
-- ~{{text}@id}~
-- ~{{text}{hint}}~
-- ~{{text}{hint}@id}~
-
-~text~ should not contain any "}",
-unless it is part of a ~$latex$~ block.
-In this case, ~latex~ should not contain any "$".
-
-Holes *inside* latex blocks are not handled correctly at the moment.
-As a workaround, create multiple smaller latex blocks and wrap each in
-a hole.
-*** TODO Listening Cards
-When reviewing the card, an audio file is played.
-Flipping the card, a transcription / translation is revealed.
-
-Useful for learning to understand sentences spoken in a foreign
-language.
-*** Compact Cards
-For cards without a "Back" heading, the headline text is considered as
-the front, the main text as the back.
-
-This is useful for cards with a short front text, e.g. when learning
-definitions of words.
-*** Defining Own Card Types
-To define a custom card type,
-you need to implement three functions:
-
-- ~(...-init)~ to initialize a heading as a flashcard of this type,
-  setting up the cards properties & review data.
-  Should be marked as ~(interactive)~.
-- ~(...-setup position)~ to setup ~position~ of the card for review
-- ~(...-flip)~ to flip the card
-- ~(...-update)~ to update the review data of the card, e.g. if a new
-  hole is added to a cloze card
-
-All of these are called with ~(point)~ on the cards heading.
-
-Take a look at the =org-fc-type-<name>.el= files to see how these
-functions could be implemented.
-** Incremental Reading
-- [[https://github.com/alphapapa/org-web-tools]]
-*** TODO Supermemo link
+[[file:demo.org][demo.org]] includes examples for each of these types.
 ** Other Documentation
 - [[file:doc/internals.org][Internals]]
-- [[file:doc/custom_card_types.org][Custom Card Types]] (todo)
+- [[file:doc/custom_spacing_algorithms.org][Custom Spacing Algorithms]] (todo)
 - [[file:doc/sharing_decks.org][Sharing Decks]] (todo)

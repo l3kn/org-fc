@@ -1,0 +1,23 @@
+#+TITLE: Review History
+
+The review history is stored in a tsv file, to avoid cluttering org
+files. This makes it easy to calculate review statistics.
+
+At first, I used an org drawer to store the review history but that
+added to much overhead to the files (in one instance 6.5k lines of
+review history for a file of 9.5k lines in total).
+
+Columns:
+1. Date in ISO8601 format, second precision
+2. Filename
+3. Card ID
+4. Position
+5. Ease (before review)
+6. Box (before review)
+7. Interval (before review)
+8. Rating
+
+More advanced review algorithms might need to use the review history
+of a card. In this case, the card ID + position should be used to look
+up the review history, as the filename can change when moving cards
+from file to file.
