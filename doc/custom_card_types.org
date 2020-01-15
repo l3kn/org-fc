@@ -1,4 +1,4 @@
-#+TITLE: Custom Card Types
+#+TITLE: Custom Spacing Algorithms
 
 The interfaces defined by this package should be flexible enough to
 allow implementing custom review spacing algorithms.
