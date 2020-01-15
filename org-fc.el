@@ -1,5 +1,8 @@
 (require 'hydra)
 
+(require 'cl)
+(require 'eieio)
+
 (require 'org-fc-overlay)
 (require 'org-fc-review)
 (require 'org-fc-awk)
@@ -14,13 +17,13 @@
 
 ;; TODO: a combination of (load-path) and (buffer-file-name) could be
 ;; used for this
-(defcustom org-fc-source-path "~/src/org-fc/"
+(defcustom org-fc-source-path nil
   "Location of the org-fc sources, used to generate absolute
   paths to the awk scripts"
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-review-history-file "~/org/fc_reviews.tsv"
+(defcustom org-fc-review-history-file nil
   "File to store review results in."
   :type 'string
   :group 'org-fc)
@@ -43,11 +46,6 @@
 (defcustom org-fc-flashcard-tag "fc"
   "Tag for marking headlines as flashcards"
   :type 'string
-  :group 'org-fc)
-
-(defcustom org-fc-prefix-key (kbd "C-f")
-  "Prefix key for all flashcard key bindings"
-  :type 'key-sequence
   :group 'org-fc)
 
 (defcustom org-fc-directories '("~/org")
@@ -211,6 +209,7 @@ FN is called with point at the headline and no arguments."
   (org-map-entries
    (lambda () (if (org-fc-entry-p) (funcall fn)))))
 
+;;;###autoload
 (defun org-fc-update ()
   "Re-process the current flashcard"
   (interactive)
@@ -221,6 +220,7 @@ FN is called with point at the headline and no arguments."
     (let ((type (org-entry-get (point) "FC_TYPE")))
       (funcall (org-fc-type-update-fn type)))))
 
+;;;###autoload
 (defun org-fc-update-all ()
   "Re-process all flashcards in the current buffer"
   (interactive)
@@ -228,6 +228,7 @@ FN is called with point at the headline and no arguments."
 
 ;;; Suspending / Unsuspending Cards
 
+;;;###autoload
 (defun org-fc-suspend-card ()
   "Suspend the headline at point if it is a flashcard."
   (interactive)
@@ -237,6 +238,7 @@ FN is called with point at the headline and no arguments."
         (org-fc-add-tag org-fc-suspended-tag))
     (message "Entry at point is not a flashcard")))
 
+;;;###autoload
 (defun org-fc-suspend-buffer ()
   "Suspend all cards in the current buffer"
   (interactive)
@@ -248,19 +250,20 @@ FN is called with point at the headline and no arguments."
 if not, keep the current parameters."
   (when (org-fc-suspended-entry-p)
     (org-fc-remove-tag org-fc-suspended-tag)
-    (-as-> (org-fc-get-review-data) data
-           (--map
-            (let* ((pos (first it))
-                   (interval (string-to-number (fourth it)))
-                   (due (fifth it))
-                   (days-overdue (org-fc-days-overdue due)))
-              (print days-overdue)
-              (if (< days-overdue (* org-fc-unsuspend-overdue-percentage interval))
-                  it
-                  (org-fc-review-data-default pos)))
-            data)
-           (org-fc-set-review-data data))))
+    ;; Reset all positions overdue more than `org-fc-unsuspend-overdue-percentage'.
+    (org-fc-set-review-data
+     (mapcar
+      (lambda (row)
+        (let* ((pos (first row))
+               (interval (string-to-number (fourth row)))
+               (due (fifth row))
+               (days-overdue (org-fc-days-overdue due)))
+          (if (< days-overdue (* org-fc-unsuspend-overdue-percentage interval))
+              row
+            (org-fc-review-data-default pos))))
+      (org-fc-get-review-data)))))
 
+;;;###autoload
 (defun org-fc-unsuspend-card ()
   "Un-suspend the headline at point if it is a suspended
 flashcard."
@@ -270,10 +273,11 @@ flashcard."
              (org-fc--unsuspend-card))
     (message "Entry at point is not a suspended flashcard")))
 
+;;;###autoload
 (defun org-fc-unsuspend-buffer ()
   "Un-suspend all cards in the current buffer"
   (interactive)
-  (org-fc-map-cards 'org-fc-unsuspend-card))
+  (org-fc-map-cards 'org-fc--unsuspend-card))
 
 ;;; Indexing Cards
 
@@ -293,6 +297,7 @@ flashcard."
 
 ;;; Demo Mode
 
+;;;###autoload
 (defun org-fc-demo ()
   "Start a review of the demo file."
   (interactive)

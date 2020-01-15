@@ -99,16 +99,17 @@
       overlays)))
 
 (defun org-fc-type-cloze-flip ()
-  (-when-let (overlays org-fc-type-cloze--overlays)
-    (if (plist-member overlays :separator)
-        (org-fc-hide-overlay (plist-get overlays :separator)))
-    (if (plist-member overlays :after-hint)
-        (org-fc-hide-overlay (plist-get overlays :after-hint)))
-    (org-fc-hide-overlay (plist-get overlays :hint))
-    ;; (delete-overlay (plist-get overlays :text))
-    (org-fc-show-overlay
-     (plist-get overlays :text)
-     'org-fc-type-cloze-hole-face))
+  (if-let ((overlays org-fc-type-cloze--overlays))
+      (progn
+        (if (plist-member overlays :separator)
+            (org-fc-hide-overlay (plist-get overlays :separator)))
+        (if (plist-member overlays :after-hint)
+            (org-fc-hide-overlay (plist-get overlays :after-hint)))
+        (org-fc-hide-overlay (plist-get overlays :hint))
+        ;; (delete-overlay (plist-get overlays :text))
+        (org-fc-show-overlay
+         (plist-get overlays :text)
+         'org-fc-type-cloze-hole-face)))
   (org-fc-review-rate-hydra/body))
 
 (defun org-fc-type-cloze-setup (position)
