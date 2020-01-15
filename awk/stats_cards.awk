@@ -1,7 +1,7 @@
 BEGIN {
     FS="\t";
     total = 0;
-    suspended = 0;
+    n_suspended = 0;
 
     t_day = time_days_ago(1);
     t_week = time_days_ago(7);
@@ -17,27 +17,28 @@ BEGIN {
 
     type = $3;
     by_type[type] += 1;
+    suspended = $4 == "1";
 
-    if ($4 == "1") {
-        suspended++;
-    }
+    if (suspended) {
+        n_suspended++;
+    } else {
+        if ($5 > t_day) {
+            created["day"]++;
+        }
 
-    if ($5 > t_day) {
-        created["day"]++;
-    }
+        if ($5 > t_week) {
+            created["week"]++;
+        }
 
-    if ($5 > t_week) {
-        created["week"]++;
-    }
-
-    if ($5 > t_month) {
-        created["month"]++;
+        if ($5 > t_month) {
+            created["month"]++;
+        }
     }
 }
 
 END {
     print "total" "\t" total;
-    print "suspended" "\t" suspended;
+    print "suspended" "\t" n_suspended;
     print "created-day" "\t" created["day"];
     print "created-week" "\t" created["week"];
     print "created-month" "\t" created["month"];

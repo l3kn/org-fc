@@ -1,6 +1,13 @@
 * Org Flashcards
 Spaced-repetition system for use with Emacs org-mode.
 
+This package should be considered *work in progress*.  I use it on a
+daily basis but the API regularly changes in breaking ways.
+
+I still need to write proper setup instructions.
+For now, feel free to look around for pieces of code that might be
+useful to you.
+
 #+CAPTION: Review Demo
 [[file:images/review.png]]
 
@@ -35,13 +42,12 @@ One example would be storing one exercise per heading, using the
 positions to store one or more sets and logging the number of
 repetitions done on each "review".
 
-** Stability
-This package should be considered *unstable*.  I use it on a daily
-basis but the API might change in breaking ways.
+** Updating the Card Format
+I hope the current card / log format is flexible enough to accommodate
+upcoming changes.
 
-If that happens, I'll add a changelog entry with updating
-instructions.  In case the card format changes, I'll include code to
-update existing collections of cards.
+In case a update to the org sources is needed, I'll add a changelog
+entry with updating instructions.
 ** Prior Art
 There are a few other packages for implementing a SRS based on org-mode.
 
@@ -61,8 +67,7 @@ Thanks to the maintainers and all contributors for their work on these
 packages!
 
 *** TODO Mention supermemo, anki, memosyne
-** Design Criteria
-*** Performance
+** Performance
 All user-facing commands (especially during review) should be as fast
 as possible (<300ms).
 
@@ -73,11 +78,17 @@ L470, SSD).
 Using the lisp indexer based on ~org-map-entries~,
 searching a single 6500 line file with 333 flashcards takes ~1000ms,
 indexing the same file with =awk= takes around ~50ms.
+** Design Goals
+*** Easy Implementation of Custom Card Types
+** Design Choices
 *** All Relevant Data Kept Org Files
 For easy version control
 *** Multiple Cards per Org-Mode Heading
-*** Easy Implementation of Custom Card Types
-** Getting Started
+*** Review Directly on Org Files
+Reviewing cards is done directly on their org source file
+(instead of storing pre-processed/generated cards in a separate folder
+or in a database).
+** TODO Getting Started
 Before using this package, a few variables have to be set:
 
 - ~org-fc-directories~ :: list of directories to search for flashcards
@@ -136,9 +147,29 @@ This prevents flashcard due dates from showing up in the org-agenda
 and allows filtering for due cards by string-comparing a timestamp
 with one of the current time.
 ** Review
+Reviewing cards is done by opening the file the card is in,
+using a special narrowing function to hide other headings
+and drawers.
+
+With ~(point)~ on the headline to be reviewed,
+the setup function for this card type is called
+(e.g. to hide the cloze holes of the card).
+
+Then the flip function for the card type is called,
+usually opening a *hydra* showing available hotkeys.
+
+Once the card is flipped, another hydra for rating the card is shown.
+
 A review session can be started using ~org-fc-review-all~
 to review all cards that are due, or using ~org-fc-review-buffer~ to
 review only cards in the current buffer.
+
+The current review session can be ended / reset using
+~org-fc-review-quit~.
+
+Ideally, don't use any other hotkeys while in a review session.
+This exits the review hydra without ending the current review session
+making it necessary to do so manually (~org-fc-review-quit~).
 
 *** Display of Cards during Review
 TODO: Add image
@@ -242,7 +273,8 @@ Positions: =front=, =back=
 The cards text contains one or more *holes*.  During review, one hole
 is hidden while the text of (some) remaining ones is shown.
 
-Flipping the card reveals the text of the hidden hole.
+Flipping the card reveals the text of the hidden hole,
+using ~org-fc-type-cloze-hole-face~ to highlight it.
 
 Card titles can contain holes, too.
 
