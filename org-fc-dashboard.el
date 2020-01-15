@@ -126,6 +126,7 @@
   (set (make-local-variable 'revert-buffer-function) #'org-fc-dashboard-view)
   (setq-local cursor-type nil))
 
+;;;###autoload
 (defun org-fc-dashboard ()
   (interactive)
   (org-fc-dashboard-view nil nil)

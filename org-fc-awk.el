@@ -91,10 +91,10 @@ parsing each element with its header specification."
 
 (defun org-fc-tsv-parse (headers input)
   "Parse a tsv INPUT into a plist, give a list of HEADERS."
-  (let* ((lines (split-string input "\n" t)))
-    (--map (org-fc-tsv--parse-row
-            headers
-            (split-string it "\t")) lines)))
+  (mapcar
+   (lambda (row) (org-fc-tsv--parse-row headers (split-string row "\t")))
+   (split-string input "\n" t)))
+
 ;;;; TSV Headers
 
 (defvar org-fc-awk-card-headers

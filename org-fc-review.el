@@ -71,10 +71,12 @@
           (setf (oref session cards) cards)
           (org-fc-review-next-card))))))
 
+;;;###autoload
 (defun org-fc-review-buffer ()
   (interactive)
   (org-fc-review--context 'buffer))
 
+;;;###autoload
 (defun org-fc-review-all ()
   (interactive)
   (org-fc-review--context 'all))
@@ -90,7 +92,7 @@
         (let ((buffer (find-buffer-visiting path)))
           (with-current-buffer (find-file path)
             ;; If buffer was already open, don't kill it after rating the card
-            (if buffer 
+            (if buffer
 	      (setq-local org-fc-reviewing-existing-buffer t)
 	      (setq-local org-fc-reviewing-existing-buffer nil))
             (goto-char (point-min))
@@ -107,7 +109,7 @@
       (setq org-fc-review--current-session nil)
       (org-fc-show-all))))
 
-(defhydra org-fc-review-rate-hydra ()
+(defhydra org-fc-review-rate-hydra (:foreign-keys run)
   "
 %(length (oref org-fc-review--current-session cards)) cards remaining
 %s(org-fc-session-stats-string org-fc-review--current-session)
@@ -119,7 +121,7 @@
   ("e" (org-fc-review-rate-card 'easy) "Rate as easy" :exit t)
   ("q" org-fc-review-quit "Quit" :exit t))
 
-(defhydra org-fc-review-flip-hydra ()
+(defhydra org-fc-review-flip-hydra (:foreign-keys run)
   "
 %(length (oref org-fc-review--current-session cards)) cards remaining
 %s(org-fc-session-stats-string org-fc-review--current-session)
@@ -135,7 +137,7 @@
 a review session."
   (declare (indent defun))
   `(if org-fc-review--current-session
-      (-if-let (,var (oref org-fc-review--current-session current-item))
+      (if-let ((,var (oref org-fc-review--current-session current-item)))
         (if (string= (plist-get ,var :id) (org-id-get))
             (progn ,@body)
           (message "Flashcard ID mismatch"))
@@ -195,6 +197,7 @@ a review session."
                  (org-fc-review-next-time next-interval)))
           (org-fc-set-review-data data))))))
 
+;;;###autoload
 (defun org-fc-review-quit ()
   "Quit the review, remove all overlays from the buffer."
   (interactive)
