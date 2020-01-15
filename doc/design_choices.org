@@ -1,0 +1,25 @@
+#+TITLE: Design Choices
+
+* Timestamps Format
+The org-mode default timestamp format does not include timezone
+information and only hours and minutes of the time are stored.
+
+Because it includes the abbreviate name of the day (~%a~),
+timestamps can't be compared to each other using string comparison.
+
+They also include spaces which makes it hard to parse the timestamps
+in the review data table in awk..
+
+To avoid these issues, all timestamps added or used by org-fc are
+ISO8601 formatted (e.g. =2020-01-15T11:58:12=) using *UTC0* as the
+timezone.
+* Use of [[https://github.com/abo-abo/hydra][hydra]]
+To keep this package as small as possible, [[https://github.com/abo-abo/hydra][abo-abo/hydra]] is used
+for showing statistics and hotkeys during review.
+
+The main benefit of this is that it saves us from writing a lot of
+(hard) window / split / buffer management code.
+
+As a consequence, if you want to add your own hotkeys to one of the
+hydras used by this package, you'll have to write a new one instead of
+being able to redefine keys / add keys in an existing one.
