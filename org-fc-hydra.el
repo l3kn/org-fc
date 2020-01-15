@@ -1,0 +1,17 @@
+(defhydra org-fc-hydra ()
+  ("m" org-fc-dashboard "Dashboard" :exit t)
+  ("r" org-fc-review-all "Start Review")
+  ("u" org-fc-update "Update Card")
+  ("t" org-fc-hydra-type/body "Init Type" :exit t)
+  ("q" nil "Quit" :exit t))
+
+(defhydra org-fc-hydra-type ()
+  ("n" org-fc-type-normal-init "Normal" :exit t)
+  ("t" org-fc-type-text-input-init "Text Input" :exit t)
+  ("d" org-fc-type-double-init "Double" :exit t)
+  ("d" (org-fc-type-cloze-init 'deletion) "Deletion" :exit t)
+  ("e" (org-fc-type-cloze-init 'enumeration) "Enum" :exit t)
+  ("x" (org-fc-type-cloze-init 'context) "Context" :exit t)
+  ("q" nil "Quit" :exit t))
+
+(provide 'org-fc-hydra)
