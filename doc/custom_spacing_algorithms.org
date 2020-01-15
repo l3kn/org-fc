@@ -9,3 +9,13 @@ assumptions about the format of the review data.
 
 A good implementation of this should allow using different spacing
 algorithms based on a ~:FC_SPACING:~ property in the card.
+
+There are more advanced / complicated algorithms that could be
+implemented (SM5, MPI).
+
+In the years I've been using this algorithm, I've averaged a
+forgetting rate of ~6.8% on cards outside of the learning phase (box
+>= 2).
+
+I think the main benefit would be a decreased review frequency / density.
+I'm not sure the added complexity is worth this.

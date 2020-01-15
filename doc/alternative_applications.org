@@ -1,0 +1,10 @@
+#+TITLE: Alternative Applications
+
+While the primary application is learning information using spaced
+repetition, at the end, the API should be flexible enough to implement
+other kinds of repeating tasks where it is necessary to store data in
+addition to the next date.
+
+One example would be storing one exercise per heading, using the
+positions to store one or more sets and logging the number of
+repetitions done on each "review".
