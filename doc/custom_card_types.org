@@ -1,0 +1,11 @@
+#+TITLE: Custom Card Types
+
+The interfaces defined by this package should be flexible enough to
+allow implementing custom review spacing algorithms.
+
+This is not possible at the moment because the awk scripts and the
+functions for reading / updating the review data drawer make strong
+assumptions about the format of the review data.
+
+A good implementation of this should allow using different spacing
+algorithms based on a ~:FC_SPACING:~ property in the card.

@@ -1,0 +1,114 @@
+#+TITLE: Internals
+If your not interested in implementing your own card types or
+contributing to this package, you can skip this section.
+
+* Components
+** =org-fc.el=
+Main file.
+** =org-fc-dashboard.el=
+Dashboard displaying card / position / review statistics.
+** =org-fc-review.el=
+Functions related to reviewing cards, updating the review data drawer
+and logging review results.
+** =org-fc-sm2.el=
+Implementation of the [[https://www.supermemo.com/en/archives1990-2015/english/ol/sm2][SM2]] review spacing algorithm,
+modified to behave like the algorithm used by [[https://apps.ankiweb.net/docs/manual.html#what-algorithm][Anki]].
+
+It uses four ratings (again, hard, good, easy) instead of the six used
+in the supermemo variant.
+
+The first few reviews are done in fixed intervals
+(0.01 days / approx 15 minutes, 1 day, 6 days).
+
+After these intervals, reviews are scheduled by multiplying the cards
+current interval with its ease (initially 2.5, bound to be >= 1.3 and
+<= 5.0), then multiplying a random factor ~1 to avoid "chunking" of
+flashcards due for review.
+
+All of these parameters can be configured using the variables defined
+in =org-fc-sm2.el=.
+** =org-fc-awk.el=
+Functions for interacting with the awk indexer / filter / stats scripts.
+** =org-fc-overlay.el=
+Functions for hiding / revealing parts of org-mode buffers.
+** =org-fc-type-<name>.el=
+Implementations of flashcard types, for more details, see the "Card
+Types" section of this document.
+** TODO Document core api of each file
+* Coding Style
+Components are split into multiple smaller files,
+with each function prefixed by the files base-name.
+
+Public functions are named ~basename-functionname~,
+internal helper functions are named ~basename--functionname~.
+* Testing
+Unit-testing is done using ~org-fc-assert-...~ macros
+defined in =org-fc-assert.el=.
+
+These assertions are placed right after the function definition
+and run when the file is loaded. If an assertion fails,
+an ~'org-fc-assertion-error~ is raised.
+
+** TODO Integration Testing
+Integration testing is done by providing an input org file, a set of
+operations to be performed on it and an org file with the expected
+output.
+
+Tests are run by copying the input file to a temporary file, executing
+the operations on it, then comparing it to the expected output.
+
+Files for this live in the =fixtures/= folder.
+* =awk=
+~find~ is used to generate a list of =.org= files in
+~org-fc-directories~, these are then passed to =awk= scripts
+to generate lists of cards and card-positions.
+
+Only files starting with ~[a-Z0-9_]~ and a ~.org~ extension are
+indexed to exclude temp / hidden files.
+This can be customized with the ~org-fc-find-name~ variable.
+
+[[https://www.gnu.org/software/gawk/][gawk]] is a programming language for processing / parsing text.
+
+Assuming the input org files are well formatted, they can be
+efficiently parsed using regexeps and a small number of state
+variables.
+
+=awk= scripts in this package come in three types:
+
+1. Indexing, for generating lists of cards / positions
+3. Filtering, e.g. for selecting only unsuspended cards due now
+2. Aggregation, for generating statistics from these lists
+
+- =awk/indexer_cards.awk= :: list all card headings
+- =awk/indexer_positions.awk= :: list all card positions
+- =awk/filter_due.awk= :: select only unsuspended cards due right now
+- =awk/stats_cards.awk= :: stats over cards
+- =awk/stats_positions.awk= :: stats over positions
+- =awk/stats_reviews.awk= :: stats over the reviews tsv file
+
+These scripts use the =gawk= version of =awk= which should be
+available on any modern Linux / UNIX distribution.
+
+Configurable tags and properties can be passed to the indexer scripts as
+variables. If a tag or property is not passed to the script,
+a default value is used.
+
+* CSV Output Format
+Output is generated in *tab separated* form and *does not* include a
+header with column names. For the indexing scripts, the first two
+columns are the filename and the ID of the heading.
+
+The ~org-fc-tsv-parse~ function can be used to parse a tsv
+string into a plist, given a list of headers with optional type
+specifications.
+
+=0= (false) and =1= (true) are used for boolean values (e.g. for the
+"suspended" column).
+
+Dates are converted to ISO-8601 format, no timezone, minute-precision
+(e.g. =2019-10-09T16:49=).
+
+Unlike the format used by org mode, timestamps in ISO-8601 format can
+be compared lexicographically.
+
+Processing script output *tab separated* key-value pairs with no header.
