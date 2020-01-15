@@ -36,31 +36,31 @@ They are expected to return either ~'quit~ to end the review or one of
 See also:
 - [[file:doc/alternative_applications.org][Alternative Applications]]
 - [[file:doc/incremental_reading.org][Incremental Reading]] (todo)
-** Updating the Card Format
-I hope the current card / log format is flexible enough to accommodate
-upcoming changes.
+** Design Goals / Choices
+1. Use of =awk= for quickly finding cards due for review
+2. Support for multiple *positions* in a card / heading
+3. All relevant data kept in org files
+   for easy version control
+4. Review directly on the source org file
+   for easy editing of cards during review
 
-In case a update to the org sources is needed, I'll add a changelog
-entry with updating instructions.
+See [[file:doc/design_choices.org][Design Choices]] for more information.
 ** Prior Art
 There are a few other packages for implementing a SRS based on org-mode.
 
-The biggest difference between this package and the ones I've found so
-far:
-
-1. Use of =awk= for quickly finding cards due for review
-2. Support for multiple *positions* in a card
-
-Below, I've listed a few packages that are actively maintained and
-implement a lot of useful functionality.
+Below, I've listed a the ones I've found so far that are actively
+maintained and implement a lot of useful functionality.
 
 - [[https://gitlab.com/phillord/org-drill/][phillord/org-drill]]
 - [[https://github.com/abo-abo/pamparam][abo-abo/pamparam]]
 
+Other (open source) flashcard / spaced repetition software:
+
+- [[https://apps.ankiweb.net/][Anki]]
+- [[https://mnemosyne-proj.org/][Mnemosyne Project]]
+
 Thanks to the maintainers and all contributors for their work on these
 packages!
-
-*** TODO Mention supermemo, anki, memosyne
 ** Performance
 All user-facing commands (especially during review) should be as fast
 as possible (<300ms).
@@ -72,17 +72,6 @@ L470, SSD).
 Using the lisp indexer based on ~org-map-entries~,
 searching a single 6500 line file with 333 flashcards takes ~1000ms,
 indexing the same file with =awk= takes around ~50ms.
-** Design Goals
-See [[file:doc/design_choices.org][Design Choices]] for more information.
-
-*** Easy Implementation of Custom Card Types
-*** All Relevant Data Kept Org Files
-For easy version control
-*** Multiple Cards per Org-Mode Heading
-*** Review Directly on Org Files
-Reviewing cards is done directly on their org source file
-(instead of storing pre-processed/generated cards in a separate folder
-or in a database).
 ** Getting Started
 Before using this package, a few variables have to be set:
 
@@ -227,6 +216,12 @@ See also:
 
 - [[file:doc/review_history.org][Review History]]
 - [[file:doc/advanced_statistics.org][Advanced Statistics]] (todo)
+** Updating the Card Format
+I hope the current card / log format is flexible enough to accommodate
+upcoming changes.
+
+In case a update to the org sources is needed, I'll add a changelog
+entry with updating instructions.
 ** Other Documentation
 - [[file:doc/internals.org][Internals]]
 - [[file:doc/sharing_decks.org][Sharing Decks]] (todo)
