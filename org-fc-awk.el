@@ -61,16 +61,12 @@ each separated by a tab, into a keyword-number plist."
 
 ;;;; TSV
 
-(defun org-fc-tsv--parse-date (date)
-  "Parse an ISO8601 date to an Emacs time."
-  (parse-iso8601-time-string (concat date ":00")))
-
 (defun org-fc-tsv--parse-element (header element)
   "Parse an ELEMENT of a row given a single HEADER element."
   (if (listp header)
       (pcase (cdr header)
         ('string element)
-        ('date (org-fc-tsv--parse-date element))
+        ('date (parse-iso8601-time-string element))
         ('number (string-to-number element))
         ('symbol (intern element))
         ('keyword (intern (concat ":" element)))

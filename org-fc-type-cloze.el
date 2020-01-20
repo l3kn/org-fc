@@ -1,8 +1,9 @@
 (defvar org-fc-type-cloze-max-hole-property "FC_CLOZE_MAX")
 (defvar org-fc-type-cloze-type-property "FC_CLOZE_TYPE")
 
+;; NOTE: The context type is not implemented yet
 (defvar org-fc-type-cloze-types
-  '(deletion enumeration context))
+  '(deletion enumeration context single))
 
 (defvar org-fc-type-cloze--overlays '())
 
@@ -82,7 +83,8 @@
     (org-fc-goto-entry-heading)
     (let* ((el (org-element-at-point))
            (end (org-element-property :contents-end el))
-           (overlays nil))
+           (overlays nil)
+           (seen-current nil))
       (while (re-search-forward org-fc-type-cloze-id-hole-re end t)
         (let ((text (match-string 1))
               (hint (match-string 2))
@@ -90,12 +92,22 @@
               (hole-beg (match-beginning 0))
               (hole-end (match-end 0)))
           (if (= hole id)
-              (setq overlays (org-fc-type-cloze--overlay-current))
-            (if (and (eq type 'enumeration) overlays)
-                (org-fc-hide-region hole-beg hole-end "...")
-              (progn
-                (org-fc-hide-region hole-beg (match-beginning 1))
-                (org-fc-hide-region (match-end 1) hole-end))))))
+              (progn (setq overlays (org-fc-type-cloze--overlay-current))
+                     (setq seen-current t))
+            (case type
+              ('enumeration
+               (if seen-current
+                   (org-fc-hide-region hole-beg hole-end "...")
+                 (progn
+                   (org-fc-hide-region hole-beg (match-beginning 1))
+                   (org-fc-hide-region (match-end 1) hole-end))))
+              ('deletion
+               (progn
+                 (org-fc-hide-region hole-beg (match-beginning 1))
+                 (org-fc-hide-region (match-end 1) hole-end)))
+              ('single
+               (org-fc-hide-region hole-beg hole-end "..."))
+              (t (error "org-fc: Unknown cloze card type %s" type))))))
       overlays)))
 
 (defun org-fc-type-cloze-flip ()

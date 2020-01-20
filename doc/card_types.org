@@ -44,6 +44,12 @@ Only one hole is hidden.
 All holes *behind* the currently review one are hidden, too.
 
 Useful for memorizing lists where the order of items is important.
+** Single ~'single~
+All holes besides the current one are hidden.
+
+Useful for learning syntax or function names of a programming language
+by using a =src= block in the card and marking parts of the code as
+holes.
 ** Context ~'context~
 Holes ~org-fc-type-cloze-context~ (default 1) around the currently
 reviewed one are shown.
