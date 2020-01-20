@@ -4,7 +4,9 @@ Spaced-repetition system for use with Emacs org-mode.
 This package should be considered *work in progress*.  I use it on a
 daily basis but the API regularly changes in breaking ways.
 
-I still need to write proper setup instructions.
+I still need to write proper setup instructions. In the meantime, if
+you need help setting up this package, feel free to open an issue.
+
 For now, feel free to look around for pieces of code that might be
 useful to you.
 
