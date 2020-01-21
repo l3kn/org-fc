@@ -128,6 +128,7 @@
 
 "
   ("RET" org-fc-review-flip "Flip" :exit t)
+  ("t" org-fc-tag-card "Add Tag")
   ;; Neo-Layout ergonomics
   ("n" org-fc-review-flip "Flip" :exit t)
   ("q" org-fc-review-quit "Quit" :exit t))
