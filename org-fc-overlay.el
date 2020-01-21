@@ -31,7 +31,7 @@ Returns nil if there is no title keyword."
   (remove-overlays (point-min) (point-max) 'category 'org-fc-visible))
 
 ;; Based on `outline-flag-region'
-(defun org-fc-hide-region (from to &optional text)
+(defun org-fc-hide-region (from to &optional text face)
   "Hide region, optionally replacing it with TEXT."
   ;; (remove-overlays from to 'category 'org-fc-hidden)
   (let ((o (make-overlay from to nil 'front-advance)))
@@ -42,16 +42,17 @@ Returns nil if there is no title keyword."
     (if (stringp text)
         (progn
           (overlay-put o 'invisible nil)
-          (overlay-put o 'face 'default)
+          (if face (overlay-put o 'face face))
           (overlay-put o 'display text))
       (overlay-put o 'invisible t))
     o))
 
-(defun org-fc-overlay-region (from to)
+(defun org-fc-overlay-region (from to &optional face)
   "Wrap region in an overlay for later hiding"
   ;; (remove-overlays from to 'category 'org-fc-hidden)
   (let ((o (make-overlay from to)))
     (overlay-put o 'evaporate t)
+    (if face (overlay-put o 'face face))
     (overlay-put o 'invisible nil)
     (overlay-put o 'category 'org-fc-visible)
     o))

@@ -1,5 +1,15 @@
-(defvar org-fc-type-cloze-max-hole-property "FC_CLOZE_MAX")
-(defvar org-fc-type-cloze-type-property "FC_CLOZE_TYPE")
+;;; Configuration
+
+(defcustom org-fc-type-cloze-max-hole-property "FC_CLOZE_MAX"
+  "Name of the headline property to use for storing the max hole
+index."
+  :type 'string
+  :group 'org-fc)
+(defcustom org-fc-type-cloze-type-property "FC_CLOZE_TYPE"
+  "Name of the headline property to use for storing the cloze
+subtype."
+  :type 'string
+  :group 'org-fc)
 
 ;; NOTE: The context type is not implemented yet
 (defvar org-fc-type-cloze-types
@@ -7,13 +17,17 @@
 
 (defvar org-fc-type-cloze--overlays '())
 
-(defvar org-fc-type-cloze-context 1
-  "Number of surrounding cards to show for 'context' type cards")
+(defcustom org-fc-type-cloze-context 1
+  "Number of surrounding cards to show for 'context' type cards"
+  :type 'number
+  :group 'org-fc)
 
 (defface org-fc-type-cloze-hole-face
   '((t (:bold t)))
   "Face for org-fc cloze card holes."
   :group 'org-fc)
+
+;;; Hole Regex
 
 (defvar org-fc-type-cloze-hole-re
   (rx
@@ -41,6 +55,8 @@
     "}"))
   "Regexp for a cloze hole with an id.")
 
+;;; Hole Parsing / Hiding
+
 (defun org-fc-type-cloze-max-hole-id ()
   (let ((max-id (org-entry-get (point) org-fc-type-cloze-max-hole-property)))
     (if max-id
@@ -65,18 +81,22 @@
        :text
        (org-fc-hide-region (match-beginning 1) (match-end 1))
        :separator
-       (org-fc-hide-region (match-end 1) (match-beginning 2) "[...")
+       (org-fc-hide-region (match-end 1) (match-beginning 2)
+                           "[..." 'org-fc-type-cloze-hole-face)
        :hint
-       (org-fc-overlay-region (match-beginning 2) (match-end 2))
+       (org-fc-overlay-region (match-beginning 2) (match-end 2)
+                              'org-fc-type-cloze-hole-face)
        :after-hint
-       (org-fc-hide-region (match-end 2) hole-end "]"))
+       (org-fc-hide-region (match-end 2) hole-end
+                           "]" 'org-fc-type-cloze-hole-face))
     (list
      :before-text
      (org-fc-hide-region hole-beg (match-beginning 1))
      :text
      (org-fc-hide-region (match-beginning 1) (match-end 1))
      :hint
-     (org-fc-hide-region (match-end 1) hole-end "[...]"))))
+     (org-fc-hide-region (match-end 1) hole-end
+                         "[...]" 'org-fc-type-cloze-hole-face))))
 
 (defun org-fc-type-cloze-hide-holes (hole type)
   (save-excursion
@@ -110,6 +130,8 @@
               (t (error "org-fc: Unknown cloze card type %s" type))))))
       overlays)))
 
+;;; Setup / Flipping
+
 (defun org-fc-type-cloze-flip ()
   (if-let ((overlays org-fc-type-cloze--overlays))
       (progn
@@ -118,7 +140,6 @@
         (if (plist-member overlays :after-hint)
             (org-fc-hide-overlay (plist-get overlays :after-hint)))
         (org-fc-hide-overlay (plist-get overlays :hint))
-        ;; (delete-overlay (plist-get overlays :text))
         (org-fc-show-overlay
          (plist-get overlays :text)
          'org-fc-type-cloze-hole-face)))
