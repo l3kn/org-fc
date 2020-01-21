@@ -60,6 +60,11 @@
   :type 'float
   :group 'org-fc)
 
+(defcustom org-fc-card-tags (list org-fc-suspended-tag)
+  "Card tags that can be added during review."
+  :type 'list
+  :group 'org-fc)
+
 ;; TODO: Allow customizing this, currently that's not possible because
 ;; the indexers / filters expect a ISO8601 format.
 (defvar org-fc-timestamp-format "%FT%H:%M:%S"
@@ -134,16 +139,23 @@ Used to determine if a card uses the compact style."
 
 ;;; Adding / Removing Tags
 
-(defun org-fc-add-tag (tag)
+(defun org-fc--add-tag (tag)
   "Add TAG to the heading at point."
   (org-set-tags-to (remove-duplicates
                     (cons tag (org-get-tags-at (point) t))
                     :test #'string=)))
 
-(defun org-fc-remove-tag (tag)
+(defun org-fc--remove-tag (tag)
   "Add TAG to the heading at point."
   (org-set-tags-to
    (remove tag (org-get-tags-at (point) t))))
+
+;;;###autoload
+(defun org-fc-tag-card (tag)
+  "Add one of the predefined card tags to the current card,
+e.g. to suspend a card during review."
+  (interactive (list (completing-read "Tag: " org-fc-card-tags)))
+  (org-fc--add-tag tag))
 
 ;;; Registering Card Types
 
@@ -192,7 +204,7 @@ Should only be used by the init functions of card types."
    (org-fc-timestamp-now))
   (org-set-property org-fc-type-property type)
   (org-id-get-create)
-  (org-fc-add-tag org-fc-flashcard-tag))
+  (org-fc--add-tag org-fc-flashcard-tag))
 
 ;;; Default Card Types
 
@@ -235,7 +247,7 @@ FN is called with point at the headline and no arguments."
   (if (org-fc-entry-p)
       (progn
         (org-fc-goto-entry-heading)
-        (org-fc-add-tag org-fc-suspended-tag))
+        (org-fc--add-tag org-fc-suspended-tag))
     (message "Entry at point is not a flashcard")))
 
 ;;;###autoload
@@ -249,7 +261,7 @@ FN is called with point at the headline and no arguments."
 `org-fc-unsuspend-overdue-percentage' of its interval, reset it to box 0,
 if not, keep the current parameters."
   (when (org-fc-suspended-entry-p)
-    (org-fc-remove-tag org-fc-suspended-tag)
+    (org-fc--remove-tag org-fc-suspended-tag)
     ;; Reset all positions overdue more than `org-fc-unsuspend-overdue-percentage'.
     (org-fc-set-review-data
      (mapcar
