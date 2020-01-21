@@ -207,6 +207,12 @@ Ideally, don't use any other hotkeys while in a review session.
 This exits the review hydra without ending the current review session
 making it necessary to do so manually (~org-fc-review-quit~).
 
+~org-fc-tag-card~ can be used on a card heading or during review
+to add one of the ~org-fc-card-tags~ to the card.
+
+Tags can be added to this list using ~(add-to-list 'org-fc-card-tags
+"my-tag")~.
+
 See also:
 - [[file:doc/review_internals.org][Review Internals]]
 - [[file:doc/review_history.org][Review History]]
