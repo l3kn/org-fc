@@ -118,8 +118,7 @@ Only 'awk is supported at the moment.")
 
 (defun org-fc-show-latex ()
   "Show / re-display latex fragments."
-  (org-clear-latex-preview)
-  (org-latex-preview))
+  (org-toggle-latex-fragment 4))
 
 ;; TODO: Rewrite using skip parameter
 (defun org-fc-has-back-heading-p ()

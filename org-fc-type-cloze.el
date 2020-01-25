@@ -90,7 +90,7 @@ subtype."
 ;; unnecessarily complicated. I couldn't get latex / org text emphasis
 ;; to work otherwise.  If the hole has no hint, we can't use any
 ;; properties of match 2.
-(defun org-fc-type-cloze--overlay-current ()
+(defun org-fc-type-cloze--overlay-current (hole-beg hole-end)
   "Generate a list of overlays to display the hole currently
   being reviewed."
   (if (match-beginning 2)
@@ -131,7 +131,7 @@ subtype."
               (hole-beg (match-beginning 0))
               (hole-end (match-end 0)))
           (if (= hole id)
-              (progn (setq overlays (org-fc-type-cloze--overlay-current))
+              (progn (setq overlays (org-fc-type-cloze--overlay-current hole-beg hole-end))
                      (setq seen-current t))
             (case type
               ('enumeration
