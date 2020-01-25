@@ -77,89 +77,126 @@ subtype."
 ;;; Hole Parsing / Hiding
 
 (defun org-fc-type-cloze-max-hole-id ()
-  (let ((max-id (org-entry-get (point) org-fc-type-cloze-max-hole-property)))
-    (if max-id
-        (string-to-number max-id)
-      -1)))
-
-(defun org-fc-type-cloze-hole (deletion)
-  "Generate the string used to mark the hole left by DELETION"
-  (format "[%s...]" (or (plist-get deletion :hint) "")))
+  (if-let ((max-id (org-entry-get (point) org-fc-type-cloze-max-hole-property)))
+      (string-to-number max-id)
+    -1))
 
 ;; NOTE: The way parts of the hole are hidden / revealed is probably
 ;; unnecessarily complicated. I couldn't get latex / org text emphasis
 ;; to work otherwise.  If the hole has no hint, we can't use any
 ;; properties of match 2.
-(defun org-fc-type-cloze--overlay-current (hole-beg hole-end)
+(defun org-fc-type-cloze--overlay-current (hole)
   "Generate a list of overlays to display the hole currently
   being reviewed."
-  (if (match-beginning 2)
+  (let ((hole-pos (plist-get hole :hole-pos))
+        (text-pos (plist-get hole :text-pos))
+        (hint-pos (plist-get hole :hint-pos)))
+    (if (car hint-pos)
+        (list
+         :before-text
+         (org-fc-hide-region (car hole-pos) (car text-pos))
+         :text
+         (org-fc-hide-region (car text-pos) (cdr text-pos))
+         :separator
+         (org-fc-hide-region (cdr text-pos) (car hint-pos)
+          "[..."
+          'org-fc-type-cloze-hole-face)
+         :hint
+         (org-fc-overlay-region (car hint-pos) (cdr hint-pos)
+          'org-fc-type-cloze-hole-face)
+         :after-hint
+         (org-fc-hide-region (cdr hint-pos) (cdr hole-pos)
+          "]"
+          'org-fc-type-cloze-hole-face))
       (list
        :before-text
-       (org-fc-hide-region hole-beg (match-beginning 1))
+       (org-fc-hide-region (car hole-pos) (car text-pos))
        :text
-       (org-fc-hide-region (match-beginning 1) (match-end 1))
-       :separator
-       (org-fc-hide-region (match-end 1) (match-beginning 2)
-                           "[..." 'org-fc-type-cloze-hole-face)
+       (org-fc-hide-region (car text-pos) (cdr text-pos))
        :hint
-       (org-fc-overlay-region (match-beginning 2) (match-end 2)
-                              'org-fc-type-cloze-hole-face)
-       :after-hint
-       (org-fc-hide-region (match-end 2) hole-end
-                           "]" 'org-fc-type-cloze-hole-face))
-    (list
-     :before-text
-     (org-fc-hide-region hole-beg (match-beginning 1))
-     :text
-     (org-fc-hide-region (match-beginning 1) (match-end 1))
-     :hint
-     (org-fc-hide-region (match-end 1) hole-end
-                         "[...]" 'org-fc-type-cloze-hole-face))))
+       (org-fc-hide-region (cdr text-pos) (cdr hole-pos)
+        "[...]"
+        'org-fc-type-cloze-hole-face)))))
 
-(defun org-fc-type-cloze-hide-holes (hole type)
+(defun org-fc-type-cloze--parse-holes (current-id end)
+  "Starting at point, collect all cloze holes before END.
+Returns a pair (holes . current-position)."
+  (let ((holes nil)
+        (current-position nil))
+    (while (re-search-forward org-fc-type-cloze-id-hole-re end t)
+      (let ((text (match-string 1))
+            (hint (match-string 2))
+            (id (string-to-number (match-string 3))))
+        (push `(:text ,text :hint ,hint :id ,id
+                      :hole-pos (,(match-beginning 0) . ,(match-end 0))
+                      :text-pos (,(match-beginning 1) . ,(match-end 1))
+                      :hint-pos (,(match-beginning 2) . ,(match-end 2)))
+              holes)
+        ;; Track the position of the current hole in the list of holes
+        (if (= current-id id) (setq current-position (1- (length holes))))))
+    (cons (reverse holes) current-position)))
+
+(defun org-fc-type-cloze--tag-holes (type holes current-position)
+  "Given a list of HOLES and the position of the hole currently being reviewed,
+add a :show / :hide / :hint tag to the hole, depending on the
+current card TYPE."
+  (loop for i below (length holes)
+        for hole in holes
+        collect
+        (if (= i current-position)
+            (cons hole :hint)
+          (case type
+            ('enumeration
+             (if (< i current-position)
+                 (cons hole :show)
+               (cons hole :hide)))
+            ('deletion (cons hole :show))
+            ('single (cons hole :hide))
+            ('context
+             (if (<= (abs (- i current-position)) org-fc-type-cloze-context)
+               (cons hole :show)
+               (cons hole :hide)))
+            (t (error "org-fc: Unknown cloze card type %s" type))))))
+
+(defun org-fc-type-cloze-hide-holes (current-id type)
   (save-excursion
     (org-fc-goto-entry-heading)
     (let* ((el (org-element-at-point))
-           (end (org-element-property :contents-end el))
            (overlays nil)
-           (seen-current nil))
-      (while (re-search-forward org-fc-type-cloze-id-hole-re end t)
-        (let ((text (match-string 1))
-              (hint (match-string 2))
-              (id (string-to-number (match-string 3)))
-              (hole-beg (match-beginning 0))
-              (hole-end (match-end 0)))
-          (if (= hole id)
-              (progn (setq overlays (org-fc-type-cloze--overlay-current hole-beg hole-end))
-                     (setq seen-current t))
-            (case type
-              ('enumeration
-               (if seen-current
-                   (org-fc-hide-region hole-beg hole-end "...")
-                 (progn
-                   (org-fc-hide-region hole-beg (match-beginning 1))
-                   (org-fc-hide-region (match-end 1) hole-end))))
-              ('deletion
-               (progn
-                 (org-fc-hide-region hole-beg (match-beginning 1))
-                 (org-fc-hide-region (match-end 1) hole-end)))
-              ('single
-               (org-fc-hide-region hole-beg hole-end "..."))
-              (t (error "org-fc: Unknown cloze card type %s" type))))))
-      overlays)))
+           (end (org-element-property :contents-end el))
+           (holes (org-fc-type-cloze--parse-holes current-id end))
+           (tagged-holes (org-fc-type-cloze--tag-holes type (car holes) (cdr holes))))
+      (loop for (hole . tag) in (reverse tagged-holes)
+            do
+            (case tag
+              (:show
+               (org-fc-hide-region
+                (car (plist-get hole :hole-pos))
+                (car (plist-get hole :text-pos)))
+               (org-fc-hide-region
+                (cdr (plist-get hole :text-pos))
+                (cdr (plist-get hole :hole-pos))))
+              (:hide
+               (org-fc-hide-region
+                (car (plist-get hole :hole-pos))
+                (cdr (plist-get hole :hole-pos))
+                "..."))
+              (:hint
+               (setq overlays (org-fc-type-cloze--overlay-current hole)))))
+    overlays)))
+
 
 ;;; Setup / Flipping
 
 (defun org-fc-type-cloze-flip ()
   (if-let ((overlays org-fc-type-cloze--overlays))
-      (progn
-        (if (plist-member overlays :separator)
-            (org-fc-hide-overlay (plist-get overlays :separator)))
-        (if (plist-member overlays :after-hint)
-            (org-fc-hide-overlay (plist-get overlays :after-hint)))
-        (org-fc-hide-overlay (plist-get overlays :hint))
-        (org-fc-show-overlay
+    (progn
+  (if (plist-member overlays :separator)
+    (org-fc-hide-overlay (plist-get overlays :separator)))
+  (if (plist-member overlays :after-hint)
+    (org-fc-hide-overlay (plist-get overlays :after-hint)))
+  (org-fc-hide-overlay (plist-get overlays :hint))
+  (org-fc-show-overlay
          (plist-get overlays :text)
          'org-fc-type-cloze-hole-face)))
   (org-fc-review-rate-hydra/body))
@@ -198,7 +235,7 @@ Processes all holes in the card text."
          (hole-id (1+ (org-fc-type-cloze-max-hole-id)))
          ids)
     (save-excursion
-      (while (re-search-forward org-fc-type-cloze-hole-re end t)
+  (while (re-search-forward org-fc-type-cloze-hole-re end t)
         (let ((id (match-string 3))
               (hole-end (match-end 0)))
           (unless id
