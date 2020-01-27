@@ -30,8 +30,14 @@
 
 (defclass org-fc-review-session ()
   ((current-item :initform nil)
-   (ratings :initform nil)
-   (cards :initform nil)))
+   (ratings :initform nil :initarg :ratings)
+   (cards :initform nil :initarg :cards)))
+
+(defun org-fc-make-review-session (cards)
+  (make-instance
+   'org-fc-review-session
+   :ratings (plist-get (org-fc-awk-stats-reviews) :day)
+   :cards cards))
 
 (defun org-fc-session-cards-pending-p (session)
   (not (null (oref session cards))))
@@ -42,17 +48,23 @@
     card))
 
 (defun org-fc-session-add-rating (session rating)
-  (push rating (oref session ratings)))
+  (with-slots (ratings) session
+    (case rating
+      ('again (incf (getf ratings :again) 1))
+      ('hard (incf (getf ratings :hard) 1))
+      ('good (incf (getf ratings :good) 1))
+      ('easy (incf (getf ratings :easy) 1)))
+    (incf (getf ratings :total 1))))
 
 (defun org-fc-session-stats-string (session)
   (with-slots (ratings) session
-    (let ((len (length ratings)))
-      (if (plusp len)
+    (let ((total (plist-get ratings :total)))
+      (if (plusp total)
           (format "%.2f again, %.2f hard, %.2f good, %.2f easy"
-                  (/ (* 100.0 (count 'again ratings)) len)
-                  (/ (* 100.0 (count 'hard ratings)) len)
-                  (/ (* 100.0 (count 'good ratings)) len)
-                  (/ (* 100.0 (count 'easy ratings)) len))
+                  (/ (* 100.0 (plist-get ratings :again)) total)
+                  (/ (* 100.0 (plist-get ratings :hard)) total)
+                  (/ (* 100.0 (plist-get ratings :good)) total)
+                  (/ (* 100.0 (plist-get ratings :easy)) total))
         "No ratings yet"))))
 
 (defvar org-fc-review--current-session nil
@@ -79,15 +91,15 @@
 ;;; Reviewing Cards
 
 (defun org-fc-review--context (context)
-  (let* ((session (make-instance 'org-fc-review-session))
-         (cards (org-fc-due-positions context)))
-    (if org-fc-review--current-session
-        (message "Flashcards are already being reviewed")
+  "Start a review session for all cards in CONTEXT."
+  (if org-fc-review--current-session
+      (message "Flashcards are already being reviewed")
+    (let ((cards (org-fc-due-positions context)))
       (if (null cards)
           (message "No cards due right now")
         (progn
-          (setq org-fc-review--current-session session)
-          (setf (oref session cards) cards)
+          (setq org-fc-review--current-session
+                (org-fc-make-review-session cards))
           (org-fc-review-next-card))))))
 
 ;;;###autoload
@@ -112,8 +124,8 @@
           (with-current-buffer (find-file path)
             ;; If buffer was already open, don't kill it after rating the card
             (if buffer
-	      (setq-local org-fc-reviewing-existing-buffer t)
-	      (setq-local org-fc-reviewing-existing-buffer nil))
+                (setq-local org-fc-reviewing-existing-buffer t)
+              (setq-local org-fc-reviewing-existing-buffer nil))
             (goto-char (point-min))
             (org-fc-show-all)
             (org-fc-id-goto id path)
@@ -128,7 +140,7 @@
       (setq org-fc-review--current-session nil)
       (org-fc-show-all))))
 
-(defhydra org-fc-review-rate-hydra (:foreign-keys run)
+(defhydra org-fc-review-rate-hydra ()
   "
 %(length (oref org-fc-review--current-session cards)) cards remaining
 %s(org-fc-session-stats-string org-fc-review--current-session)
@@ -140,7 +152,7 @@
   ("e" (org-fc-review-rate-card 'easy) "Rate as easy" :exit t)
   ("q" org-fc-review-quit "Quit" :exit t))
 
-(defhydra org-fc-review-flip-hydra (:foreign-keys run)
+(defhydra org-fc-review-flip-hydra ()
   "
 %(length (oref org-fc-review--current-session cards)) cards remaining
 %s(org-fc-session-stats-string org-fc-review--current-session)

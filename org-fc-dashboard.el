@@ -42,11 +42,12 @@
   "Generate a svg bar-chart for the plist STAT"
   (let* ((width org-fc-dashboard-bar-chart-width)
          (height org-fc-dashboard-bar-chart-height)
+         (total (plist-get stat :total))
          (values
-          `((,(or (plist-get stat :again) 0.0) . "red")
-            (,(or (plist-get stat :hard) 0.0) . "yellow")
-            (,(or (plist-get stat :good) 0.0) . "green")
-            (,(or (plist-get stat :easy) 0.0) . "darkgreen")))
+          `((,(/ (plist-get stat :again) total) . "red")
+            (,(/ (plist-get stat :hard) total) . "yellow")
+            (,(/ (plist-get stat :good) total) . "green")
+            (,(/ (plist-get stat :easy) total) . "darkgreen")))
          (svg (svg-create width height)))
     (do ((values values (cdr values))
          (pos 0 (+ pos (* width (caar values)))))
@@ -55,11 +56,12 @@
     (svg-image svg)))
 
 (defun org-fc-dashboard-percent-right (stats)
-  (format "  %5.2f | %5.2f | %5.2f | %5.2f"
-          (or (* 100 (plist-get stats :again)) 0.0)
-          (or (* 100 (plist-get stats :hard)) 0.0)
-          (or (* 100 (plist-get stats :good)) 0.0)
-          (or (* 100 (plist-get stats :easy)) 0.0)))
+  (let ((total (plist-get stats :total)))
+   (format "  %5.2f | %5.2f | %5.2f | %5.2f"
+           (or (* 100 (/ (plist-get stats :again) total)) 0.0)
+           (or (* 100 (/ (plist-get stats :hard) total)) 0.0)
+           (or (* 100 (/ (plist-get stats :good) total)) 0.0)
+           (or (* 100 (/ (plist-get stats :easy) total)) 0.0))))
 
 ;;; Main View
 
@@ -121,8 +123,8 @@
                        (:month . "Month")
                        (:all . "All")))
         (when-let (stat (plist-get reviews-stats (car scope)))
-          (when (plusp (plist-get stat :reviews))
-            (insert (propertize (format "    %s (%d)\n" (cdr scope) (plist-get stat :reviews)) 'face 'org-level-1))
+          (when (plusp (plist-get stat :total))
+            (insert (propertize (format "    %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
             (insert "    ")
             (insert-image (org-fc-dashboard-bar-chart stat))
             (insert (org-fc-dashboard-percent-right stat))
