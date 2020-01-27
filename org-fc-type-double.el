@@ -41,8 +41,6 @@
   (org-fc-review-flip-hydra/body))
 
 (defun org-fc-type-double-flip ()
-  (message "double flip")
-  (pp org-fc-type-double--overlay)
   (if org-fc-type-double--overlay
       (delete-overlay org-fc-type-double--overlay))
   (org-show-subtree)

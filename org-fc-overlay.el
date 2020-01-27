@@ -165,7 +165,7 @@ the current topic."
   (save-excursion
     (org-fc-goto-entry-heading)
     (let* ((end (org-fc-overlay--point-at-end-of-previous))
-           (tags (org-get-tags nil t))
+           (tags (org-get-tags-at nil 'local))
            (notitle (member "notitle" tags))
            (noheading (member "noheading" tags))
            (el (org-element-at-point))
