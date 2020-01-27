@@ -24,6 +24,8 @@
 
 (require 'cl)
 (require 'eieio)
+(require 'org-id)
+(require 'subr-x)
 
 (require 'org-fc-overlay)
 (require 'org-fc-review)
@@ -37,15 +39,13 @@
   :group 'external
   :group 'text)
 
-;; TODO: a combination of (load-path) and (buffer-file-name) could be
-;; used for this
-(defcustom org-fc-source-path nil
+(defvar org-fc-source-path
+  (file-name-directory
+   (or load-file-name (buffer-file-name)))
   "Location of the org-fc sources, used to generate absolute
-  paths to the awk scripts"
-  :type 'string
-  :group 'org-fc)
+  paths to the awk scripts")
 
-(defcustom org-fc-review-history-file nil
+(defcustom org-fc-review-history-file "~/.emacs.d/org-fc-reviews.tsv"
   "File to store review results in."
   :type 'string
   :group 'org-fc)
@@ -147,7 +147,7 @@ Used to determine if a card uses the compact style."
 
 (defun org-fc-part-of-entry-p ()
   "Check if the current heading belongs to a flashcard"
-  (member org-fc-flashcard-tag (org-get-tags-at)))
+  (member org-fc-flashcard-tag (org-get-tags-at nil)))
 
 (defun org-fc-goto-entry-heading ()
   "Move up to the parent heading marked as a flashcard."
@@ -163,14 +163,15 @@ Used to determine if a card uses the compact style."
 
 (defun org-fc--add-tag (tag)
   "Add TAG to the heading at point."
-  (org-set-tags-to (remove-duplicates
-                    (cons tag (org-get-tags-at (point) t))
-                    :test #'string=)))
+  (org-set-tags-to
+   (remove-duplicates
+    (cons tag (org-get-tags-at nil 'local))
+    :test #'string=)))
 
 (defun org-fc--remove-tag (tag)
   "Add TAG to the heading at point."
   (org-set-tags-to
-   (remove tag (org-get-tags-at (point) t))))
+   (remove tag (org-get-tags-at nil 'local))))
 
 ;;;###autoload
 (defun org-fc-tag-card (tag)
