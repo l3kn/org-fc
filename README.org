@@ -87,7 +87,7 @@ The file used to store the review history can be customized with
 Assuming [[https://github.com/abo-abo/hydra][abo-abo/hydra]] is already loaded.
 
 #+begin_src emacs-lisp
-(add-to-list 'load-path "/home/leon/src/org-fc/")
+(add-to-list 'load-path "~/src/org-fc/")
 (setq org-fc-directories '("~/org"))
 #+end_src
 *** Default Hydra
@@ -216,6 +216,8 @@ See also:
 ** Dashboard / Statistics
 ~org-fc-dashboard~ shows a buffer with statistics for review performance
 and cards / card types.
+
+[[file:images/stats.png]]
 
 See also:
 
