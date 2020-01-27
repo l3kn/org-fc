@@ -127,7 +127,7 @@ parsing each element with its header specification."
   "Headers of the position indexer")
 
 (defvar org-fc-awk-review-stats-headers
-  '((:reviews . number) (:again . number) (:hard . number) (:good . number) (:easy . number))
+  '((:total . number) (:again . number) (:hard . number) (:good . number) (:easy . number))
   "Headers of the review stat aggregator")
 
 ;;; AWK wrapper functions

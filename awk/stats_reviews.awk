@@ -47,7 +47,7 @@ function report(values, n) {
     if (n == 0) {
         print 0 "\t" 0 "\t" 0 "\t" 0 "\t" 0;
     } else {
-        print n "\t" values["again"] / n "\t" values["hard"] / n "\t" values["good"] /n "\t" values["easy"] / n;
+        print n "\t" values["again"] "\t" values["hard"] "\t" values["good"] "\t" values["easy"] ;
 
     }
 }
