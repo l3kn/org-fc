@@ -4,12 +4,6 @@ Spaced-repetition system for use with Emacs org-mode.
 This package should be considered *work in progress*.  I use it on a
 daily basis but the API regularly changes in breaking ways.
 
-I still need to write proper setup instructions. In the meantime, if
-you need help setting up this package, feel free to open an issue.
-
-For now, feel free to look around for pieces of code that might be
-useful to you.
-
 #+CAPTION: Review Demo
 [[file:images/review.png]]
 
@@ -80,17 +74,21 @@ should be set to the directory to search for org files containing flashcards.
 
 The file used to store the review history can be customized with
 ~org-fc-review-history-file~ and defaults to ~.emacs.d/org-fc-reviews.tvs~.
-*** Minimal Setup
-#+begin_src emacs-lisp
-(add-to-list 'load-path "/home/leon/src/org-fc/")
-(setq org-fc-directories '("~/org"))
-#+end_src
+
 *** Setup with [[https://github.com/jwiegley/use-package/][use-package]]
 #+begin_src emacs-lisp
+  (use-package hydra)
   (use-package org-fc
     :load-path "~/src/org-fc"
     :config
     (setq org-fc-directories '("~/org")))
+#+end_src
+*** Minimal Setup
+Assuming [[https://github.com/abo-abo/hydra][abo-abo/hydra]] is already loaded.
+
+#+begin_src emacs-lisp
+(add-to-list 'load-path "/home/leon/src/org-fc/")
+(setq org-fc-directories '("~/org"))
 #+end_src
 *** Default Hydra
 [[file:org-fc-hydra.el]] defines a hydra for accessing commonly used
