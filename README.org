@@ -75,24 +75,23 @@ Using the lisp indexer based on ~org-map-entries~,
 searching a single 6500 line file with 333 flashcards takes ~1000ms,
 indexing the same file with =awk= takes around ~50ms.
 ** Getting Started
-Before using this package, a few variables have to be set:
+Before using this package, ~org-fc-directories~
+should be set to the directory to search for org files containing flashcards.
 
-- ~org-fc-source-path~ :: should be set to the absolute path of the
-  cloned repository
-- ~org-fc-directories~ :: list of directories to search for flashcards
-- ~org-fc-review-history-file~ :: where to store the review history
-
-Here is how that could look like using [[https://github.com/jwiegley/use-package/][use-package]]:
-
+The file used to store the review history can be customized with
+~org-fc-review-history-file~ and defaults to ~.emacs.d/org-fc-reviews.tvs~.
+*** Minimal Setup
+#+begin_src emacs-lisp
+(add-to-list 'load-path "/home/leon/src/org-fc/")
+(setq org-fc-directories '("~/org"))
+#+end_src
+*** Setup with [[https://github.com/jwiegley/use-package/][use-package]]
 #+begin_src emacs-lisp
   (use-package org-fc
     :load-path "~/src/org-fc"
     :config
-    (setq org-fc-source-path "~/src/org-fc/")
-    (setq org-fc-directories '("~/org"))
-    (setq org-fc-review-history-file "~/org/fc_reviews.tsv"))
+    (setq org-fc-directories '("~/org")))
 #+end_src
-
 *** Default Hydra
 [[file:org-fc-hydra.el]] defines a hydra for accessing commonly used
 org-fc commands and for marking headlines as flashcards.
