@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+(require 'svg)
+
 (require 'org-fc-review)
 (require 'org-fc-awk)
 
@@ -42,7 +44,7 @@
   "Generate a svg bar-chart for the plist STAT"
   (let* ((width org-fc-dashboard-bar-chart-width)
          (height org-fc-dashboard-bar-chart-height)
-         (total (plist-get stat :total))
+         (total (float (plist-get stat :total)))
          (values
           `((,(/ (plist-get stat :again) total) . "red")
             (,(/ (plist-get stat :hard) total) . "yellow")
@@ -56,7 +58,7 @@
     (svg-image svg)))
 
 (defun org-fc-dashboard-percent-right (stats)
-  (let ((total (plist-get stats :total)))
+  (let ((total (float (plist-get stats :total))))
    (format "  %5.2f | %5.2f | %5.2f | %5.2f"
            (or (* 100 (/ (plist-get stats :again) total)) 0.0)
            (or (* 100 (/ (plist-get stats :hard) total)) 0.0)
