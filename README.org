@@ -1,9 +1,6 @@
 * Org Flashcards
 Spaced-repetition system for use with Emacs org-mode.
 
-This package should be considered *work in progress*.  I use it on a
-daily basis but the API regularly changes in breaking ways.
-
 #+CAPTION: Review Demo
 [[file:images/review.png]]
 
@@ -74,6 +71,10 @@ should be set to the directory to search for org files containing flashcards.
 
 The file used to store the review history can be customized with
 ~org-fc-review-history-file~ and defaults to ~.emacs.d/org-fc-reviews.tvs~.
+
+This package is not (yet) available on MELPA / ELPA,
+to install it, clone the repository (e.g. to ~src/org-fc/~)
+and follow the setup instructions.
 
 *** Setup with [[https://github.com/jwiegley/use-package/][use-package]]
 #+begin_src emacs-lisp
