@@ -118,6 +118,7 @@ Only 'awk is supported at the moment.")
 
 (defun org-fc-show-latex ()
   "Show / re-display latex fragments."
+  (org-remove-latex-fragment-image-overlays)
   (org-toggle-latex-fragment 4))
 
 ;; TODO: Rewrite using skip parameter
