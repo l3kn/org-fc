@@ -119,7 +119,9 @@
              (path (plist-get card :path))
              (id (plist-get card :id))
              (type (plist-get card :type))
-             (position (plist-get card :position)))
+             (position (plist-get card :position))
+             ;; Prevent messages from hiding the multiple-choice card dialog
+             (inhibit-message t))
         (let ((buffer (find-buffer-visiting path)))
           (with-current-buffer (find-file path)
             ;; If buffer was already open, don't kill it after rating the card
@@ -134,6 +136,7 @@
             (org-fc-narrow-tree)
             (org-fc-hide-drawers)
             (org-fc-show-latex)
+            (setq org-fc-timestamp (time-to-seconds (current-time)))
             (funcall (org-fc-type-setup-fn type) position))))
     (progn
       (message "Review Done")
@@ -188,18 +191,20 @@ a review session."
   card of the review session."
   (interactive)
   (org-fc-review-with-current-item card
-    (let ((path (plist-get card :path))
-          (id (plist-get card :id))
-          (position (plist-get card :position)))
+    (let* ((path (plist-get card :path))
+           (id (plist-get card :id))
+           (position (plist-get card :position))
+           (now (time-to-seconds (current-time)))
+           (delta (- now org-fc-timestamp)))
       (org-fc-session-add-rating org-fc-review--current-session rating)
-      (org-fc-review-update-data path id position rating)
+      (org-fc-review-update-data path id position rating delta)
       (save-buffer)
       ;; TODO: Conditional kill
       (unless org-fc-reviewing-existing-buffer
         (kill-buffer))
       (org-fc-review-next-card))))
 
-(defun org-fc-review-update-data (path id position rating)
+(defun org-fc-review-update-data (path id position rating delta)
   (save-excursion
     (org-fc-goto-entry-heading)
     (let* ((data (org-fc-get-review-data))
@@ -218,7 +223,8 @@ a review session."
           (format "%.2f" ease)
           (format "%d" box)
           (format "%.2f" interval)
-          (symbol-name rating)))
+          (symbol-name rating)
+          (format "%.2f" delta)))
         (destructuring-bind (next-ease next-box next-interval)
             (org-fc-sm2-next-parameters ease box interval rating)
           (setcdr
