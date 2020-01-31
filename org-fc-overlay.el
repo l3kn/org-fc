@@ -152,11 +152,13 @@ the current topic."
 
 (defun org-fc-hide-heading (&optional text)
    "Hide the title of the headline at point"
-  (save-excursion
-    (beginning-of-line)
-    (if (looking-at org-complex-heading-regexp)
-        (org-fc-hide-region (match-beginning 4) (match-end 4) (or text "..."))
-      (error "Point is not on a heading"))))
+   ;; Case sensitive search
+   (let ((case-fold-search nil))
+    (save-excursion
+      (beginning-of-line)
+      (if (looking-at org-complex-heading-regexp)
+          (org-fc-hide-region (match-beginning 4) (match-end 4) (or text "..."))
+        (error "Point is not on a heading")))))
 
 ;;;; Narrowing Outline Trees
 
