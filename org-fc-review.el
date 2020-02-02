@@ -36,7 +36,10 @@
 (defun org-fc-make-review-session (cards)
   (make-instance
    'org-fc-review-session
-   :ratings (plist-get (org-fc-awk-stats-reviews) :day)
+   :ratings
+   (if-let ((stats (org-fc-awk-stats-reviews)))
+       (plist-get stats :day)
+     '(:total 0 :again 0 :hard 0 :good 0 :easy 0))
    :cards cards))
 
 (defun org-fc-session-cards-pending-p (session)
@@ -198,6 +201,7 @@ a review session."
            (delta (- now org-fc-timestamp)))
       (org-fc-session-add-rating org-fc-review--current-session rating)
       (org-fc-review-update-data path id position rating delta)
+      (org-fc-show-all)
       (save-buffer)
       ;; TODO: Conditional kill
       (unless org-fc-reviewing-existing-buffer

@@ -188,15 +188,17 @@ parsing each element with its header specification."
      (org-fc-awk--command "awk/stats_positions.awk")))))
 
 (defun org-fc-awk-stats-reviews ()
-  "Statistics for all card reviews."
-  (let ((res (org-fc-tsv-parse
-              org-fc-awk-review-stats-headers
-              (shell-command-to-string
-               (org-fc-awk--command
-                "awk/stats_reviews.awk"
-                :utils t
-                :input org-fc-review-history-file)))))
-    `(:all ,(first res) :month ,(second res) :week ,(third res) :day ,(fourth res))))
+  "Statistics for all card reviews.
+Return nil there is no history file."
+  (if (file-exists-p org-fc-review-history-file)
+      (let ((res (org-fc-tsv-parse
+                  org-fc-awk-review-stats-headers
+                  (shell-command-to-string
+                   (org-fc-awk--command
+                    "awk/stats_reviews.awk"
+                    :utils t
+                    :input org-fc-review-history-file)))))
+        `(:all ,(first res) :month ,(second res) :week ,(third res) :day ,(fourth res)))))
 
 ;;; Exports
 
