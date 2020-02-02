@@ -70,7 +70,7 @@ Before using this package, ~org-fc-directories~
 should be set to the directory to search for org files containing flashcards.
 
 The file used to store the review history can be customized with
-~org-fc-review-history-file~ and defaults to ~.emacs.d/org-fc-reviews.tvs~.
+~org-fc-review-history-file~ and defaults to ~.emacs.d/org-fc-reviews.tsv~.
 
 This package is not (yet) available on MELPA / ELPA,
 to install it, clone the repository (e.g. to ~src/org-fc/~)
