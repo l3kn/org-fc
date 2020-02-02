@@ -117,22 +117,24 @@
 
       (insert "\n")
 
-      (insert
-       (propertize "  Review Statistics\n\n" 'face 'org-level-1))
+      (when reviews-stats
+        (insert
+         (propertize "  Review Statistics\n\n" 'face 'org-level-1))
 
-      (dolist (scope '((:day . "Day")
-                       (:week . "Week")
-                       (:month . "Month")
-                       (:all . "All")))
-        (when-let (stat (plist-get reviews-stats (car scope)))
-          (when (plusp (plist-get stat :total))
-            (insert (propertize (format "    %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
-            (insert "    ")
-            (insert-image (org-fc-dashboard-bar-chart stat))
-            (insert (org-fc-dashboard-percent-right stat))
-            (insert "\n\n"))))
+        (dolist (scope '((:day . "Day")
+                         (:week . "Week")
+                         (:month . "Month")
+                         (:all . "All")))
+          (when-let (stat (plist-get reviews-stats (car scope)))
+            (when (plusp (plist-get stat :total))
+              (insert (propertize (format "    %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
+              (insert "    ")
+              (insert-image (org-fc-dashboard-bar-chart stat))
+              (insert (org-fc-dashboard-percent-right stat))
+              (insert "\n\n"))))
 
-      (insert "\n")
+        (insert "\n"))
+
       (insert
        (propertize "  [r] Review\n" 'face 'org-level-1))
       (insert
