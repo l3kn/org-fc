@@ -133,6 +133,11 @@ Used to determine if a card uses the compact style."
      t 'tree)
     found))
 
+(defun org-fc-shuffle (list)
+  "Randomize the order of elements in LIST.
+This mutates / destroys the input list."
+  (sort list (lambda (_a _b) (< (cl-random 1.0) 0.5))))
+
 ;;; Checking for / going to flashcard headings
 
 (defun org-fc-entry-p ()
@@ -318,7 +323,7 @@ flashcard."
 
 (defun org-fc-due-positions-for-paths (paths)
   (if (eq org-fc-indexer 'awk)
-      (org-fc-awk-due-positions-for-paths paths)
+      (org-fc-shuffle (org-fc-awk-due-positions-for-paths paths))
     (error
      'org-fc-indexer-error
      (format "Indexer %s not implemented yet" org-fc-indexer-error))))

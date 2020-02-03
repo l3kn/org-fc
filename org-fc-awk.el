@@ -41,7 +41,7 @@
 . value) pairs VARIABLES.  If UTILS is set to a non-nil value,
 the shared util file is included, too.  If INPUT is set to a
 string, use that file (absolute path) as input."
-  (concat "awk "
+  (concat "gawk "
           ;; TODO: quote strings
           (mapconcat
            (lambda (kv) (format "-v %s=%s" (car kv) (cdr kv)))
@@ -171,8 +171,7 @@ parsing each element with its header specification."
        "awk/index_positions.awk"
        :utils t
        :variables (org-fc-awk--indexer-variables)))
-     (org-fc-awk--command "awk/filter_due.awk")
-     "shuf"))))
+     (org-fc-awk--command "awk/filter_due.awk")))))
 
 (cl-defun org-fc-awk-stats-positions (&optional (paths org-fc-directories))
   "Statistics for all positions in PATHS."
