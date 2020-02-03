@@ -77,15 +77,16 @@ to install it, clone the repository (e.g. to ~src/org-fc/~)
 and follow the setup instructions.
 
 *** Dependencies
-This package depends on the =shuf= shell command
-and the =gawk= extension of =awk=.
+This package depends on the =gawk= extension of =awk=.
 
-These should be included in most Linux distributions.
+Examples:
 
-On macOS, they can be installed using [[https://brew.sh/][homebrew]]:
+- =pacman -S gawk= (Arch Linux)
+- =apt-get install gawk= (Ubuntu, Debian, ...)
+- =yum install gawk= (CentOS)
+- =brew install gawk= (macOS, using [[https://brew.sh/][homebrew]])
 
-- =brew install gawk= for =gawk=
-- =brew install coreutils= for =shuf=
+For more information, see [[https://www.gnu.org/software/gawk/manual/html_node/Installation.html][gawk manual - Installation]].
 *** Setup with [[https://github.com/jwiegley/use-package/][use-package]]
 #+begin_src emacs-lisp
   (use-package hydra)
@@ -240,12 +241,18 @@ See also:
 
 - [[file:doc/review_history.org][Review History]]
 - [[file:doc/advanced_statistics.org][Advanced Statistics]] (todo)
-** Updating the Card Format
+** Changelog
 I hope the current card / log format is flexible enough to accommodate
 upcoming changes.
 
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
+
+*** [2020-02-03 Mon 15:15]
+**** Internal
+- ~org-fc-due-positions-for-paths~ now shuffles the lists of positions
+  using an Emacs Lisp function instead of depending on =shuf=
+- All awk-indexer functions now use ~gawk~ instead of ~awk~
 ** Other Documentation
 - [[file:doc/internals.org][Internals]]
 - [[file:doc/sharing_decks.org][Sharing Decks]] (todo)
