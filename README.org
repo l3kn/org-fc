@@ -76,6 +76,16 @@ This package is not (yet) available on MELPA / ELPA,
 to install it, clone the repository (e.g. to ~src/org-fc/~)
 and follow the setup instructions.
 
+*** Dependencies
+This package depends on the =shuf= shell command
+and the =gawk= extension of =awk=.
+
+These should be included in most Linux distributions.
+
+On macOS, they can be installed using [[https://brew.sh/][homebrew]]:
+
+- =brew install gawk= for =gawk=
+- =brew install coreutils= for =shuf=
 *** Setup with [[https://github.com/jwiegley/use-package/][use-package]]
 #+begin_src emacs-lisp
   (use-package hydra)
@@ -106,6 +116,12 @@ A file demonstrating all card types is included.
 ~M-x org-fc-demo~ starts a review of this file.
 
 Note that the review data of the cards in this file *is not updated*.
+** Known Issues
+If you want to execute any other emacs command during review,
+make sure to quit the review using the =q= key.
+
+Otherwise the buffer is left in a narrowed state (this can be reset by
+manually calling =M-x org-fc-review-quit=).
 ** Card Types
 This package comes with a few predefined card types.
 They are documented in [[file:doc/card_types.org][Card Types]].
