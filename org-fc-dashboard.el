@@ -108,7 +108,7 @@
                           (:type-cloze . "Cloze")))
         (insert
          (format "    %6d %s\n"
-                 (plist-get cards-stats (car position))
+                 (or (plist-get cards-stats (car position)) 0)
                  (cdr position))))
 
       (insert "\n")
