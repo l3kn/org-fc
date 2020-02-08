@@ -248,6 +248,11 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+*** [2020-02-08 Sat 15:22]
+**** Changed
+- Add a "Z" suffix to all ISO8601 timestamps
+**** Added
+- A function to estimate the number of reviews in the next n days
 *** [2020-02-03 Mon 15:15]
 **** Internal
 - ~org-fc-due-positions-for-paths~ now shuffles the lists of positions
