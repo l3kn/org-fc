@@ -15,7 +15,7 @@ function trim_surrounding(str) {
 
 # Time n days before the current time
 function time_days_ago(n) {
-    return strftime("%FT%T", systime() - 24 * 60 * 60 * n, 1);
+    return strftime("%FT%TZ", systime() - 24 * 60 * 60 * n, 1);
 }
 
 function or_default(var, def) {
