@@ -45,7 +45,7 @@
   "Location of the org-fc sources, used to generate absolute
   paths to the awk scripts")
 
-(defcustom org-fc-review-history-file "~/.emacs.d/org-fc-reviews.tsv"
+(defcustom org-fc-review-history-file (expand-file-name "org-fc-reviews.tsv" user-emacs-directory)
   "File to store review results in."
   :type 'string
   :group 'org-fc)
