@@ -89,7 +89,7 @@
 
 ;; TODO: Allow customizing this, currently that's not possible because
 ;; the indexers / filters expect a ISO8601 format.
-(defvar org-fc-timestamp-format "%FT%H:%M:%S"
+(defvar org-fc-timestamp-format "%FT%TZ"
   "Format to use for storing timestamps.
 Defaults to ISO8601")
 
@@ -107,8 +107,8 @@ Only 'awk is supported at the moment.")
 ;;; Helper Functions
 
 (defun org-fc-timestamp-now ()
-  "ISO8601 timestamp of the current time in the UTC0 timezone"
-  (format-time-string org-fc-timestamp-format nil "UTC0"))
+  "ISO8601 timestamp of the current time in the UTC timezone"
+  (format-time-string org-fc-timestamp-format nil "UTC"))
 
 (defun org-fc-days-overdue (ts)
   "Number of days between now and the ISO8601 timestamp TS."

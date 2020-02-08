@@ -139,7 +139,7 @@ parsing each element with its header specification."
    (shell-command-to-string
     (org-fc-awk--pipe
      (org-fc-awk--find paths)
-     (org-fl-awk--xargs
+     (org-fc-awk--xargs
       (org-fc-awk--command
        "awk/index_cards.awk"
        :utils t
@@ -160,7 +160,7 @@ parsing each element with its header specification."
 
 ;; TODO: Optimize card order for review
 (defun org-fc-awk-due-positions-for-paths (paths)
-  "Generate a list of due positions cards in randomized order."
+  "Generate a list of due positions."
   (org-fc-tsv-parse
    org-fc-awk-position-headers
    (shell-command-to-string
@@ -172,6 +172,19 @@ parsing each element with its header specification."
        :utils t
        :variables (org-fc-awk--indexer-variables)))
      (org-fc-awk--command "awk/filter_due.awk")))))
+
+(defun org-fc-awk-positions-for-paths (paths)
+  "Generate a list of all positions."
+  (org-fc-tsv-parse
+   org-fc-awk-position-headers
+   (shell-command-to-string
+    (org-fc-awk--pipe
+     (org-fc-awk--find paths)
+     (org-fc-awk--xargs
+      (org-fc-awk--command
+       "awk/index_positions.awk"
+       :utils t
+       :variables (org-fc-awk--indexer-variables)))))))
 
 (cl-defun org-fc-awk-stats-positions (&optional (paths org-fc-directories))
   "Statistics for all positions in PATHS."

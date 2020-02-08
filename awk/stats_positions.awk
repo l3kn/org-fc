@@ -6,7 +6,7 @@ BEGIN {
     interval = 0;
     box = 0;
     due = 0;
-    now = strftime("%FT%T", systime(), 1);
+    now = strftime("%FT%TZ", systime(), 1);
     n_stats = 0;
 }
 
