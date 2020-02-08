@@ -9,7 +9,7 @@
 :REVIEW_DATA:
 | position | ease | box | interval | due                 |
 |----------+------+-----+----------+---------------------|
-| front    | 2.50 |   6 |    83.98 | 2019-04-05T11:29:48 |
+| front    | 2.50 |   7 |   203.25 | 2000-01-01T00:00:00Z |
 :END:
 Front of the card
 ** Back
@@ -26,8 +26,8 @@ Back of the card
 :REVIEW_DATA:
 | position | ease | box | interval | due                 |
 |----------+------+-----+----------+---------------------|
-| front    | 2.50 |   6 |    85.77 | 2019-04-22T09:26:13 |
-| back     | 2.50 |   6 |    94.52 | 2019-04-16T00:33:34 |
+| front    | 2.50 |   7 |   219.03 | 2000-01-01T00:00:00Z |
+| back     | 2.50 |   6 |    94.52 | 2000-01-01T00:00:00Z |
 :END:
 For cards without a "Back" heading, the headings main text is
 considered as the back side.
@@ -42,8 +42,8 @@ considered as the back side.
 :REVIEW_DATA:
 | position | ease | box | interval | due                 |
 |----------+------+-----+----------+---------------------|
-|        0 | 2.50 |   6 |    89.34 | 2019-04-10T20:11:35 |
-|        1 | 2.50 |   6 |    85.20 | 2019-04-21T19:42:40 |
+|        0 | 2.50 |   6 |    89.34 | 2000-01-01T00:00:00Z |
+|        1 | 2.50 |   7 |   216.60 | 2000-01-01T00:00:00Z |
 :END:
 A {{cloze deletion}@0} can have multiple {{holes}@1}.
 * Cloze Enumeration                                                      :fc:
@@ -57,10 +57,10 @@ A {{cloze deletion}@0} can have multiple {{holes}@1}.
 :REVIEW_DATA:
 | position | ease | box | interval | due                 |
 |----------+------+-----+----------+---------------------|
-|        0 | 2.50 |   5 |    31.22 | 2019-02-27T20:05:22 |
-|        1 | 2.50 |   6 |    72.76 | 2019-03-25T06:21:24 |
-|        2 | 2.50 |   5 |    36.18 | 2019-02-17T16:31:25 |
-|        3 | 2.50 |   5 |    42.28 | 2019-03-09T21:37:06 |
+|        0 | 2.50 |   6 |    80.76 | 2000-01-01T00:00:00Z |
+|        1 | 2.50 |   6 |    72.76 | 2000-01-01T00:00:00Z |
+|        2 | 2.50 |   6 |    91.28 | 2000-01-01T00:00:00Z |
+|        3 | 2.50 |   6 |    95.75 | 2000-01-01T00:00:00Z |
 :END:
 
 Enumerations are useful for
@@ -71,7 +71,7 @@ Enumerations are useful for
 - {{items}@3}
 * AWK Source Example                                                     :fc:
 :PROPERTIES:
-:FC_CREATED: 2019-01-20T21:44:50
+:FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  cloze
 :FC_CLOZE_MAX: 2
 :FC_CLOZE_TYPE: single
@@ -80,9 +80,9 @@ Enumerations are useful for
 :REVIEW_DATA:
 | position | ease | box | interval | due                 |
 |----------+------+-----+----------+---------------------|
-|        0 | 2.50 |   2 |     1.00 | 2019-01-28T14:51:36 |
-|        1 | 2.50 |   2 |     1.00 | 2019-01-28T14:51:39 |
-|        2 | 2.50 |   2 |     1.00 | 2019-01-28T14:51:37 |
+|        0 | 2.50 |   3 |     6.00 | 2000-01-01T00:00:00Z |
+|        1 | 2.50 |   2 |     1.00 | 2000-01-01T00:00:00Z |
+|        2 | 2.50 |   3 |     6.00 | 2000-01-01T00:00:00Z |
 :END:
 #+begin_src awk
   # Set up variables for new file
