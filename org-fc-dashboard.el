@@ -38,6 +38,16 @@
   :type 'string
   :group 'org-fc)
 
+;;; Statistics
+
+(defun org-fc-review-estimate (paths n)
+  "Positions due in the next N days"
+  (let ((now (+ (time-to-seconds (current-time))
+                (* 60 60 24 n))))
+    (count-if
+     (lambda (pos) (< (time-to-seconds (plist-get pos :due)) now))
+     (org-fc-awk-positions-for-paths paths))))
+
 ;;; Bar-Chart Generation
 
 (defun org-fc-dashboard-bar-chart (stat)
@@ -53,8 +63,8 @@
          (svg (svg-create width height)))
     (do ((values values (cdr values))
          (pos 0 (+ pos (* width (caar values)))))
-        ((null values) '())
-      (svg-rectangle svg pos 0 (* width (caar values)) height :fill (cdar values)))
+    ((null values) '())
+  (svg-rectangle svg pos 0 (* width (caar values)) height :fill (cdar values)))
     (svg-image svg)))
 
 (defun org-fc-dashboard-percent-right (stats)
