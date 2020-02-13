@@ -65,6 +65,30 @@ L470, SSD).
 Using the lisp indexer based on ~org-map-entries~,
 searching a single 6500 line file with 333 flashcards takes ~1000ms,
 indexing the same file with =awk= takes around ~50ms.
+** Caching
+This package uses [[https://github.com/l3kn/org-el-cache][l3kn/org-el-cache]] to keep a list of all flashcards &
+positions in memory.
+
+The cache works by parsing all included files once at startup,
+then updating the cached data each time a file is saved.
+
+Initializing the cache can be speed up by persisting it to disk at
+regular intervals, in that case only files that have changed since the
+last time the cache was persisted are processed on startup.
+
+As this feature depends on external commands (~find~, ~xargs~ and
+~shasum~), it is disabled by default. It can be enabled with ~(setq
+org-el-cache-persist t)~.
+
+For more information on that, check out the readme at
+[[https://github.com/l3kn/org-el-cache][l3kn/org-el-cache]].
+
+*** Benchmarks
+I'm keeping my flashcards in a folder of ~1.6k org files
+(~275k lines in total).
+
+Initially populating the cache takes ~45s, searching for due cards
+using the cached data takes only ~25ms.
 ** Getting Started
 Before using this package, ~org-fc-directories~
 should be set to the directory to search for org files containing flashcards.

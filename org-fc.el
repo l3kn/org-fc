@@ -30,6 +30,7 @@
 (require 'org-fc-overlay)
 (require 'org-fc-review)
 (require 'org-fc-awk)
+(require 'org-fc-cache)
 (require 'org-fc-dashboard)
 
 ;;; Configuration
@@ -94,6 +95,7 @@
 Defaults to ISO8601")
 
 ;; TODO: Allow customizing this once different indexers are supported
+;; TODO: Switch to cache once that is stable (async loading works).
 (defvar org-fc-indexer
   'awk
   "Indexer to use for finding cards / positions.
@@ -103,6 +105,14 @@ Only 'awk is supported at the moment.")
   "If set to a non-nil value, a cards review data is not
   updated. Used by `org-fc-demo'")
 (make-variable-buffer-local 'org-fc-demo-mode)
+
+(defcustom org-fc-timespans
+  `(("Day" . ,(* 24 60 60))
+    ("7 Day" . ,(* 7 24 60 60))
+    ("30 Day" . ,(* 30 24 60 60)))
+  "Time spans to use for statistics."
+  :type 'list
+  :group 'org-fc)
 
 ;;; Helper Functions
 
@@ -137,6 +147,36 @@ Used to determine if a card uses the compact style."
   "Randomize the order of elements in LIST.
 This mutates / destroys the input list."
   (sort list (lambda (_a _b) (< (cl-random 1.0) 0.5))))
+
+;;;; Stats Helper Functions
+
+(defclass org-fc-timed-stats ()
+  ((timespans :initarg :timespans)
+   (data :initarg :data)
+   (now :initform (current-time))))
+
+(defun org-fc-timed-stats-data (stats)
+  (with-slots (timespans data) stats
+    (mapcar
+     (lambda (ts) (cons (car ts) (alist-get (cdr ts) data)))
+     timespans)))
+
+(defun org-fc-timed-stats-inc (stats time key)
+  (with-slots (timespans data now) stats
+    (setf data
+          (mapcar
+           (lambda (d)
+             (if (< (time-to-seconds (time-subtract now time)) (car d))
+                 (cons (car d) (plist-put (cdr d) key (1+ (plist-get (cdr d) key))))
+               d))
+           data))))
+
+(defun make-org-fc-timed-stats (timespans keys)
+  (let ((data (mapcar (lambda (ts) (cons (cdr ts) (mapcan (lambda (k) (list k 0)) keys))) timespans)))
+    (make-instance
+     'org-fc-timed-stats
+     :timespans timespans
+     :data data)))
 
 ;;; Checking for / going to flashcard headings
 
@@ -319,14 +359,25 @@ flashcard."
   (interactive)
   (org-fc-map-cards 'org-fc--unsuspend-card))
 
+;;; Stats
+
+(defun org-fc-stats ()
+  (case org-fc-indexer
+    ('awk (org-fc-awk-stats))
+    ('cache (org-fc-cache-stats))
+    (t (error
+        'org-fc-indexer-error
+        (format "Indexer %s not implemented yet" org-fc-indexer-error)))))
+
 ;;; Indexing Cards
 
 (defun org-fc-due-positions-for-paths (paths)
-  (if (eq org-fc-indexer 'awk)
-      (org-fc-shuffle (org-fc-awk-due-positions-for-paths paths))
-    (error
-     'org-fc-indexer-error
-     (format "Indexer %s not implemented yet" org-fc-indexer-error))))
+  (case org-fc-indexer
+    ('awk (org-fc-shuffle (org-fc-awk-due-positions-for-paths paths)))
+    ('cache (org-fc-shuffle (org-fc-cache-due-positions-for-paths paths)))
+    (t (error
+        'org-fc-indexer-error
+        (format "Indexer %s not implemented yet" org-fc-indexer-error)))))
 
 (defun org-fc-due-positions (context)
   "Return a shuffled list of elements (file id position) of due cards."

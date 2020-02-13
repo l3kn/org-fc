@@ -3,11 +3,18 @@
 The review history is stored in a tsv file, to avoid cluttering org
 files. This makes it easy to calculate review statistics.
 
+* Loading
+On startup, the review history is loaded (asynchronously) from disk
+to make the dashboard as fast as possible.
+
+Since the review history can grow very long, the number of entries to
+include can be configured with ~org-fc-review-history-limit~ (default:
+10000).
+* Design Decisions
 At first, I used an org drawer to store the review history but that
 added to much overhead to the files (in one instance 6.5k lines of
 review history for a file of 9.5k lines in total).
-
-Columns:
+* Columns
 1. Date in ISO8601 format, second precision
 2. Filename
 3. Card ID

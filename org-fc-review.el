@@ -26,6 +26,17 @@
   :type 'string
   :group 'org-fc)
 
+(defcustom org-fc-review-history-limit 10000
+  "Number of history lines to include in the review stats."
+  :type 'integer
+  :group 'org-fc)
+
+(defcustom org-fc-review-stats-min-box 2
+  "Minimum box for reviews included in the review stats.
+The default setting of 2 ignores cards in the 'learning' phase."
+  :type 'integer
+  :group 'org-fc)
+
 ;;; Session Management
 
 (defclass org-fc-review-session ()
@@ -36,10 +47,7 @@
 (defun org-fc-make-review-session (cards)
   (make-instance
    'org-fc-review-session
-   :ratings
-   (if-let ((stats (org-fc-awk-stats-reviews)))
-       (plist-get stats :day)
-     '(:total 0 :again 0 :hard 0 :good 0 :easy 0))
+   :ratings '(:total 0 :again 0 :hard 0 :good 0 :easy 0)
    :cards cards))
 
 (defun org-fc-session-cards-pending-p (session)
@@ -134,6 +142,14 @@
             (goto-char (point-min))
             (org-fc-show-all)
             (org-fc-id-goto id path)
+
+            ;; Sanity-checks in case the cache is corrupt / outdated
+            (unless (string= id (org-id-get))
+              (error "org-fc: Card ID mismatch"))
+
+            (unless (org-fc--position-due-p position)
+              (error "org-fc: Position not due for review"))
+
             ;; Make sure the headline the card is in is expanded
             (org-reveal)
             (org-fc-narrow-tree)
@@ -145,6 +161,14 @@
       (message "Review Done")
       (setq org-fc-review--current-session nil)
       (org-fc-show-all))))
+
+(defun org-fc--position-due-p (position)
+  "Check if POSITION of the card at point is due for review."
+  (if-let* ((review-data (org-fc-get-review-data))
+            (current-pos (assoc position review-data #'string=)))
+      (time-less-p
+       (parse-iso8601-time-string (fifth current-pos))
+       (current-time))))
 
 (defhydra org-fc-review-rate-hydra ()
   "
@@ -175,11 +199,11 @@
 a review session."
   (declare (indent defun))
   `(if org-fc-review--current-session
-      (if-let ((,var (oref org-fc-review--current-session current-item)))
-        (if (string= (plist-get ,var :id) (org-id-get))
-            (progn ,@body)
-          (message "Flashcard ID mismatch"))
-    (message "No flashcard review is in progress"))))
+       (if-let ((,var (oref org-fc-review--current-session current-item)))
+           (if (string= (plist-get ,var :id) (org-id-get))
+               (progn ,@body)
+             (message "Flashcard ID mismatch"))
+         (message "No flashcard review is in progress"))))
 
 (defun org-fc-review-flip ()
   "Flip the current flashcard"
@@ -218,6 +242,7 @@ a review session."
       (let ((ease (string-to-number (second current)))
             (box (string-to-number (third current)))
             (interval (string-to-number (fourth current))))
+        ;; Add to the history file
         (org-fc-review-history-add
          (list
           (org-fc-timestamp-now)
@@ -229,6 +254,9 @@ a review session."
           (format "%.2f" interval)
           (symbol-name rating)
           (format "%.2f" delta)))
+
+        ;; Add to the in-memory review history
+        (push (list (time-to-seconds (current-time)) box rating) org-fc-review-history)
         (destructuring-bind (next-ease next-box next-interval)
             (org-fc-sm2-next-parameters ease box interval rating)
           (setcdr
@@ -246,7 +274,53 @@ a review session."
   (setq org-fc-review--current-session nil)
   (org-fc-show-all))
 
-;;; Writing Review History
+;;; Review History
+;;;; Loading
+
+(defmacro org-fc-async-start (start-func finish-func)
+  "Synchronous polyfill in case async is not installed."
+  (if (require 'async nil :noerror)
+      `(async-start ,start-func ,finish-func)
+    `(funcall ,finish-func (funcall ,start-func))))
+
+;; If async is not installed, we can just ignore this
+(defmacro org-fc-async-inject-variables (pattern)
+  "Synchronous polyfill in case async is not installed."
+  (if (require 'async nil :noerror)
+      `(async-inject-variables ,pattern)))
+
+(defvar org-fc-review-history '()
+  "In-memory review history")
+
+;; TODO: Figure out how to do async loading with less code duplication.
+(defun org-fc-review-history-load ()
+  "Async loading of the review history."
+  (org-fc-async-start
+   `(lambda ()
+      (require 'parse-time)
+      (require 'cl)
+      ,(async-inject-variables "org-fc-review-history")
+      (let (stats)
+        (with-current-buffer (find-file-noselect org-fc-review-history-file t)
+          (goto-char (point-max))
+          (forward-line (- org-fc-review-history-limit))
+          (while (not (eobp))
+            (let* ((line (buffer-substring (point) (point-at-eol)))
+                   (parts (split-string line "\t"))
+                   (stat (list
+                          (time-to-seconds (parse-iso8601-time-string (first parts))) ; date
+                          (string-to-number (sixth parts)) ; box
+                          (intern (eighth parts)))))       ;rating
+              (push stat stats))
+            (forward-line)))
+        stats))
+   (lambda (result)
+     (setq org-fc-review-history result)
+     (message "org-fc: Loaded review history."))))
+
+(org-fc-review-history-load)
+
+;;;; Writing
 
 (defun org-fc-review-history-add (elements)
   "Add ELEMENTS to the history csv file."
@@ -257,6 +331,16 @@ a review session."
       "\n")
      nil
      org-fc-review-history-file)))
+
+;;;; Stats
+
+(defun org-fc-review-stats ()
+  (let ((stats (make-org-fc-timed-stats org-fc-timespans '(again hard good easy total))))
+    (loop for (date box rating) in org-fc-review-history do
+          (when (>= box org-fc-review-stats-min-box)
+            (org-fc-timed-stats-inc stats date rating)
+            (org-fc-timed-stats-inc stats date 'total)))
+    (org-fc-timed-stats-data stats)))
 
 ;;; Reading / Writing Review Data
 
@@ -292,17 +376,16 @@ END is the start of the line with :END: on it."
           (line-beginning-position 0)
           (line-beginning-position 0)))))))
 
-
 (defun org-fc-get-review-data ()
   (let ((position (org-fc-review-data-position nil)))
     (if position
-        (save-excursion
-          (goto-char (car position))
-          (cddr (org-table-to-lisp))))))
+    (save-excursion
+  (goto-char (car position))
+  (cddr (org-table-to-lisp))))))
 
 (defun org-fc-set-review-data (data)
   (save-excursion
-    (let ((position (org-fc-review-data-position t)))
+  (let ((position (org-fc-review-data-position t)))
       (kill-region (car position) (cdr position))
       (goto-char (car position))
       (insert "| position | ease | box | interval | due |\n")
@@ -324,14 +407,14 @@ If a doesn't exist already, it is initialized with default
 values.  Entries in the table not contained in POSITIONS are
 removed."
   (unless (and (boundp 'org-fc-demo-mode) org-fc-demo-mode)
-      (let ((old-data (org-fc-get-review-data)))
-        (org-fc-set-review-data
-         (mapcar
-          (lambda (pos)
-            (or
-             (assoc pos old-data #'string=)
-             (org-fc-review-data-default pos)))
-          positions)))))
+    (let ((old-data (org-fc-get-review-data)))
+      (org-fc-set-review-data
+       (mapcar
+        (lambda (pos)
+  (or
+           (assoc pos old-data #'string=)
+           (org-fc-review-data-default pos)))
+        positions)))))
 
 ;;; Exports
 

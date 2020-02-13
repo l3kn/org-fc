@@ -126,10 +126,6 @@ parsing each element with its header specification."
     (:due . date))
   "Headers of the position indexer")
 
-(defvar org-fc-awk-review-stats-headers
-  '((:total . number) (:again . number) (:hard . number) (:good . number) (:easy . number))
-  "Headers of the review stat aggregator")
-
 ;;; AWK wrapper functions
 
 (cl-defun org-fc-awk-cards (&optional (paths org-fc-directories))
@@ -144,6 +140,29 @@ parsing each element with its header specification."
        "awk/index_cards.awk"
        :utils t
        :variables (org-fc-awk--indexer-variables)))))))
+
+(cl-defun org-fc-awk-stats (&optional (paths org-fc-directories))
+  "Combined statistics for cards in PATHS."
+  (let ((stats-cards (org-fc-awk-stats-cards paths))
+        (stats-positions (org-fc-awk-stats-positions paths)))
+    (list
+     :total (plist-get stats-cards :total)
+     :suspended (plist-get stats-cards :suspended)
+     :created
+     (list
+      :day (plist-get stats-cards :created-day)
+      :week (plist-get stats-cards :created-week)
+      :month (plist-get stats-cards :created-month))
+     :types
+     (loop for (key value) on stats-cards by #'cddr nconc
+           (if (string-prefix-p ":type-" (symbol-name key))
+               (list (intern (replace-regexp-in-string (rx ":type-") "" (symbol-name key))) value)))
+     :due (plist-get stats-positions :due)
+     :avg
+     (list
+      :ease (plist-get stats-positions :avg-ease)
+      :box (plist-get stats-positions :avg-box)
+      :interval (plist-get stats-positions :avg-interval)))))
 
 (cl-defun org-fc-awk-stats-cards (&optional (paths org-fc-directories))
   "Statistics for all cards in PATHS."
@@ -198,19 +217,6 @@ parsing each element with its header specification."
        :utils t
        :variables (org-fc-awk--indexer-variables)))
      (org-fc-awk--command "awk/stats_positions.awk")))))
-
-(defun org-fc-awk-stats-reviews ()
-  "Statistics for all card reviews.
-Return nil there is no history file."
-  (if (file-exists-p org-fc-review-history-file)
-      (let ((res (org-fc-tsv-parse
-                  org-fc-awk-review-stats-headers
-                  (shell-command-to-string
-                   (org-fc-awk--command
-                    "awk/stats_reviews.awk"
-                    :utils t
-                    :input org-fc-review-history-file)))))
-        `(:all ,(first res) :month ,(second res) :week ,(third res) :day ,(fourth res)))))
 
 ;;; Exports
 

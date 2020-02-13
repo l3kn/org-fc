@@ -28,6 +28,7 @@
   "Width of the svg generated to display review statistics."
   :type 'integer
   :group 'org-fc)
+
 (defcustom org-fc-dashboard-bar-chart-height 20
   "Height of the svg generated to display review statistics."
   :type 'integer
@@ -54,12 +55,12 @@
   "Generate a svg bar-chart for the plist STAT"
   (let* ((width org-fc-dashboard-bar-chart-width)
          (height org-fc-dashboard-bar-chart-height)
-         (total (float (plist-get stat :total)))
+         (total (float (plist-get stat 'total)))
          (values
-          `((,(/ (plist-get stat :again) total) . "red")
-            (,(/ (plist-get stat :hard) total) . "yellow")
-            (,(/ (plist-get stat :good) total) . "green")
-            (,(/ (plist-get stat :easy) total) . "darkgreen")))
+          `((,(/ (plist-get stat 'again) total) . "red")
+            (,(/ (plist-get stat 'hard) total) . "yellow")
+            (,(/ (plist-get stat 'good) total) . "green")
+            (,(/ (plist-get stat 'easy) total) . "darkgreen")))
          (svg (svg-create width height)))
     (do ((values values (cdr values))
          (pos 0 (+ pos (* width (caar values)))))
@@ -68,12 +69,12 @@
     (svg-image svg)))
 
 (defun org-fc-dashboard-percent-right (stats)
-  (let ((total (float (plist-get stats :total))))
+  (let ((total (float (plist-get stats 'total))))
    (format "  %5.2f | %5.2f | %5.2f | %5.2f"
-           (or (* 100 (/ (plist-get stats :again) total)) 0.0)
-           (or (* 100 (/ (plist-get stats :hard) total)) 0.0)
-           (or (* 100 (/ (plist-get stats :good) total)) 0.0)
-           (or (* 100 (/ (plist-get stats :easy) total)) 0.0))))
+           (or (* 100 (/ (plist-get stats 'again) total)) 0.0)
+           (or (* 100 (/ (plist-get stats 'hard) total)) 0.0)
+           (or (* 100 (/ (plist-get stats 'good) total)) 0.0)
+           (or (* 100 (/ (plist-get stats 'easy) total)) 0.0))))
 
 ;;; Main View
 
@@ -81,9 +82,8 @@
 (defun org-fc-dashboard-view (_ignore-auto _noconfirm)
   (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
          (inhibit-read-only t)
-         (cards-stats (org-fc-awk-stats-cards))
-         (positions-stats (org-fc-awk-stats-positions))
-         (reviews-stats (org-fc-awk-stats-reviews)))
+         (stats (org-fc-stats))
+         (reviews-stats (org-fc-review-stats)))
     (with-current-buffer buf
       (erase-buffer)
       (insert
@@ -92,38 +92,39 @@
       (insert
        (propertize "  Card Statistics\n\n" 'face 'org-level-1))
 
-      (insert (format "    New: %d (day) %d (week) %d (month) \n"
-                      (plist-get cards-stats :created-day)
-                      (plist-get cards-stats :created-week)
-                      (plist-get cards-stats :created-month)))
+      (let ((created (plist-get stats :created)))
+        (insert "    New:")
+        (loop for (key . value) in created do
+              (insert (format " %d (%s)" (plist-get value 'total) key)))
+        (insert "\n"))
 
       (insert "\n")
       (insert (format
                "    %6d Cards, %d suspended\n"
-               (plist-get cards-stats :total)
-               (plist-get cards-stats :suspended)))
-      (dolist (position '((:type-normal . "Normal")
-                          (:type-double . "Double")
-                          (:type-text-input . "Text Input")
-                          (:type-cloze . "Cloze")))
-        (insert
-         (format "    %6d %s\n"
-                 (or (plist-get cards-stats (car position)) 0)
-                 (cdr position))))
+               (plist-get stats :total)
+               (plist-get stats :suspended)))
+
+      (let ((types (plist-get stats :types)))
+       (loop for (type count) on types by #'cddr do
+         (insert
+          (format "    %6d %s\n"
+                  count
+                  (symbol-name type)))))
 
       (insert "\n")
       (insert
        (propertize "  Position Statistics\n\n" 'face 'org-level-1))
 
-      (insert (format "    %6d Due Now\n\n" (plist-get positions-stats :due)))
+      (insert (format "    %6d Due Now\n\n" (plist-get stats :due)))
 
-      (dolist (position '((:avg-ease . "Avg. Ease")
-                          (:avg-box . "Avg. Box")
-                          (:avg-interval . "Avg. Interval (days)")))
-        (insert
-         (format "    %6.2f %s\n"
-                 (plist-get positions-stats (car position))
-                 (cdr position))))
+      (let ((avg (plist-get stats :avg)))
+       (dolist (position '((:ease . "Avg. Ease")
+                           (:box . "Avg. Box")
+                           (:interval . "Avg. Interval (days)")))
+         (insert
+          (format "    %6.2f %s\n"
+                  (plist-get avg (car position))
+                  (cdr position)))))
 
       (insert "\n")
 
@@ -131,17 +132,13 @@
         (insert
          (propertize "  Review Statistics\n\n" 'face 'org-level-1))
 
-        (dolist (scope '((:day . "Day")
-                         (:week . "Week")
-                         (:month . "Month")
-                         (:all . "All")))
-          (when-let (stat (plist-get reviews-stats (car scope)))
-            (when (plusp (plist-get stat :total))
-              (insert (propertize (format "    %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
-              (insert "    ")
-              (insert-image (org-fc-dashboard-bar-chart stat))
-              (insert (org-fc-dashboard-percent-right stat))
-              (insert "\n\n"))))
+        (loop for (key . value) in reviews-stats do
+              (when (plusp (plist-get value 'total))
+                (insert (propertize (format "    %s (%d)\n" key (plist-get value 'total)) 'face 'org-level-1))
+                (insert "    ")
+                (insert-image (org-fc-dashboard-bar-chart value))
+                (insert (org-fc-dashboard-percent-right value))
+                (insert "\n\n")))
 
         (insert "\n"))
 
