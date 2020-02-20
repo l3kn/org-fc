@@ -29,7 +29,8 @@
   (if (org-fc-has-back-heading-p)
       (progn
         (org-show-subtree)
-        (setq org-fc-type-normal--hidden (org-fc-hide-subheading "Back"))))
+        (setq org-fc-type-normal--hidden (org-fc-hide-subheading "Back")))
+    (org-flag-subtree t))
   (org-fc-review-flip-hydra/body))
 
 (defun org-fc-type-normal-flip ()
