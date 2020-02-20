@@ -148,7 +148,7 @@
     (message "Review Done")
     (org-fc-review-quit)))
 
-(defhydra org-fc-review-rate-hydra ()
+(defhydra org-fc-review-rate-hydra (:foreign-keys warn)
   "
 %(length (oref org-fc-review--current-session cards)) cards remaining
 %s(org-fc-session-stats-string org-fc-review--current-session)
@@ -160,7 +160,7 @@
   ("e" (org-fc-review-rate-card 'easy) "Rate as easy" :exit t)
   ("q" org-fc-review-quit "Quit" :exit t))
 
-(defhydra org-fc-review-flip-hydra ()
+(defhydra org-fc-review-flip-hydra (:foreign-keys warn)
   "
 %(length (oref org-fc-review--current-session cards)) cards remaining
 %s(org-fc-session-stats-string org-fc-review--current-session)
