@@ -118,33 +118,35 @@
 (defun org-fc-review-next-card ()
   "Review the next card of the current session"
   (if (org-fc-session-cards-pending-p org-fc-review--current-session)
-      (let* ((card (org-fc-session-pop-next-card org-fc-review--current-session))
-             (path (plist-get card :path))
-             (id (plist-get card :id))
-             (type (plist-get card :type))
-             (position (plist-get card :position))
-             ;; Prevent messages from hiding the multiple-choice card dialog
-             (inhibit-message t))
-        (let ((buffer (find-buffer-visiting path)))
-          (with-current-buffer (find-file path)
-            ;; If buffer was already open, don't kill it after rating the card
-            (if buffer
-                (setq-local org-fc-reviewing-existing-buffer t)
-              (setq-local org-fc-reviewing-existing-buffer nil))
-            (goto-char (point-min))
-            (org-fc-show-all)
-            (org-fc-id-goto id path)
-            ;; Make sure the headline the card is in is expanded
-            (org-reveal)
-            (org-fc-narrow-tree)
-            (org-fc-hide-drawers)
-            (org-fc-show-latex)
-            (setq org-fc-timestamp (time-to-seconds (current-time)))
-            (funcall (org-fc-type-setup-fn type) position))))
-    (progn
-      (message "Review Done")
-      (setq org-fc-review--current-session nil)
-      (org-fc-show-all))))
+      (condition-case err
+          (let* ((card (org-fc-session-pop-next-card org-fc-review--current-session))
+                 (path (plist-get card :path))
+                 (id (plist-get card :id))
+                 (type (plist-get card :type))
+                 (position (plist-get card :position))
+                 ;; Prevent messages from hiding the multiple-choice card dialog
+                 (inhibit-message t))
+            (let ((buffer (find-buffer-visiting path)))
+              (with-current-buffer (find-file path)
+                ;; If buffer was already open, don't kill it after rating the card
+                (if buffer
+                    (setq-local org-fc-reviewing-existing-buffer t)
+                  (setq-local org-fc-reviewing-existing-buffer nil))
+                (goto-char (point-min))
+                (org-fc-show-all)
+                (org-fc-id-goto id path)
+                ;; Make sure the headline the card is in is expanded
+                (org-reveal)
+                (org-fc-narrow-tree)
+                (org-fc-hide-drawers)
+                (org-fc-show-latex)
+                (setq org-fc-timestamp (time-to-seconds (current-time)))
+                (funcall (org-fc-type-setup-fn type) position))))
+        (error
+         (message "Error during review: %s" (error-message-string err))
+         (org-fc-review-quit)))
+    (message "Review Done")
+    (org-fc-review-quit)))
 
 (defhydra org-fc-review-rate-hydra ()
   "
@@ -184,29 +186,37 @@ a review session."
 (defun org-fc-review-flip ()
   "Flip the current flashcard"
   (interactive)
-  (org-fc-review-with-current-item card
-    (let ((type (plist-get card :type)))
-      (funcall (org-fc-type-flip-fn type)))))
+  (condition-case err
+      (org-fc-review-with-current-item card
+        (let ((type (plist-get card :type)))
+          (funcall (org-fc-type-flip-fn type))))
+    (error
+     (message "Error flipping card: %s" (error-message-string err))
+     (org-fc-review-quit))))
 
 ;; TODO: Remove -card suffix
 (defun org-fc-review-rate-card (rating)
   "Rate the card at point if it has the same id as the current
   card of the review session."
   (interactive)
-  (org-fc-review-with-current-item card
-    (let* ((path (plist-get card :path))
-           (id (plist-get card :id))
-           (position (plist-get card :position))
-           (now (time-to-seconds (current-time)))
-           (delta (- now org-fc-timestamp)))
-      (org-fc-session-add-rating org-fc-review--current-session rating)
-      (org-fc-review-update-data path id position rating delta)
-      (org-fc-show-all)
-      (save-buffer)
-      ;; TODO: Conditional kill
-      (unless org-fc-reviewing-existing-buffer
-        (kill-buffer))
-      (org-fc-review-next-card))))
+  (condition-case err
+      (org-fc-review-with-current-item card
+        (let* ((path (plist-get card :path))
+               (id (plist-get card :id))
+               (position (plist-get card :position))
+               (now (time-to-seconds (current-time)))
+               (delta (- now org-fc-timestamp)))
+          (org-fc-session-add-rating org-fc-review--current-session rating)
+          (org-fc-review-update-data path id position rating delta)
+          (org-fc-show-all)
+          (save-buffer)
+          ;; TODO: Conditional kill
+          (unless org-fc-reviewing-existing-buffer
+            (kill-buffer))
+          (org-fc-review-next-card)))
+    (error
+     (message "Error rating card: %s" (error-message-string err))
+     (org-fc-review-quit))))
 
 (defun org-fc-review-update-data (path id position rating delta)
   (save-excursion
