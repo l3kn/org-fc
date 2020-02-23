@@ -78,7 +78,8 @@
 ;;; Main View
 
 ;; Based on `mu4e-main-view-real'
-(defun org-fc-dashboard-view (_ignore-auto _noconfirm)
+(defun org-fc-dashboard-view ()
+  (interactive)
   (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
          (inhibit-read-only t)
          (cards-stats (org-fc-awk-stats-cards))
@@ -154,6 +155,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") 'org-fc-review-all)
     (define-key map (kbd "q") 'quit-window)
+    (define-key map (kbd "G") 'org-fc-dashboard-view)
     map))
 
 (define-derived-mode org-fc-dashboard-mode special-mode "org-fc main"
@@ -164,7 +166,7 @@
 ;;;###autoload
 (defun org-fc-dashboard ()
   (interactive)
-  (org-fc-dashboard-view nil nil)
+  (org-fc-dashboard-view)
   (switch-to-buffer org-fc-dashboard-buffer-name)
   (goto-char (point-min))
   (org-fc-dashboard-mode))
