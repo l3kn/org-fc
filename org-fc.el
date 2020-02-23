@@ -27,9 +27,9 @@
 (require 'org-id)
 (require 'subr-x)
 
+(require 'org-fc-awk)
 (require 'org-fc-overlay)
 (require 'org-fc-review)
-(require 'org-fc-awk)
 (require 'org-fc-dashboard)
 
 ;;; Configuration
@@ -254,7 +254,7 @@ FN is called with point at the headline and no arguments."
   "Re-process the current flashcard"
   (interactive)
   (unless (org-fc-part-of-entry-p)
-      (error "Not part of a flashcard entry"))
+    (error "Not part of a flashcard entry"))
   (save-excursion
     (org-fc-goto-entry-heading)
     (let ((type (org-entry-get (point) "FC_TYPE")))

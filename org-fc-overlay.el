@@ -17,18 +17,27 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-(require 'outline)
+;;; Commentary:
+;;
+;; During review, parts of the cards buffer should be hidden.
+;; This file provides a number of functions for doing so.
+;;
+;;; Code:
 
-;;; Finding Positions in the Buffer
+(require 'outline)
+(require 'org)
+(require 'org-element)
+
+;;;; Finding Positions in the Buffer
 
 (defun org-fc-overlay--point-at-end-of-previous ()
   "Value of point at the end of the previous line.
 Returns nil if there is no previous line."
   (save-excursion
-  (beginning-of-line)
-  (if (bobp)
-    nil
-  (progn (backward-char)
+    (beginning-of-line)
+    (if (bobp)
+        nil
+      (progn (backward-char)
              (point)))))
 
 (defun org-fc-overlay--point-after-title ()
@@ -51,13 +60,14 @@ Returns nil if there is no title keyword."
 
 ;; Based on `outline-flag-region'
 (defun org-fc-hide-region (from to &optional text face)
-  "Hide region, optionally replacing it with TEXT."
+  "Hide region FROM ... TO, optionally replacing it with TEXT.
+FACE can be used to set the text face of the overlay, e.g. to
+make it bold."
   ;; (remove-overlays from to 'category 'org-fc-hidden)
   (let ((o (make-overlay from to nil 'front-advance)))
     (overlay-put o 'display-original (overlay-get o 'display))
     (overlay-put o 'category 'org-fc-hidden)
     (overlay-put o 'evaporate t)
-
     (if (stringp text)
         (progn
           (overlay-put o 'invisible nil)
@@ -67,7 +77,8 @@ Returns nil if there is no title keyword."
     o))
 
 (defun org-fc-overlay-region (from to &optional face)
-  "Wrap region in an overlay for later hiding"
+  "Wrap region FROM ... TO in an overlay for later hiding.
+FACE can be used to set the text face of the overlay."
   ;; (remove-overlays from to 'category 'org-fc-hidden)
   (let ((o (make-overlay from to)))
     (overlay-put o 'evaporate t)
@@ -105,19 +116,20 @@ Returns nil if there is no title keyword."
 ;;;; Hiding Headings
 
 (defun org-fc-hide-subheadings-if (test)
-  "TEST is a function taking no arguments. TEST will be called for each
-of the immediate subheadings of the current headline, with the point
-on the relevant subheading. TEST should return nil if the subheading is
-to be revealed, non-nil if it is to be hidden.
-Returns a list containing the position of each immediate subheading of
-the current topic."
+  "Hide subheadings matching the predicate TEST.
+TEST is a function taking no arguments and will be called for
+each of the immediate subheadings of the current headline, with
+the point on the relevant subheading.  TEST should return nil if
+the subheading is to be revealed, non-nil if it is to be hidden.
+Returns a list containing the position of each immediate
+subheading of the current topic."
   (let ((entry-level (org-current-level))
         (sections nil))
     (org-show-subtree)
     (save-excursion
-  (org-map-entries
+      (org-map-entries
        (lambda ()
-  (when (and (not (outline-invisible-p))
+         (when (and (not (outline-invisible-p))
                     (> (org-current-level) entry-level))
            (when (or (/= (org-current-level) (1+ entry-level))
                      (funcall test))
@@ -139,7 +151,8 @@ the current topic."
 ;;;; Hiding Headline Contents
 
 (defun org-fc-hide-content (&optional text)
-  "Hide the main text of a heading *before* the first subheading."
+  "Hide the main text of a heading *before* the first subheading.
+If TEXT is non-nil, the content is replaced with TEXT."
   (let (start end)
     (save-excursion
       (org-back-to-heading)
@@ -151,9 +164,10 @@ the current topic."
     (org-fc-hide-region start end text)))
 
 (defun org-fc-hide-heading (&optional text)
-   "Hide the title of the headline at point"
-   ;; Case sensitive search
-   (let ((case-fold-search nil))
+  "Hide the title of the headline at point.
+If TEXT is non-nil, the heading is replaced with TEXT."
+  ;; Case sensitive search
+  (let ((case-fold-search nil))
     (save-excursion
       (beginning-of-line)
       (if (looking-at org-complex-heading-regexp)
@@ -163,11 +177,13 @@ the current topic."
 ;;;; Narrowing Outline Trees
 
 (defun org-fc-narrow-tree ()
+  "Narrow the outline tree.
+Only parent headings of the current heading remain visible."
   (interactive)
   (save-excursion
     (org-fc-goto-entry-heading)
     (let* ((end (org-fc-overlay--point-at-end-of-previous))
-           (tags (org-get-tags-at nil 'local))
+           (tags (org-get-tags nil 'local))
            (notitle (member "notitle" tags))
            (noheading (member "noheading" tags))
            (el (org-element-at-point))
@@ -189,6 +205,8 @@ the current topic."
               (org-fc-hide-region (point-min) (org-fc-overlay--point-at-end-of-previous)))))
       (org-fc-hide-region current-end (point-max)))))
 
-;;; Exports
+;;;; Footer
 
 (provide 'org-fc-overlay)
+
+;;; org-fc-overlay.el ends here

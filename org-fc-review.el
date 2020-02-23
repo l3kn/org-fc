@@ -17,16 +17,28 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
+;; Cards are reviewed by
+;; 1. opening the file they are in
+;; 2. calling the setup function for the card type
+;; 3. opening a hydra for flipping the card
+;; 4. calling the flip function for the card type
+;; 5. opening a hydra for rating the card
+;; 6. updating the review data based on the rating
+;;
+;;; Code:
+
 (require 'org-fc-sm2)
 
-;;; Configuration
+;;;; Customization
 
 (defcustom org-fc-review-data-drawer "REVIEW_DATA"
   "Name of the drawer used to store review data."
   :type 'string
   :group 'org-fc)
 
-;;; Session Management
+;;;; Session Management
 
 (defclass org-fc-review-session ()
   ((current-item :initform nil)
@@ -34,6 +46,7 @@
    (cards :initform nil :initarg :cards)))
 
 (defun org-fc-make-review-session (cards)
+  "Create a new review session with CARDS."
   (make-instance
    'org-fc-review-session
    :ratings
@@ -43,14 +56,17 @@
    :cards cards))
 
 (defun org-fc-session-cards-pending-p (session)
+  "Check if there are any cards in SESSION."
   (not (null (oref session cards))))
 
 (defun org-fc-session-pop-next-card (session)
+  "Remove and return one card from SESSION."
   (let ((card (pop (oref session cards))))
     (setf (oref session current-item) card)
     card))
 
 (defun org-fc-session-add-rating (session rating)
+  "Store RATING in the review history of SESSION."
   (with-slots (ratings) session
     (case rating
       ('again (incf (getf ratings :again) 1))
@@ -60,6 +76,7 @@
     (incf (getf ratings :total 1))))
 
 (defun org-fc-session-stats-string (session)
+  "Generate a string with review stats for SESSION."
   (with-slots (ratings) session
     (let ((total (plist-get ratings :total)))
       (if (plusp total)
@@ -73,10 +90,10 @@
 (defvar org-fc-review--current-session nil
   "Current review session.")
 
-;;; Helper Functions
+;;;; Helper Functions
 
 (defun org-fc-review-next-time (next-interval)
-  "Generate an org-mode timestamp NEXT-INTERVAL days from now"
+  "Generate an `org-mode' timestamp NEXT-INTERVAL days from now."
   (let ((seconds (* next-interval 60 60 24))
         (now (time-to-seconds)))
     (format-time-string
@@ -84,14 +101,15 @@
      (seconds-to-time (+ now seconds))
      "UTC0")))
 
+;; File-scoped variant of `org-id-goto'
 (defun org-fc-id-goto (id file)
-  "File-scoped variant of `org-id-goto'."
+  "Go to the heading with ID in FILE."
   (let ((position (org-id-find-id-in-file id file)))
     (if position
         (goto-char (cdr position))
       (error "ID %s not found in %s" id file))))
 
-;;; Reviewing Cards
+;;;; Reviewing Cards
 
 (defun org-fc-review--context (context)
   "Start a review session for all cards in CONTEXT."
@@ -107,16 +125,18 @@
 
 ;;;###autoload
 (defun org-fc-review-buffer ()
+  "Review due cards in the current buffer."
   (interactive)
   (org-fc-review--context 'buffer))
 
 ;;;###autoload
 (defun org-fc-review-all ()
+  "Review all due cards."
   (interactive)
   (org-fc-review--context 'all))
 
 (defun org-fc-review-next-card ()
-  "Review the next card of the current session"
+  "Review the next card of the current session."
   (if (org-fc-session-cards-pending-p org-fc-review--current-session)
       (condition-case err
           (let* ((card (org-fc-session-pop-next-card org-fc-review--current-session))
@@ -173,18 +193,19 @@
   ("q" org-fc-review-quit "Quit" :exit t))
 
 (defmacro org-fc-review-with-current-item (var &rest body)
-  "Helper macro for functions that work with the current item of
-a review session."
+  "Evaluate BODY with the current card bound to VAR.
+Before evaluating BODY, check if the heading at point has the
+same ID as the current card in the session."
   (declare (indent defun))
   `(if org-fc-review--current-session
-      (if-let ((,var (oref org-fc-review--current-session current-item)))
-        (if (string= (plist-get ,var :id) (org-id-get))
-            (progn ,@body)
-          (message "Flashcard ID mismatch"))
-    (message "No flashcard review is in progress"))))
+       (if-let ((,var (oref org-fc-review--current-session current-item)))
+           (if (string= (plist-get ,var :id) (org-id-get))
+               (progn ,@body)
+             (message "Flashcard ID mismatch"))
+         (message "No flashcard review is in progress"))))
 
 (defun org-fc-review-flip ()
-  "Flip the current flashcard"
+  "Flip the current flashcard."
   (interactive)
   (condition-case err
       (org-fc-review-with-current-item card
@@ -196,8 +217,7 @@ a review session."
 
 ;; TODO: Remove -card suffix
 (defun org-fc-review-rate-card (rating)
-  "Rate the card at point if it has the same id as the current
-  card of the review session."
+  "Rate the card at point with RATING."
   (interactive)
   (condition-case err
       (org-fc-review-with-current-item card
@@ -210,7 +230,6 @@ a review session."
           (org-fc-review-update-data path id position rating delta)
           (org-fc-show-all)
           (save-buffer)
-          ;; TODO: Conditional kill
           (unless org-fc-reviewing-existing-buffer
             (kill-buffer))
           (org-fc-review-next-card)))
@@ -219,6 +238,11 @@ a review session."
      (org-fc-review-quit))))
 
 (defun org-fc-review-update-data (path id position rating delta)
+  "Update the review data of the card.
+Also add a new entry in the review history file.  PATH, ID,
+POSITION identify the position that was reviewed, RATING is a
+review rating and DELTA the time in seconds between showing and
+rating the card."
   (save-excursion
     (org-fc-goto-entry-heading)
     (let* ((data (org-fc-get-review-data))
@@ -257,7 +281,7 @@ a review session."
   (setq org-fc-review--current-session nil)
   (org-fc-show-all))
 
-;;; Writing Review History
+;;;; Writing Review History
 
 (defun org-fc-review-history-add (elements)
   "Add ELEMENTS to the history csv file."
@@ -268,7 +292,7 @@ a review session."
    nil
    org-fc-review-history-file))
 
-;;; Reading / Writing Review Data
+;;;; Reading / Writing Review Data
 
 ;; Based on `org-log-beginning'
 (defun org-fc-review-data-position (&optional create)
@@ -302,8 +326,8 @@ END is the start of the line with :END: on it."
           (line-beginning-position 0)
           (line-beginning-position 0)))))))
 
-
 (defun org-fc-get-review-data ()
+  "Get a cards review data as a Lisp object."
   (let ((position (org-fc-review-data-position nil)))
     (if position
         (save-excursion
@@ -311,6 +335,7 @@ END is the start of the line with :END: on it."
           (cddr (org-table-to-lisp))))))
 
 (defun org-fc-set-review-data (data)
+  "Set the cards review data to DATA."
   (save-excursion
     (let ((position (org-fc-review-data-position t)))
       (kill-region (car position) (cdr position))
@@ -325,6 +350,7 @@ END is the start of the line with :END: on it."
       (org-table-align))))
 
 (defun org-fc-review-data-default (position)
+  "Default review data for position POSITION."
   (list position org-fc-sm2-ease-initial 0 0
         (org-fc-timestamp-now)))
 
@@ -342,6 +368,8 @@ removed."
          (org-fc-review-data-default pos)))
       positions))))
 
-;;; Exports
+;;;; Footer
 
 (provide 'org-fc-review)
+
+;;; org-fc-review.el ends here
