@@ -225,29 +225,30 @@ a review session."
            (current (assoc position data #'string=)))
       (unless current
         (error "No review data found for this position"))
-      (let ((ease (string-to-number (second current)))
-            (box (string-to-number (third current)))
-            (interval (string-to-number (fourth current))))
-        (org-fc-review-history-add
-         (list
-          (org-fc-timestamp-now)
-          path
-          id
-          position
-          (format "%.2f" ease)
-          (format "%d" box)
-          (format "%.2f" interval)
-          (symbol-name rating)
-          (format "%.2f" delta)))
-        (destructuring-bind (next-ease next-box next-interval)
-            (org-fc-sm2-next-parameters ease box interval rating)
-          (setcdr
-           current
-           (list (format "%.2f" next-ease)
-                 (number-to-string next-box)
-                 (format "%.2f" next-interval)
-                 (org-fc-review-next-time next-interval)))
-          (org-fc-set-review-data data))))))
+      (unless (and (boundp 'org-fc-demo-mode) org-fc-demo-mode)
+        (let ((ease (string-to-number (second current)))
+              (box (string-to-number (third current)))
+              (interval (string-to-number (fourth current))))
+          (org-fc-review-history-add
+           (list
+            (org-fc-timestamp-now)
+            path
+            id
+            position
+            (format "%.2f" ease)
+            (format "%d" box)
+            (format "%.2f" interval)
+            (symbol-name rating)
+            (format "%.2f" delta)))
+          (destructuring-bind (next-ease next-box next-interval)
+              (org-fc-sm2-next-parameters ease box interval rating)
+            (setcdr
+             current
+             (list (format "%.2f" next-ease)
+                   (number-to-string next-box)
+                   (format "%.2f" next-interval)
+                   (org-fc-review-next-time next-interval)))
+            (org-fc-set-review-data data)))))))
 
 ;;;###autoload
 (defun org-fc-review-quit ()
@@ -260,13 +261,12 @@ a review session."
 
 (defun org-fc-review-history-add (elements)
   "Add ELEMENTS to the history csv file."
-  (unless (and (boundp 'org-fc-demo-mode) org-fc-demo-mode)
-    (append-to-file
-     (concat
-      (mapconcat #'identity elements "\t")
-      "\n")
-     nil
-     org-fc-review-history-file)))
+  (append-to-file
+   (concat
+    (mapconcat #'identity elements "\t")
+    "\n")
+   nil
+   org-fc-review-history-file))
 
 ;;; Reading / Writing Review Data
 
@@ -333,15 +333,14 @@ END is the start of the line with :END: on it."
 If a doesn't exist already, it is initialized with default
 values.  Entries in the table not contained in POSITIONS are
 removed."
-  (unless (and (boundp 'org-fc-demo-mode) org-fc-demo-mode)
-      (let ((old-data (org-fc-get-review-data)))
-        (org-fc-set-review-data
-         (mapcar
-          (lambda (pos)
-            (or
-             (assoc pos old-data #'string=)
-             (org-fc-review-data-default pos)))
-          positions)))))
+  (let ((old-data (org-fc-get-review-data)))
+    (org-fc-set-review-data
+     (mapcar
+      (lambda (pos)
+        (or
+         (assoc pos old-data #'string=)
+         (org-fc-review-data-default pos)))
+      positions))))
 
 ;;; Exports
 
