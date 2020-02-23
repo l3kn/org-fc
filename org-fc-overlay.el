@@ -46,9 +46,7 @@ Returns nil if there is no title keyword."
   (save-excursion
     (goto-char (point-min))
     (when (re-search-forward (rx bol "#+TITLE:") nil t)
-      (forward-line 1)
-      (beginning-of-line)
-      (point))))
+      (point-at-eol))))
 
 ;;; Showing / Hiding Regions
 
@@ -201,8 +199,8 @@ Only parent headings of the current heading remain visible."
         ;; Don't hide anything if the heading is at the beginning of the buffer
         (if eop
             (if (and at (not notitle))
-                (org-fc-hide-region at (org-fc-overlay--point-at-end-of-previous))
-              (org-fc-hide-region (point-min) (org-fc-overlay--point-at-end-of-previous)))))
+                (org-fc-hide-region at eop)
+              (org-fc-hide-region (point-min) eop))))
       (org-fc-hide-region current-end (point-max)))))
 
 ;;;; Footer
