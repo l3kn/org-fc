@@ -37,7 +37,7 @@
   (org-show-subtree)
   (if (org-fc-has-back-heading-p)
       (setq org-fc-type-double--overlay (org-fc-hide-content "[...]\n"))
-      (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]")))
+    (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]")))
   (org-fc-review-flip-hydra/body))
 
 (defun org-fc-type-double-flip ()

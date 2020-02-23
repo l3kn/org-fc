@@ -17,9 +17,19 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
+;; There is no way to find due cards spread over a large number of
+;; files using Emacs Lisp (unless we are caching the results).
+;;
+;; As a workaround, this file implements a flashcard indexer based on
+;; a number of awk scripts.
+;;
+;;; Code:
+
 (defvar org-fc-awk--find-name
   "[a-Z0-9_]*.org"
-  "-name argument passed to `find' when searching for org files")
+  "-name argument passed to `find' when searching for org files.")
 
 (defun org-fc-awk--find (paths)
   "Generate shell code to search PATHS for org files."
@@ -29,7 +39,7 @@
    org-fc-awk--find-name))
 
 (defun org-fc-awk--indexer-variables ()
-  "Variables to pass to indexer scripts"
+  "Variables to pass to indexer scripts."
   `(("fc_tag" . ,org-fc-flashcard-tag)
     ("suspended_tag" . ,org-fc-suspended-tag)
     ("type_property" . ,org-fc-type-property)
@@ -37,10 +47,11 @@
     ("review_data_drawer" . ,org-fc-review-data-drawer)))
 
 (cl-defun org-fc-awk--command (file &optional &key variables utils input)
-  "Generate the shell command for calling awk on FILE with (key
-. value) pairs VARIABLES.  If UTILS is set to a non-nil value,
-the shared util file is included, too.  If INPUT is set to a
-string, use that file (absolute path) as input."
+  "Generate the shell command for calling awk.
+The script is called on FILE with (key . value) pairs VARIABLES.
+If UTILS is set to a non-nil value, the shared util file is
+included, too.  If INPUT is set to a string, use that
+file (absolute path) as input."
   (concat "gawk "
           ;; TODO: quote strings
           (mapconcat
@@ -66,8 +77,9 @@ string, use that file (absolute path) as input."
 ;;;; Key-Value
 
 (defun org-fc-awk--key-value-parse (input)
-  "Parse a string of newline separated key-value entries,
-each separated by a tab, into a keyword-number plist."
+  "Parse a string INPUT of newline separated key-value entries.
+Each key-value entry is separated by a tab.  Results are collected
+into a keyword-number plist."
   (mapcan
    (lambda (kv)
      (let ((kv (split-string kv "\t")))
@@ -91,8 +103,8 @@ each separated by a tab, into a keyword-number plist."
     element))
 
 (defun org-fc-tsv--parse-row (headers elements)
-  "Convert two lists of HEADERS and ELEMENTS into a plist,
-parsing each element with its header specification."
+  "Convert two lists of HEADERS and ELEMENTS into a plist.
+Each element is parsed using its header specification."
   (if (null headers)
       '()
     (let ((header (first headers)))
@@ -112,7 +124,7 @@ parsing each element with its header specification."
 
 (defvar org-fc-awk-card-headers
   '(:path :id (:type . symbol) (:suspended . bool) (:created . date))
-  "Headers of the card indexer")
+  "Headers of the card indexer.")
 
 (defvar org-fc-awk-position-headers
   '(:path
@@ -124,11 +136,11 @@ parsing each element with its header specification."
     (:box . box)
     (:interval . interval)
     (:due . date))
-  "Headers of the position indexer")
+  "Headers of the position indexer.")
 
 (defvar org-fc-awk-review-stats-headers
   '((:total . number) (:again . number) (:hard . number) (:good . number) (:easy . number))
-  "Headers of the review stat aggregator")
+  "Headers of the review stat aggregator.")
 
 ;;; AWK wrapper functions
 
@@ -160,7 +172,7 @@ parsing each element with its header specification."
 
 ;; TODO: Optimize card order for review
 (defun org-fc-awk-due-positions-for-paths (paths)
-  "Generate a list of due positions."
+  "Generate a list of due positions in PATHS."
   (org-fc-tsv-parse
    org-fc-awk-position-headers
    (shell-command-to-string
@@ -174,7 +186,7 @@ parsing each element with its header specification."
      (org-fc-awk--command "awk/filter_due.awk")))))
 
 (defun org-fc-awk-positions-for-paths (paths)
-  "Generate a list of all positions."
+  "Generate a list of all positions in PATHS."
   (org-fc-tsv-parse
    org-fc-awk-position-headers
    (shell-command-to-string
@@ -212,6 +224,8 @@ Return nil there is no history file."
                     :input org-fc-review-history-file)))))
         `(:all ,(first res) :month ,(second res) :week ,(third res) :day ,(fourth res)))))
 
-;;; Exports
+;;;; Footer
 
 (provide 'org-fc-awk)
+
+;;; org-fc-awk.el ends here

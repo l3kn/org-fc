@@ -17,6 +17,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
+;; This file provides a dashboard showing statistics for the flashcard
+;; system.
+;;
+;;; Code:
+
+(require 'seq)
+(require 'subr-x)
 (require 'svg)
 
 (require 'org-fc-review)
@@ -41,44 +50,46 @@
 ;;; Statistics
 
 (defun org-fc-review-estimate (paths n)
-  "Positions due in the next N days"
+  "Positions due in PATHS in the next N days."
   (let ((now (+ (time-to-seconds (current-time))
                 (* 60 60 24 n))))
-    (count-if
+    (seq-count
      (lambda (pos) (< (time-to-seconds (plist-get pos :due)) now))
      (org-fc-awk-positions-for-paths paths))))
 
 ;;; Bar-Chart Generation
 
 (defun org-fc-dashboard-bar-chart (stat)
-  "Generate a svg bar-chart for the plist STAT"
+  "Generate a svg bar-chart for the plist STAT."
   (let* ((width org-fc-dashboard-bar-chart-width)
          (height org-fc-dashboard-bar-chart-height)
          (total (float (plist-get stat :total)))
+         (pos 0)
          (values
           `((,(/ (plist-get stat :again) total) . "red")
             (,(/ (plist-get stat :hard) total) . "yellow")
             (,(/ (plist-get stat :good) total) . "green")
             (,(/ (plist-get stat :easy) total) . "darkgreen")))
          (svg (svg-create width height)))
-    (do ((values values (cdr values))
-         (pos 0 (+ pos (* width (caar values)))))
-    ((null values) '())
-  (svg-rectangle svg pos 0 (* width (caar values)) height :fill (cdar values)))
+    (dolist (value values)
+      (svg-rectangle svg pos 0 (* width (car value)) height :fill (cdr value))
+      (setq pos (+ pos (* width (car value)))))
     (svg-image svg)))
 
 (defun org-fc-dashboard-percent-right (stats)
+  "Format review percentages in STATS."
   (let ((total (float (plist-get stats :total))))
-   (format "  %5.2f | %5.2f | %5.2f | %5.2f"
-           (or (* 100 (/ (plist-get stats :again) total)) 0.0)
-           (or (* 100 (/ (plist-get stats :hard) total)) 0.0)
-           (or (* 100 (/ (plist-get stats :good) total)) 0.0)
-           (or (* 100 (/ (plist-get stats :easy) total)) 0.0))))
+    (format "  %5.2f | %5.2f | %5.2f | %5.2f"
+            (or (* 100 (/ (plist-get stats :again) total)) 0.0)
+            (or (* 100 (/ (plist-get stats :hard) total)) 0.0)
+            (or (* 100 (/ (plist-get stats :good) total)) 0.0)
+            (or (* 100 (/ (plist-get stats :easy) total)) 0.0))))
 
 ;;; Main View
 
 ;; Based on `mu4e-main-view-real'
 (defun org-fc-dashboard-view ()
+  "Show the dashboard view in the current buffer."
   (interactive)
   (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
          (inhibit-read-only t)
@@ -137,7 +148,7 @@
                          (:month . "Month")
                          (:all . "All")))
           (when-let (stat (plist-get reviews-stats (car scope)))
-            (when (plusp (plist-get stat :total))
+            (when (> (plist-get stat :total) 0)
               (insert (propertize (format "    %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
               (insert "    ")
               (insert-image (org-fc-dashboard-bar-chart stat))
@@ -165,12 +176,15 @@
 
 ;;;###autoload
 (defun org-fc-dashboard ()
+  "Open a buffer showing the dashboard view."
   (interactive)
   (org-fc-dashboard-view)
   (switch-to-buffer org-fc-dashboard-buffer-name)
   (goto-char (point-min))
   (org-fc-dashboard-mode))
 
-;;; Exports
+;;;; Footer
 
 (provide 'org-fc-dashboard)
+
+;;; org-fc-dashboard.el ends here

@@ -17,27 +17,32 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Configuration
+;;; Commentary:
+;;
+;; Card type implementing cloze deletions in different variants
+;;
+;;; Code:
+
+;;;; Customization
 
 (defcustom org-fc-type-cloze-max-hole-property "FC_CLOZE_MAX"
-  "Name of the headline property to use for storing the max hole
-index."
+  "Name of the property to use for storing the max hole index."
   :type 'string
   :group 'org-fc)
 (defcustom org-fc-type-cloze-type-property "FC_CLOZE_TYPE"
-  "Name of the headline property to use for storing the cloze
-subtype."
+  "Name of the property to use for storing the cloze subtype."
   :type 'string
   :group 'org-fc)
 
 ;; NOTE: The context type is not implemented yet
 (defvar org-fc-type-cloze-types
-  '(deletion enumeration context single))
+  '(deletion enumeration context single)
+  "List of valid cloze card subtypes.")
 
 (defvar org-fc-type-cloze--overlays '())
 
 (defcustom org-fc-type-cloze-context 1
-  "Number of surrounding cards to show for 'context' type cards"
+  "Number of surrounding cards to show for 'context' type cards."
   :type 'number
   :group 'org-fc)
 
@@ -46,7 +51,7 @@ subtype."
   "Face for org-fc cloze card holes."
   :group 'org-fc)
 
-;;; Hole Regex
+;;;; Hole Regex
 
 (defvar org-fc-type-cloze-hole-re
   (rx
@@ -74,9 +79,10 @@ subtype."
     "}"))
   "Regexp for a cloze hole with an id.")
 
-;;; Hole Parsing / Hiding
+;;;; Hole Parsing / Hiding
 
 (defun org-fc-type-cloze-max-hole-id ()
+  "Get the max-hole property of the heading at point."
   (if-let ((max-id (org-entry-get (point) org-fc-type-cloze-max-hole-property)))
       (string-to-number max-id)
     -1))
@@ -86,8 +92,8 @@ subtype."
 ;; to work otherwise.  If the hole has no hint, we can't use any
 ;; properties of match 2.
 (defun org-fc-type-cloze--overlay-current (hole)
-  "Generate a list of overlays to display the hole currently
-  being reviewed."
+  "Generate a list of overlays for the current card.
+HOLE is the id of the hole being reviewed."
   (let ((hole-pos (plist-get hole :hole-pos))
         (text-pos (plist-get hole :text-pos))
         (hint-pos (plist-get hole :hint-pos)))
@@ -99,15 +105,15 @@ subtype."
          (org-fc-hide-region (car text-pos) (cdr text-pos))
          :separator
          (org-fc-hide-region (cdr text-pos) (car hint-pos)
-          "[..."
-          'org-fc-type-cloze-hole-face)
+                             "[..."
+                             'org-fc-type-cloze-hole-face)
          :hint
          (org-fc-overlay-region (car hint-pos) (cdr hint-pos)
-          'org-fc-type-cloze-hole-face)
+                                'org-fc-type-cloze-hole-face)
          :after-hint
          (org-fc-hide-region (cdr hint-pos) (cdr hole-pos)
-          "]"
-          'org-fc-type-cloze-hole-face))
+                             "]"
+                             'org-fc-type-cloze-hole-face))
       (list
        :before-text
        (org-fc-hide-region (car hole-pos) (car text-pos))
@@ -115,12 +121,13 @@ subtype."
        (org-fc-hide-region (car text-pos) (cdr text-pos))
        :hint
        (org-fc-hide-region (cdr text-pos) (cdr hole-pos)
-        "[...]"
-        'org-fc-type-cloze-hole-face)))))
+                           "[...]"
+                           'org-fc-type-cloze-hole-face)))))
 
 (defun org-fc-type-cloze--parse-holes (current-id end)
   "Starting at point, collect all cloze holes before END.
-Returns a pair (holes . current-position)."
+CURRENT-ID is the id of the hole being reviewed.  Returns a
+pair (holes . current-position)."
   (let ((holes nil)
         (current-position nil))
     (while (re-search-forward org-fc-type-cloze-id-hole-re end t)
@@ -154,7 +161,7 @@ current card TYPE."
             ('single (cons hole :hide))
             ('context
              (if (<= (abs (- i current-position)) org-fc-type-cloze-context)
-               (cons hole :show)
+                 (cons hole :show)
                (cons hole :hide)))
             (t (error "org-fc: Unknown cloze card type %s" type))))))
 
@@ -183,20 +190,20 @@ current card TYPE."
                 "..."))
               (:hint
                (setq overlays (org-fc-type-cloze--overlay-current hole)))))
-    overlays)))
+      overlays)))
 
 
-;;; Setup / Flipping
+;;;; Setup / Flipping
 
 (defun org-fc-type-cloze-flip ()
   (if-let ((overlays org-fc-type-cloze--overlays))
-    (progn
-  (if (plist-member overlays :separator)
-    (org-fc-hide-overlay (plist-get overlays :separator)))
-  (if (plist-member overlays :after-hint)
-    (org-fc-hide-overlay (plist-get overlays :after-hint)))
-  (org-fc-hide-overlay (plist-get overlays :hint))
-  (org-fc-show-overlay
+      (progn
+        (if (plist-member overlays :separator)
+            (org-fc-hide-overlay (plist-get overlays :separator)))
+        (if (plist-member overlays :after-hint)
+            (org-fc-hide-overlay (plist-get overlays :after-hint)))
+        (org-fc-hide-overlay (plist-get overlays :hint))
+        (org-fc-show-overlay
          (plist-get overlays :text)
          'org-fc-type-cloze-hole-face)))
   (org-fc-review-rate-hydra/body))
@@ -208,7 +215,7 @@ current card TYPE."
     (setq
      org-fc-type-cloze--overlays
      (org-fc-type-cloze-hide-holes hole cloze-type)))
-    (org-fc-review-flip-hydra/body))
+  (org-fc-review-flip-hydra/body))
 
 (defun org-fc-type-cloze-read-type ()
   (intern
@@ -235,7 +242,7 @@ Processes all holes in the card text."
          (hole-id (1+ (org-fc-type-cloze-max-hole-id)))
          ids)
     (save-excursion
-  (while (re-search-forward org-fc-type-cloze-hole-re end t)
+      (while (re-search-forward org-fc-type-cloze-hole-re end t)
         (let ((id (match-string 3))
               (hole-end (match-end 0)))
           (unless id
@@ -258,4 +265,8 @@ Processes all holes in the card text."
  'org-fc-type-cloze-flip
  'org-fc-type-cloze-update)
 
+;;;; Footer
+
 (provide 'org-fc-type-cloze)
+
+;;; org-fc-type-cloze.el ends here

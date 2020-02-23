@@ -17,6 +17,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
+;; This file contains an example for setting up a hydra to interact
+;; with the flashcard system.
+;;
+;;; Code:
+
+(require 'org-fc)
+
 (defhydra org-fc-hydra ()
   ("m" org-fc-dashboard "Dashboard" :exit t)
   ("r" org-fc-review-all "Start Review")
@@ -34,4 +43,8 @@
   ("x" (org-fc-type-cloze-init 'context) "Context" :exit t)
   ("q" nil "Quit" :exit t))
 
+;;;; Footer
+
 (provide 'org-fc-hydra)
+
+;;; org-fc-hydra.el ends here
