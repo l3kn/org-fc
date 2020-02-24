@@ -39,7 +39,14 @@ END {
     for (var in by_type) {
         print "type-" var "\t" by_type[var];
     }
-    print "avg-ease" "\t" ease / n_stats;
-    print "avg-box" "\t" box / n_stats;
-    print "avg-interval" "\t" interval / n_stats;
+
+    if (n_stats > 0) {
+        print "avg-ease" "\t" ease / n_stats;
+        print "avg-box" "\t" box / n_stats;
+        print "avg-interval" "\t" interval / n_stats;
+    } else {
+        print "avg-ease" "\t" 0.0;
+        print "avg-box" "\t" 0;
+        print "avg-interval" "\t" 0.0;
+    }
 }
