@@ -261,3 +261,5 @@ entry with updating instructions.
 ** Other Documentation
 - [[file:doc/internals.org][Internals]]
 - [[file:doc/sharing_decks.org][Sharing Decks]] (todo)
+** License
+Copyright © Leon Rische and contributors. Distributed under the GNU General Public License, Version 3
