@@ -87,6 +87,11 @@
   :type 'list
   :group 'org-fc)
 
+(defcustom org-fc-stats-review-min-box 0
+  "Minimum box for reviews to include in the review stats."
+  :type 'integer
+  :group 'org-fc)
+
 ;; TODO: Allow customizing this, currently that's not possible because
 ;; the indexers / filters expect a ISO8601 format.
 (defvar org-fc-timestamp-format "%FT%TZ"
