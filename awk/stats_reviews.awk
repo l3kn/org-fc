@@ -3,6 +3,7 @@ BEGIN {
     t_day = time_days_ago(1);
     t_week = time_days_ago(7);
     t_month = time_days_ago(30);
+    min_box = or_default(min_box, 0);
 }
 
 {
@@ -15,7 +16,7 @@ BEGIN {
     interval = $7;
     rating = $8;
 
-    if (box >= 2) {
+    if (box >= min_box) {
         if (date > t_day) {
             ratings_day[rating]++;
             n_day++;
