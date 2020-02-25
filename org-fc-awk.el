@@ -221,7 +221,8 @@ Return nil there is no history file."
                    (org-fc-awk--command
                     "awk/stats_reviews.awk"
                     :utils t
-                    :input org-fc-review-history-file)))))
+                    :input org-fc-review-history-file
+                    :variables `(("min_box" . ,org-fc-stats-review-min-box)))))))
         `(:all ,(first res) :month ,(second res) :week ,(third res) :day ,(fourth res)))))
 
 ;;;; Footer
