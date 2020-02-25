@@ -160,6 +160,7 @@
                 (org-fc-narrow-tree)
                 (org-fc-hide-drawers)
                 (org-fc-show-latex)
+                (org-display-inline-images)
                 (setq org-fc-timestamp (time-to-seconds (current-time)))
                 (funcall (org-fc-type-setup-fn type) position))))
         (error
