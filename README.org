@@ -237,6 +237,12 @@ and cards / card types.
 
 [[file:images/stats.png]]
 
+Only cards with a box >= ~org-fc-stats-review-min-box~ (default: 0)
+are included in the review statistics.
+
+Setting this to a higher value (e.g. 2) excludes the first few
+"learning" reviews of a card.
+
 See also:
 
 - [[file:doc/review_history.org][Review History]]

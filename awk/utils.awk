@@ -19,5 +19,5 @@ function time_days_ago(n) {
 }
 
 function or_default(var, def) {
-    return var ? var : def;
+    return (var != "") ? var : def;
 }
