@@ -14,6 +14,9 @@ compared to the one stored in the ~:ANSWER:~ property of the card.
 
 Positions: =front=
 ** TODO Implement review / flip function
+:PROPERTIES:
+:ID:       7dc74250-067b-4dfd-9665-8a2e51ac95bd
+:END:
 1. Prompt for user input
 2. Compare to stored answer, show diff
 
@@ -37,7 +40,13 @@ Positions: =0=, =1=, ...
 Cloze cards can have a number of sub-types.
 
 ** TODO Document type-specific properties
+:PROPERTIES:
+:ID:       21f61d75-5617-4a30-b09a-c832270450e0
+:END:
 ** TODO Implement & document type-changing functions
+:PROPERTIES:
+:ID:       920cedcf-1a26-4f24-af0b-2f3aa1e97b17
+:END:
 ** Deletion ~'deletion~
 Only one hole is hidden.
 ** Enumerations ~'enumeration~
@@ -70,7 +79,17 @@ In this case, ~latex~ should not contain any "$".
 Holes *inside* latex blocks are not handled correctly at the moment.
 As a workaround, create multiple smaller latex blocks and wrap each in
 a hole.
+** Image Deletions
+Due to an issue with invisible overlays, images inside cloze-holes are
+not shown correctly during review if the image link directly follows
+the opening ~{{~.
+
+Adding spaces around the image link fixes this problem,
+e.g. ~{{ [[file:my_image.png]] }}~.
 ** TODO Listening Cards
+:PROPERTIES:
+:ID:       39fe40a9-8d57-4364-b5dd-50ff01417c63
+:END:
 When reviewing the card, an audio file is played.
 Flipping the card, a transcription / translation is revealed.
 
