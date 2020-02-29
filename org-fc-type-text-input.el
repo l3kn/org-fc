@@ -17,12 +17,23 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
+;; Card type prompting the user to enter a string during review.
+;; This string is then compared to the back of the card.
+;;
+;; Not implemented yet!
+;;
+;;; Code:
+
 (defun org-fc-type-text-input-init ()
+  "Initialize a heading as text-input card."
   (interactive)
   (org-fc--init-card "text-input")
   (org-fc-review-data-update '("front")))
 
 (defun org-fc-type-text-input-review (_position)
+  "Review a text-input card."
   (org-show-subtree)
   (let ((answer (org-entry-get (point) "ANSWER"))
         (user-answer (read-string "Answer: ")))
@@ -36,8 +47,8 @@
                    (concat "\n\n\nExpected: " answer
                            "\nGot:      " user-answer)))))
 
-;; No-op
-(defun org-fc-type-text-input-update ())
+(defun org-fc-type-text-input-update ()
+  "Update a text-input card, No-op.")
 
 ;; TODO: Implement real handler
 (org-fc-register-type
@@ -46,4 +57,8 @@
  'org-fc-type-normal-flip
  'org-fc-type-normal-update)
 
+;;;; Footer
+
 (provide 'org-fc-type-text-input)
+
+;;; org-fc-type-text-input.el ends here

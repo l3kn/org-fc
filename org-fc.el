@@ -20,6 +20,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
+;; Spaced-repetition system for Emacs org mode.
+;;
+;;; Code:
+
 (require 'hydra)
 
 (require 'cl)
@@ -32,7 +38,7 @@
 (require 'org-fc-review)
 (require 'org-fc-dashboard)
 
-;;; Configuration
+;;;; Customization
 
 (defgroup org-fc nil
   "Manage and review flashcards with emacs"
@@ -42,8 +48,8 @@
 (defvar org-fc-source-path
   (file-name-directory
    (or load-file-name (buffer-file-name)))
-  "Location of the org-fc sources, used to generate absolute
-  paths to the awk scripts")
+  "Location of the org-fc sources.
+Used to generate absolute paths to the awk scripts")
 
 (defcustom org-fc-review-history-file (expand-file-name "org-fc-reviews.tsv" user-emacs-directory)
   "File to store review results in."
@@ -61,24 +67,23 @@
   :group 'org-fc)
 
 (defcustom org-fc-suspended-tag "suspended"
-  "Tag for marking suspended cards"
+  "Tag for marking suspended cards."
   :type 'string
   :group 'org-fc)
 
 (defcustom org-fc-flashcard-tag "fc"
-  "Tag for marking headlines as flashcards"
+  "Tag for marking headlines as flashcards."
   :type 'string
   :group 'org-fc)
 
 (defcustom org-fc-directories '("~/org")
-  "Directories to search for flashcards"
+  "Directories to search for flashcards."
   :type 'string
   :group 'org-fc)
 
 (defcustom org-fc-unsuspend-overdue-percentage 0.1
-  "Cards overdue by this percentage of their interval keep their
-  spacing parameters when they are unsuspended. Cards overdue by
-  more than that are reset."
+  "Percentage of interval overdue to ignore when unsuspending.
+Cards overdue by more than that are reset."
   :type 'float
   :group 'org-fc)
 
@@ -105,14 +110,14 @@ Defaults to ISO8601")
 Only 'awk is supported at the moment.")
 
 (defvar org-fc-demo-mode nil
-  "If set to a non-nil value, a cards review data is not
-  updated. Used by `org-fc-demo'")
+  "If set to a non-nil value, a cards review data is not updated.
+Used by `org-fc-demo'")
 (make-variable-buffer-local 'org-fc-demo-mode)
 
-;;; Helper Functions
+;;;; Helper Functions
 
 (defun org-fc-timestamp-now ()
-  "ISO8601 timestamp of the current time in the UTC timezone"
+  "ISO8601 timestamp of the current time in the UTC timezone."
   (format-time-string org-fc-timestamp-format nil "UTC"))
 
 (defun org-fc-days-overdue (ts)
@@ -143,20 +148,20 @@ Used to determine if a card uses the compact style."
 This mutates / destroys the input list."
   (sort list (lambda (_a _b) (< (cl-random 1.0) 0.5))))
 
-;;; Checking for / going to flashcard headings
+;;;; Checking for / going to flashcard headings
 
 (defun org-fc-entry-p ()
-  "Check if the current heading is a flashcard"
+  "Check if the current heading is a flashcard."
   (member org-fc-flashcard-tag (org-get-tags-at nil 'local)))
 
 (defun org-fc-suspended-entry-p ()
-  "Check if the current heading is a suspended flashcard"
+  "Check if the current heading is a suspended flashcard."
   (let ((tags (org-get-tags-at nil 'local)))
     (and (member org-fc-flashcard-tag tags)
          (member org-fc-suspended-tag tags))))
 
 (defun org-fc-part-of-entry-p ()
-  "Check if the current heading belongs to a flashcard"
+  "Check if the current heading belongs to a flashcard."
   (member org-fc-flashcard-tag (org-get-tags-at nil)))
 
 (defun org-fc-goto-entry-heading ()
@@ -169,7 +174,7 @@ This mutates / destroys the input list."
     (unless (org-up-heading-safe)
       (error "Cannot find a parent heading that is marked as a flashcard"))))
 
-;;; Adding / Removing Tags
+;;;; Adding / Removing Tags
 
 (defun org-fc--add-tag (tag)
   "Add TAG to the heading at point."
@@ -185,12 +190,13 @@ This mutates / destroys the input list."
 
 ;;;###autoload
 (defun org-fc-tag-card (tag)
-  "Add one of the predefined card tags to the current card,
+  "Add TAG to the current card.
+Called interactively, reads from a predefined list of tags,
 e.g. to suspend a card during review."
   (interactive (list (completing-read "Tag: " org-fc-card-tags)))
   (org-fc--add-tag tag))
 
-;;; Registering Card Types
+;;;; Registering Card Types
 
 (defvar org-fc-types '()
   "Alist for registering card types.
@@ -198,7 +204,10 @@ Entries should be lists (name handler-fn update-fn).
 Use `org-fc-register-type' for adding card types.")
 
 (defun org-fc-register-type (name setup-fn flip-fn update-fn)
-  "Register a new card type."
+  "Register a new card type named NAME.
+SETUP-FN is used for presenting cards of this type for review,
+FLIP-FN for flipping them, and UPDATE-FN for updating the review
+data when the card's contents have changed."
   (push
    (list name setup-fn flip-fn update-fn)
    org-fc-types))
@@ -224,10 +233,10 @@ Use `org-fc-register-type' for adding card types.")
         (third entry)
       (error "No such flashcard type: %s" type))))
 
-;;; Card Initialization
+;;;; Card Initialization
 
 (defun org-fc--init-card (type)
-  "Initialize the current card as a flashcard.
+  "Initialize the current card as a flashcard of TYPE.
 Should only be used by the init functions of card types."
   (if (org-fc-part-of-entry-p)
       (error "Headline is already a flashcard"))
@@ -239,14 +248,14 @@ Should only be used by the init functions of card types."
   (org-id-get-create)
   (org-fc--add-tag org-fc-flashcard-tag))
 
-;;; Default Card Types
+;;;; Default Card Types
 
 (require 'org-fc-type-normal)
 (require 'org-fc-type-text-input)
 (require 'org-fc-type-double)
 (require 'org-fc-type-cloze)
 
-;;; Updating Cards
+;;;; Updating Cards
 
 (defun org-fc-map-cards (fn)
   "Call FN for each flashcard headline in the current buffer.
@@ -256,7 +265,7 @@ FN is called with point at the headline and no arguments."
 
 ;;;###autoload
 (defun org-fc-update ()
-  "Re-process the current flashcard"
+  "Re-process the current flashcard."
   (interactive)
   (unless (org-fc-part-of-entry-p)
     (error "Not part of a flashcard entry"))
@@ -267,11 +276,11 @@ FN is called with point at the headline and no arguments."
 
 ;;;###autoload
 (defun org-fc-update-all ()
-  "Re-process all flashcards in the current buffer"
+  "Re-process all flashcards in the current buffer."
   (interactive)
   (org-fc-map-cards 'org-fc-update))
 
-;;; Suspending / Unsuspending Cards
+;;;; Suspending / Unsuspending Cards
 
 ;;;###autoload
 (defun org-fc-suspend-card ()
@@ -285,14 +294,15 @@ FN is called with point at the headline and no arguments."
 
 ;;;###autoload
 (defun org-fc-suspend-buffer ()
-  "Suspend all cards in the current buffer"
+  "Suspend all cards in the current buffer."
   (interactive)
   (org-fc-map-cards 'org-fc-suspend-card))
 
 (defun org-fc--unsuspend-card ()
-  "If a position is overdue by more than
-`org-fc-unsuspend-overdue-percentage' of its interval, reset it to box 0,
-if not, keep the current parameters."
+  "Unsuspend the card at point.
+If a position is overdue by more than
+`org-fc-unsuspend-overdue-percentage' of its interval, reset it
+to box 0, if not, keep the current parameters."
   (when (org-fc-suspended-entry-p)
     (org-fc--remove-tag org-fc-suspended-tag)
     ;; Reset all positions overdue more than `org-fc-unsuspend-overdue-percentage'.
@@ -310,8 +320,7 @@ if not, keep the current parameters."
 
 ;;;###autoload
 (defun org-fc-unsuspend-card ()
-  "Un-suspend the headline at point if it is a suspended
-flashcard."
+  "Un-suspend the headline at point if it is a suspended flashcard."
   (interactive)
   (if (org-fc-suspended-entry-p)
       (progn (org-fc-goto-entry-heading)
@@ -320,13 +329,14 @@ flashcard."
 
 ;;;###autoload
 (defun org-fc-unsuspend-buffer ()
-  "Un-suspend all cards in the current buffer"
+  "Un-suspend all cards in the current buffer."
   (interactive)
   (org-fc-map-cards 'org-fc--unsuspend-card))
 
-;;; Indexing Cards
+;;;; Indexing Cards
 
 (defun org-fc-due-positions-for-paths (paths)
+  "Find all due positions of cards in PATHS."
   (if (eq org-fc-indexer 'awk)
       (org-fc-shuffle (org-fc-awk-due-positions-for-paths paths))
     (error
@@ -334,13 +344,15 @@ flashcard."
      (format "Indexer %s not implemented yet" org-fc-indexer-error))))
 
 (defun org-fc-due-positions (context)
-  "Return a shuffled list of elements (file id position) of due cards."
+  "Return a shuffled list of (file id position) of due cards in CONTEXT.
+CONTEXT can be either 'all for all cards or 'buffer for cards in
+the current buffer."
   (case context
     ('all (org-fc-due-positions-for-paths org-fc-directories))
     ('buffer (org-fc-due-positions-for-paths (list (buffer-file-name))))
     (t (error "Unknown review context %s" context))))
 
-;;; Demo Mode
+;;;; Demo Mode
 
 ;;;###autoload
 (defun org-fc-demo ()
@@ -351,6 +363,8 @@ flashcard."
       (setq-local org-fc-demo-mode t)
       (org-fc-review-buffer))))
 
-;;; Exports
+;;;; Footer
 
 (provide 'org-fc)
+
+;;; org-fc.el ends here

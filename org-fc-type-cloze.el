@@ -124,9 +124,9 @@ HOLE is the id of the hole being reviewed."
                            "[...]"
                            'org-fc-type-cloze-hole-face)))))
 
-(defun org-fc-type-cloze--parse-holes (current-id end)
+(defun org-fc-type-cloze--parse-holes (current-position end)
   "Starting at point, collect all cloze holes before END.
-CURRENT-ID is the id of the hole being reviewed.  Returns a
+CURRENT-POSITION is the id of the hole being reviewed.  Returns a
 pair (holes . current-position)."
   (let ((holes nil)
         (current-position nil))
@@ -140,13 +140,13 @@ pair (holes . current-position)."
                       :hint-pos (,(match-beginning 2) . ,(match-end 2)))
               holes)
         ;; Track the position of the current hole in the list of holes
-        (if (= current-id id) (setq current-position (1- (length holes))))))
+        (if (= current-position id) (setq current-position (1- (length holes))))))
     (cons (reverse holes) current-position)))
 
 (defun org-fc-type-cloze--tag-holes (type holes current-position)
-  "Given a list of HOLES and the position of the hole currently being reviewed,
-add a :show / :hide / :hint tag to the hole, depending on the
-current card TYPE."
+  "Tag HOLES of a card of TYPE for reviewing CURRENT-POSITION.
+Holes are tagged :show / :hide / :hint, depending on the current
+card TYPE."
   (loop for i below (length holes)
         for hole in holes
         collect
@@ -163,15 +163,16 @@ current card TYPE."
              (if (<= (abs (- i current-position)) org-fc-type-cloze-context)
                  (cons hole :show)
                (cons hole :hide)))
-            (t (error "org-fc: Unknown cloze card type %s" type))))))
+            (t (error "Unknown cloze card type %s" type))))))
 
-(defun org-fc-type-cloze-hide-holes (current-id type)
+(defun org-fc-type-cloze-hide-holes (current-position type)
+  "Hide holes of a card of TYPE for reviewing position CURRENT-POSITION."
   (save-excursion
     (org-fc-goto-entry-heading)
     (let* ((el (org-element-at-point))
            (overlays nil)
            (end (org-element-property :contents-end el))
-           (holes (org-fc-type-cloze--parse-holes current-id end))
+           (holes (org-fc-type-cloze--parse-holes current-position end))
            (tagged-holes (org-fc-type-cloze--tag-holes type (car holes) (cdr holes))))
       (loop for (hole . tag) in (reverse tagged-holes)
             do
@@ -196,6 +197,7 @@ current card TYPE."
 ;;;; Setup / Flipping
 
 (defun org-fc-type-cloze-flip ()
+  "Flip a cloze deletion card."
   (if-let ((overlays org-fc-type-cloze--overlays))
       (progn
         (if (plist-member overlays :separator)
@@ -209,6 +211,7 @@ current card TYPE."
   (org-fc-review-rate-hydra/body))
 
 (defun org-fc-type-cloze-setup (position)
+  "Set up a cloze deletion card for reviewing POSITION."
   (let ((hole (string-to-number position))
         (cloze-type (intern (org-entry-get (point) org-fc-type-cloze-type-property))))
     (org-show-subtree)
@@ -218,6 +221,7 @@ current card TYPE."
   (org-fc-review-flip-hydra/body))
 
 (defun org-fc-type-cloze-read-type ()
+  "Select a cloze card subtype."
   (intern
    (completing-read
     "Cloze Type: "
