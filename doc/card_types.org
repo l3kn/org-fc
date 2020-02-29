@@ -37,16 +37,12 @@ Card titles can contain holes, too.
 
 Positions: =0=, =1=, ...
 
+When changing the order of holes in a cloze card or adding / removing
+holes, make sure to run ~org-fc-update~ on the card to update the
+review data table.
+
 Cloze cards can have a number of sub-types.
 
-** TODO Document type-specific properties
-:PROPERTIES:
-:ID:       21f61d75-5617-4a30-b09a-c832270450e0
-:END:
-** TODO Implement & document type-changing functions
-:PROPERTIES:
-:ID:       920cedcf-1a26-4f24-af0b-2f3aa1e97b17
-:END:
 ** Deletion ~'deletion~
 Only one hole is hidden.
 ** Enumerations ~'enumeration~
@@ -86,22 +82,13 @@ the opening ~{{~.
 
 Adding spaces around the image link fixes this problem,
 e.g. ~{{ [[file:my_image.png]] }}~.
-** TODO Listening Cards
-:PROPERTIES:
-:ID:       39fe40a9-8d57-4364-b5dd-50ff01417c63
-:END:
-When reviewing the card, an audio file is played.
-Flipping the card, a transcription / translation is revealed.
-
-Useful for learning to understand sentences spoken in a foreign
-language.
-** Compact Cards
+* Compact Cards
 For cards without a "Back" heading, the headline text is considered as
 the front, the main text as the back.
 
 This is useful for cards with a short front text, e.g. when learning
 definitions of words.
-** Defining Own Card Types
+* Defining Own Card Types
 To define a custom card type,
 you need to implement three functions:
 
