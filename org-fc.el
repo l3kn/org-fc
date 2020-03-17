@@ -392,7 +392,7 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
   (org-fc-review-data-update '("front" "back")))
 
 (defun org-fc-type-double-setup (position)
-  "Prepare a double card for review."
+  "Prepare POSITION of a double card for review."
   (pcase position
     ("front" (org-fc-type-normal-setup position))
     ("back"
@@ -445,7 +445,7 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
     "}"))
   "Regexp for a cloze hole without an id.")
 
-(defvar org-fc-type-cloze-id-hole-re
+(defvar org-fc-type-cloze-position-hole-re
   (rx
    (seq
     "{{"
@@ -501,29 +501,28 @@ HOLE is the id of the hole being reviewed."
                            "[...]"
                            'org-fc-type-cloze-hole-face)))))
 
-(defun org-fc-type-cloze--parse-holes (current-id end)
+(defun org-fc-type-cloze--parse-holes (current-position end)
   "Starting at point, collect all cloze holes before END.
-CURRENT-ID is the id of the hole being reviewed.  Returns a
+CURRENT-POSITION is the id of the hole being reviewed.  Returns a
 pair (holes . current-position)."
   (let ((holes nil)
         (current-position nil))
-    (while (re-search-forward org-fc-type-cloze-id-hole-re end t)
+    (while (re-search-forward org-fc-type-cloze-position-hole-re end t)
       (let ((text (match-string 1))
             (hint (match-string 2))
-            (id (string-to-number (match-string 3))))
-        (push `(:text ,text :hint ,hint :id ,id
-                      :hole-pos (,(match-beginning 0) . ,(match-end 0))
-                      :text-pos (,(match-beginning 1) . ,(match-end 1))
-                      :hint-pos (,(match-beginning 2) . ,(match-end 2)))
+            (position (string-to-number (match-string 3))))
+        (push (list
+               :text text :hint hint :id id
+               :hole-pos (cons (match-beginning 0) (match-end 0))
+               :text-pos (cons (match-beginning 1) (match-end 1))
+               :hint-pos (cons (match-beginning 2) (match-end 2)))
               holes)
         ;; Track the position of the current hole in the list of holes
-        (if (= current-id id) (setq current-position (1- (length holes))))))
+        (if (= current-position position) (setq current-position (1- (length holes))))))
     (cons (reverse holes) current-position)))
 
 (defun org-fc-type-cloze--tag-holes (type holes current-position)
-  "Given a list of HOLES and the position of the hole currently being reviewed,
-add a :show / :hide / :hint tag to the hole, depending on the
-current card TYPE."
+  "Tag HOLES of a card of TYPE in relation to the CURRENT-POSITION."
   (cl-loop for i below (length holes)
            for hole in holes
            collect
@@ -542,13 +541,14 @@ current card TYPE."
                   (cons hole :hide)))
                (t (error "org-fc: Unknown cloze card type %s" type))))))
 
-(defun org-fc-type-cloze-hide-holes (current-id type)
+(defun org-fc-type-cloze-hide-holes (current-position type)
+  "Hide holes of a card of TYPE in relation to the CURRENT-POSITION."
   (save-excursion
     (org-fc-goto-entry-heading)
     (let* ((el (org-element-at-point))
            (overlays nil)
            (end (org-element-property :contents-end el))
-           (holes (org-fc-type-cloze--parse-holes current-id end))
+           (holes (org-fc-type-cloze--parse-holes current-position end))
            (tagged-holes (org-fc-type-cloze--tag-holes type (car holes) (cdr holes))))
       (cl-loop for (hole . tag) in (reverse tagged-holes) do
                (cl-case tag
@@ -571,16 +571,14 @@ current card TYPE."
 
 ;;;;; Setup / Flipping
 
-(defun org-fc-type-cloze-read-type ()
-  (intern
-   (completing-read
-    "Cloze Type: "
-    org-fc-type-cloze-types)))
-
 (defun org-fc-type-cloze-init (type)
   "Initialize the current heading for use as a cloze card of subtype TYPE.
 Processes all holes in the card text."
-  (interactive (list (org-fc-type-cloze-read-type)))
+  (interactive (list
+                (intern
+                 (completing-read
+                  "Cloze Type: "
+                  org-fc-type-cloze-types))))
   (unless (member type org-fc-type-cloze-types)
     (error "Invalid cloze card type: %s" type))
   (org-fc--init-card "cloze")
@@ -589,7 +587,7 @@ Processes all holes in the card text."
    org-fc-type-cloze-type-property
    (format "%s" type)))
 
-(defun org-fc-type-cloze-setup (position)
+(defun org-fc-type-cloze-setup (_position)
   "Prepare a normal card for review."
   (let ((hole (string-to-number position))
         (cloze-type (intern (org-entry-get (point) org-fc-type-cloze-type-property))))
@@ -855,7 +853,7 @@ FN is called with point at the headline and no arguments."
 
 ;;;###autoload
 (defun org-fc-update ()
-  "Re-process the current flashcard"
+  "Re-process the current flashcard."
   (interactive)
   (unless (org-fc-part-of-entry-p)
     (error "Not part of a flashcard entry"))
@@ -866,7 +864,7 @@ FN is called with point at the headline and no arguments."
 
 ;;;###autoload
 (defun org-fc-update-all ()
-  "Re-process all flashcards in the current buffer"
+  "Re-process all flashcards in the current buffer."
   (interactive)
   (org-fc-map-cards 'org-fc-update))
 
@@ -884,14 +882,15 @@ FN is called with point at the headline and no arguments."
 
 ;;;###autoload
 (defun org-fc-suspend-buffer ()
-  "Suspend all cards in the current buffer"
+  "Suspend all cards in the current buffer."
   (interactive)
   (org-fc-map-cards 'org-fc-suspend-card))
 
 (defun org-fc--unsuspend-card ()
-  "If a position is overdue by more than
-`org-fc-unsuspend-overdue-percentage' of its interval, reset it to box 0,
-if not, keep the current parameters."
+  "Unsuspend the card at point, updating its review data.
+If a position is overdue by more than
+`org-fc-unsuspend-overdue-percentage' of its interval, reset it
+to box 0, if not, keep the current parameters."
   (when (org-fc-suspended-entry-p)
     (org-fc--remove-tag org-fc-suspended-tag)
     ;; Reset all positions overdue more than `org-fc-unsuspend-overdue-percentage'.
@@ -909,8 +908,8 @@ if not, keep the current parameters."
 
 ;;;###autoload
 (defun org-fc-unsuspend-card ()
-  "Un-suspend the headline at point if it is a suspended
-flashcard."
+  "Unsuspend the headline at point.
+Checks if the headline is a suspended card first."
   (interactive)
   (if (org-fc-suspended-entry-p)
       (progn (org-fc-goto-entry-heading)
@@ -919,7 +918,7 @@ flashcard."
 
 ;;;###autoload
 (defun org-fc-unsuspend-buffer ()
-  "Un-suspend all cards in the current buffer"
+  "Un-suspend all cards in the current buffer."
   (interactive)
   (org-fc-map-cards 'org-fc--unsuspend-card))
 
@@ -1121,6 +1120,7 @@ Return nil there is no history file."
 ;;; Indexing Cards
 
 (defun org-fc-due-positions-for-paths (paths)
+  "Find due positions for all cards in files in PATHS."
   (if (eq org-fc-indexer 'awk)
       (org-fc-shuffle (org-fc-awk-due-positions-for-paths paths))
     (error
@@ -1128,7 +1128,7 @@ Return nil there is no history file."
      (format "Indexer %s not implemented yet" org-fc-indexer-error))))
 
 (defun org-fc-due-positions (context)
-  "Return a shuffled list of elements (file id position) of due cards."
+  "Return a shuffled list [(file id position)] of due cards for CONTEXT."
   (cl-case context
     ('all (org-fc-due-positions-for-paths org-fc-directories))
     ('buffer (org-fc-due-positions-for-paths (list (buffer-file-name))))
@@ -1648,6 +1648,7 @@ rating the card."
   (switch-to-buffer org-fc-dashboard-buffer-name)
   (goto-char (point-min))
   (org-fc-dashboard-mode))
+
 ;;; Footer
 
 (provide 'org-fc)
