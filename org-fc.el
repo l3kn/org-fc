@@ -192,6 +192,9 @@ Only 'awk is supported at the moment.")
 
 ;;; Helper Functions
 
+(defun org-fc-noop ()
+    "Noop-function.")
+
 (defun org-fc-timestamp-now ()
   "ISO8601 timestamp of the current time in the UTC timezone."
   (format-time-string org-fc-timestamp-format nil "UTC"))
@@ -370,14 +373,11 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
       (org-show-subtree)))
   (org-fc-review-rate-hydra/body))
 
-;; No-op
-(defun org-fc-type-normal-update ())
-
 (org-fc-register-type
  'normal
  'org-fc-type-normal-setup
  'org-fc-type-normal-flip
- 'org-fc-type-normal-update)
+ 'org-fc-noop)
 ;;;; Double
 
 (defvar org-fc-type-double-hole-re
@@ -410,14 +410,11 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
   (org-show-subtree)
   (org-fc-review-rate-hydra/body))
 
-;; No-op
-(defun org-fc-type-double-update ())
-
 (org-fc-register-type
  'double
  'org-fc-type-double-setup
  'org-fc-type-double-flip
- 'org-fc-type-double-update)
+ 'org-fc-noop)
 
 ;;;; Cloze
 
@@ -667,15 +664,12 @@ Processes all holes in the card text."
                    (concat "\n\n\nExpected: " answer
                            "\nGot:      " user-answer)))))
 
-;; No-op
-(defun org-fc-type-text-input-update ())
-
 ;; TODO: Implement real handler
 (org-fc-register-type
  'text-input
  'org-fc-type-normal-setup
  'org-fc-type-normal-flip
- 'org-fc-type-normal-update)
+ 'org-fc-noop)
 
 ;;; Working with Overlays / Hiding Text
 ;;;; Finding Locations in the Buffer
