@@ -31,6 +31,7 @@
 (require 'org-id)
 (require 'org-element)
 (require 'outline)
+(require 'parse-time)
 (require 'subr-x)
 (require 'svg)
 
@@ -190,10 +191,18 @@ Only 'awk is supported at the moment.")
   "In demo mode, the review properties & history are not updated.")
 (make-variable-buffer-local 'org-fc-demo-mode)
 
+(defvar org-fc-reviewing-existing-buffer nil
+  "Track if the current buffer was open before the review.")
+(make-variable-buffer-local 'org-fc-reviewing-existing-buffer)
+
+(defvar org-fc-timestamp nil
+  "Time the last card was flipped.
+Used to calculate the time needed for reviewing a card.")
+
 ;;; Helper Functions
 
 (defun org-fc-noop ()
-    "Noop-function.")
+  "Noop-function.")
 
 (defun org-fc-timestamp-now ()
   "ISO8601 timestamp of the current time in the UTC timezone."
@@ -207,8 +216,8 @@ Only 'awk is supported at the moment.")
 
 (defun org-fc-show-latex ()
   "Show / re-display latex fragments."
-  (org-remove-latex-fragment-image-overlays)
-  (org-toggle-latex-fragment 4))
+  (org-clear-latex-preview)
+  (org-latex-preview 4))
 
 ;; TODO: Rewrite using skip parameter
 (defun org-fc-has-back-heading-p ()
@@ -217,7 +226,7 @@ Used to determine if a card uses the compact style."
   (let ((found nil))
     (org-map-entries
      (lambda ()
-       (when (string= (fifth (org-heading-components)) "Back")
+       (when (string= (cl-fifth (org-heading-components)) "Back")
          (setq found t)))
      t 'tree)
     found))
@@ -248,17 +257,17 @@ This mutates / destroys the input list."
 
 (defun org-fc-entry-p ()
   "Check if the current heading is a flashcard."
-  (member org-fc-flashcard-tag (org-get-tags-at nil 'local)))
+  (member org-fc-flashcard-tag (org-get-tags nil 'local)))
 
 (defun org-fc-suspended-entry-p ()
   "Check if the current heading is a suspended flashcard."
-  (let ((tags (org-get-tags-at nil 'local)))
+  (let ((tags (org-get-tags nil 'local)))
     (and (member org-fc-flashcard-tag tags)
          (member org-fc-suspended-tag tags))))
 
 (defun org-fc-part-of-entry-p ()
   "Check if the current heading belongs to a flashcard."
-  (member org-fc-flashcard-tag (org-get-tags-at nil)))
+  (member org-fc-flashcard-tag (org-get-tags nil)))
 
 (defun org-fc-goto-entry-heading ()
   "Move up to the parent heading marked as a flashcard."
@@ -274,15 +283,15 @@ This mutates / destroys the input list."
 
 (defun org-fc--add-tag (tag)
   "Add TAG to the heading at point."
-  (org-set-tags-to
-   (remove-duplicates
-    (cons tag (org-get-tags-at nil 'local))
+  (org-set-tags
+   (cl-remove-duplicates
+    (cons tag (org-get-tags nil 'local))
     :test #'string=)))
 
 (defun org-fc--remove-tag (tag)
   "Add TAG to the heading at point."
-  (org-set-tags-to
-   (remove tag (org-get-tags-at nil 'local))))
+  (org-set-tags
+   (remove tag (org-get-tags nil 'local))))
 
 ;;;###autoload
 (defun org-fc-tag-card (tag)
@@ -327,22 +336,23 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
   "Get the review function for a card of TYPE."
   (let ((entry (alist-get type org-fc-types nil nil #'string=)))
     (if entry
-        (first entry)
+        (cl-first entry)
       (error "No such flashcard type: %s" type))))
 
 (defun org-fc-type-flip-fn (type)
   "Get the flip function for a card of TYPE."
   (let ((entry (alist-get type org-fc-types nil nil #'string=)))
     (if entry
-        (second entry)
+        (cl-second entry)
       (error "No such flashcard type: %s" type))))
 
 (defun org-fc-type-update-fn (type)
   "Get the update function for a card of TYPE."
   (let ((entry (alist-get type org-fc-types nil nil #'string=)))
     (if entry
-        (third entry)
+        (cl-third entry)
       (error "No such flashcard type: %s" type))))
+
 ;;;; Normal
 
 (defun org-fc-type-normal-init ()
@@ -504,42 +514,44 @@ HOLE is the id of the hole being reviewed."
 (defun org-fc-type-cloze--parse-holes (current-position end)
   "Starting at point, collect all cloze holes before END.
 CURRENT-POSITION is the id of the hole being reviewed.  Returns a
-pair (holes . current-position)."
+pair (holes . current-index) where current-index is the index of
+the hole for the current position."
   (let ((holes nil)
-        (current-position nil))
+        (current-index nil))
     (while (re-search-forward org-fc-type-cloze-position-hole-re end t)
       (let ((text (match-string 1))
             (hint (match-string 2))
             (position (string-to-number (match-string 3))))
         (push (list
-               :text text :hint hint :id id
+               :text text
+               :hint hint
                :hole-pos (cons (match-beginning 0) (match-end 0))
                :text-pos (cons (match-beginning 1) (match-end 1))
                :hint-pos (cons (match-beginning 2) (match-end 2)))
               holes)
         ;; Track the position of the current hole in the list of holes
-        (if (= current-position position) (setq current-position (1- (length holes))))))
-    (cons (reverse holes) current-position)))
+        (if (= current-position position) (setq current-index (1- (length holes))))))
+    (cons (reverse holes) current-index)))
 
-(defun org-fc-type-cloze--tag-holes (type holes current-position)
-  "Tag HOLES of a card of TYPE in relation to the CURRENT-POSITION."
+(defun org-fc-type-cloze--tag-holes (type holes current-index)
+  "Tag HOLES of a card of TYPE in relation to the hole at CURRENT-INDEX."
   (cl-loop for i below (length holes)
            for hole in holes
            collect
-           (if (= i current-position)
+           (if (= i current-index)
                (cons hole :hint)
              (cl-case type
                ('enumeration
-                (if (< i current-position)
+                (if (< i current-index)
                     (cons hole :show)
                   (cons hole :hide)))
                ('deletion (cons hole :show))
                ('single (cons hole :hide))
                ('context
-                (if (<= (abs (- i current-position)) org-fc-type-cloze-context)
+                (if (<= (abs (- i current-index)) org-fc-type-cloze-context)
                     (cons hole :show)
                   (cons hole :hide)))
-               (t (error "org-fc: Unknown cloze card type %s" type))))))
+               (t (error "Org-fc: Unknown cloze card type %s" type))))))
 
 (defun org-fc-type-cloze-hide-holes (current-position type)
   "Hide holes of a card of TYPE in relation to the CURRENT-POSITION."
@@ -568,7 +580,6 @@ pair (holes . current-position)."
                   (setq overlays (org-fc-type-cloze--overlay-current hole)))))
       overlays)))
 
-
 ;;;;; Setup / Flipping
 
 (defun org-fc-type-cloze-init (type)
@@ -587,8 +598,8 @@ Processes all holes in the card text."
    org-fc-type-cloze-type-property
    (format "%s" type)))
 
-(defun org-fc-type-cloze-setup (_position)
-  "Prepare a normal card for review."
+(defun org-fc-type-cloze-setup (position)
+  "Prepare POSITION of a cloze card for review."
   (let ((hole (string-to-number position))
         (cloze-type (intern (org-entry-get (point) org-fc-type-cloze-type-property))))
     (org-show-subtree)
@@ -623,9 +634,9 @@ Processes all holes in the card text."
               (hole-end (match-end 0)))
           (unless id
             (setq id hole-id)
-            (incf hole-id 1)
+            (cl-incf hole-id 1)
             (let ((id-str (number-to-string id)))
-              (incf end (+ 1 (length id-str)))
+              (cl-incf end (+ 1 (length id-str)))
               (goto-char hole-end)
               (backward-char)
               (insert "@" id-str)))
@@ -869,9 +880,9 @@ to box 0, if not, keep the current parameters."
     (org-fc-set-review-data
      (mapcar
       (lambda (row)
-        (let* ((pos (first row))
-               (interval (string-to-number (fourth row)))
-               (due (fifth row))
+        (let* ((pos (cl-first row))
+               (interval (string-to-number (cl-fourth row)))
+               (due (cl-fifth row))
                (days-overdue (org-fc-days-overdue due)))
           (if (< days-overdue (* org-fc-unsuspend-overdue-percentage interval))
               row
@@ -973,12 +984,12 @@ into a keyword-number plist."
 Each element is parsed using its header specification."
   (if (null headers)
       '()
-    (let ((header (first headers)))
-      (assert (not (null elements)))
+    (let ((header (car headers)))
+      (cl-assert (not (null elements)))
       `(,(if (listp header) (car header) header)
-        ,(org-fc-tsv--parse-element header (first elements))
+        ,(org-fc-tsv--parse-element header (car elements))
         .
-        ,(org-fc-tsv--parse-row (rest headers) (rest elements))))))
+        ,(org-fc-tsv--parse-row (cdr headers) (cdr elements))))))
 
 (defun org-fc-tsv-parse (headers input)
   "Parse a tsv INPUT into a plist, give a list of HEADERS."
@@ -1087,7 +1098,7 @@ Return nil there is no history file."
                     :utils t
                     :input org-fc-review-history-file
                     :variables `(("min_box" . ,org-fc-stats-review-min-box)))))))
-        `(:all ,(first res) :month ,(second res) :week ,(third res) :day ,(fourth res)))))
+        `(:all ,(cl-first res) :month ,(cl-second res) :week ,(cl-third res) :day ,(cl-fourth res)))))
 
 ;;; Indexing Cards
 
@@ -1097,14 +1108,20 @@ Return nil there is no history file."
       (org-fc-shuffle (org-fc-awk-due-positions-for-paths paths))
     (error
      'org-fc-indexer-error
-     (format "Indexer %s not implemented yet" org-fc-indexer-error))))
+     (format "Indexer %s not implemented yet" org-fc-indexer))))
 
 (defun org-fc-due-positions (context)
-  "Return a shuffled list [(file id position)] of due cards for CONTEXT."
-  (cl-case context
-    ('all (org-fc-due-positions-for-paths org-fc-directories))
-    ('buffer (org-fc-due-positions-for-paths (list (buffer-file-name))))
-    (t (error "Unknown review context %s" context))))
+  "Return a shuffled list [(file id position)] of due cards for CONTEXT.
+Valid contexts:
+- 'all, all cards in `org-fc-directories'
+- 'buffer, all cards in the current buffer
+- a list of paths"
+  (if (listp context)
+      (org-fc-due-positions-for-paths context)
+    (cl-case context
+      ('all (org-fc-due-positions-for-paths org-fc-directories))
+      ('buffer (org-fc-due-positions-for-paths (list (buffer-file-name))))
+      (t (error "Unknown review context %s" context)))))
 
 ;;; Review & Spacing
 ;;;; Spacing Algorithm (SM2)
@@ -1197,17 +1214,17 @@ EASE, BOX and INTERVAL are the current parameters of the card."
   "Store RATING in the review history of SESSION."
   (with-slots (ratings) session
     (cl-case rating
-      ('again (cl-incf (getf ratings :again) 1))
-      ('hard (cl-incf (getf ratings :hard) 1))
-      ('good (cl-incf (getf ratings :good) 1))
-      ('easy (cl-incf (getf ratings :easy) 1)))
-    (cl-incf (getf ratings :total 1))))
+      ('again (cl-incf (cl-getf ratings :again) 1))
+      ('hard (cl-incf (cl-getf ratings :hard) 1))
+      ('good (cl-incf (cl-getf ratings :good) 1))
+      ('easy (cl-incf (cl-getf ratings :easy) 1)))
+    (cl-incf (cl-getf ratings :total 1))))
 
 (defun org-fc-session-stats-string (session)
   "Generate a string with review stats for SESSION."
   (with-slots (ratings) session
     (let ((total (plist-get ratings :total)))
-      (if (plusp total)
+      (if (cl-plusp total)
           (format "%.2f again, %.2f hard, %.2f good, %.2f easy"
                   (/ (* 100.0 (plist-get ratings :again)) total)
                   (/ (* 100.0 (plist-get ratings :hard)) total)
@@ -1278,11 +1295,11 @@ END is the start of the line with :END: on it."
       (goto-char (car position))
       (insert "| position | ease | box | interval | due |\n")
       (insert "|-|-|-|-|-|\n")
-      (loop for datum in data do
-            (insert
-             "| "
-             (mapconcat (lambda (x) (format "%s" x)) datum " | ")
-             " |\n"))
+      (cl-loop for datum in data do
+               (insert
+                "| "
+                (mapconcat (lambda (x) (format "%s" x)) datum " | ")
+                " |\n"))
       (org-table-align))))
 
 (defun org-fc-review-data-default (position)
@@ -1315,8 +1332,15 @@ removed."
 ;; 6. updating the review data based on the rating
 ;;
 
-(defun org-fc-review--context (context)
-  "Start a review session for all cards in CONTEXT."
+;;;###autoload
+(defun org-fc-review (context)
+  "Start a review session for all cards in CONTEXT.
+Called interactively, prompt for the context.
+Valid contexts:
+- 'all, all cards in `org-fc-directories'
+- 'buffer, all cards in the current buffer
+- a list of paths"
+  (interactive (list (intern (completing-read "Context: " '("all" "buffer")))))
   (if org-fc-review--current-session
       (message "Flashcards are already being reviewed")
     (let ((cards (org-fc-due-positions context)))
@@ -1331,13 +1355,13 @@ removed."
 (defun org-fc-review-buffer ()
   "Review due cards in the current buffer."
   (interactive)
-  (org-fc-review--context 'buffer))
+  (org-fc-review 'buffer))
 
 ;;;###autoload
 (defun org-fc-review-all ()
   "Review all due cards."
   (interactive)
-  (org-fc-review--context 'all))
+  (org-fc-review 'all))
 
 (defun org-fc-review-next-card ()
   "Review the next card of the current session."
@@ -1454,9 +1478,9 @@ rating the card."
       (unless current
         (error "No review data found for this position"))
       (unless (and (boundp 'org-fc-demo-mode) org-fc-demo-mode)
-        (let ((ease (string-to-number (second current)))
-              (box (string-to-number (third current)))
-              (interval (string-to-number (fourth current))))
+        (let ((ease (string-to-number (cl-second current)))
+              (box (string-to-number (cl-third current)))
+              (interval (string-to-number (cl-fourth current))))
           (org-fc-review-history-add
            (list
             (org-fc-timestamp-now)
