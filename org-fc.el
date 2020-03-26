@@ -51,7 +51,7 @@
 
 (defvar org-fc-source-path
   (file-name-directory
-   (or load-file-name (buffer-file-name)))
+   (file-truename (or load-file-name (buffer-file-name))))
   "Location of the org-fc sources.
 Used to generate absolute paths to the awk scripts.")
 
