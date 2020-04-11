@@ -36,6 +36,7 @@
 (defhydra org-fc-hydra-type ()
   ("n" org-fc-type-normal-init "Normal" :exit t)
   ("d" org-fc-type-double-init "Double" :exit t)
+  ("t" org-fc-type-text-input-init "Text Input" :exit t)
   ("c" (org-fc-type-cloze-init 'deletion) "Deletion" :exit t)
   ("e" (org-fc-type-cloze-init 'enumeration) "Enum" :exit t)
   ("s" (org-fc-type-cloze-init 'single) "Single" :exit t)
