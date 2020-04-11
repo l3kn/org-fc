@@ -914,7 +914,7 @@ Checks if the headline is a suspended card first."
 (defun org-fc-awk--find (paths)
   "Generate shell code to search PATHS for org files."
   (format
-   "find %s -name \"%s\""
+   "find %s -name \"%s\" -print0"
    (mapconcat 'identity paths " ")
    org-fc-awk--find-name))
 
@@ -951,7 +951,7 @@ file (absolute path) as input."
 
 (defun org-fc-awk--xargs (command)
   "Generate the shell command for calling COMMAND with xargs."
-  (concat "xargs -n 2500 -P 4 " command))
+  (concat "xargs -n 2500 -P 4 -0 " command))
 
 ;;;; TSV / Key-Value Parsing
 
