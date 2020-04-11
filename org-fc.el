@@ -228,9 +228,9 @@ This is expected to be called on an card entry heading."
     (org-map-entries
      (lambda ()
        (when (let ((comps (org-heading-components)))
-                   (and
-                    (string= (cl-fifth comps) "Back")
-                    (= (cl-first comps) (1+ level))))
+               (and
+                (string= (cl-fifth comps) "Back")
+                (= (cl-first comps) (1+ level))))
          (setq found (point))))
      t 'tree)
     found))
