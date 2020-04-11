@@ -37,7 +37,7 @@
 
 (require 'hydra)
 
-;;; Configuration
+;;; Customization
 
 (defgroup org-fc nil
   "Manage and review flashcards with Emacs."
@@ -166,11 +166,40 @@ Values are in days."
   :type 'float
   :group 'org-fc)
 
+;;;; Diff
+
+(defcustom org-fc-diff-filler ?-
+  "Character for filling diffs when the input was too short."
+  :type 'character
+  :group 'org-fc)
+
 ;;;; Font Faces
 
 (defface org-fc-type-cloze-hole-face
   '((t (:bold t)))
   "Face for org-fc cloze card holes."
+  :group 'org-fc)
+
+;; Based on `magit-diff-added'
+(defface org-fc-diff-correct
+  `((((class color) (background light))
+     :background "#ddffdd"
+     :foreground "#22aa22")
+    (((class color) (background dark))
+     :background "#335533"
+     :foreground "#ddffdd"))
+  "Face for correct parts of a diff."
+  :group 'org-fc)
+
+;; Based on `magit-diff-removed'
+(defface org-fc-diff-wrong
+  `((((class color) (background light))
+     :background "#ffdddd"
+     :foreground "#aa2222")
+    (((class color) (background dark))
+     :background "#553333"
+     :foreground "#ffdddd"))
+  "Face for wrong parts of a diff."
   :group 'org-fc)
 
 ;;; Variables
@@ -261,6 +290,122 @@ This mutates / destroys the input list."
      org-fc-timestamp-format
      (seconds-to-time (+ now seconds))
      "UTC0")))
+
+(defun org-fc-deemphasize (string)
+  "Remove org emphasis markers from STRING.
+Returns a pair (marker . body)."
+  (if (or (string-match org-emph-re string)
+          (string-match org-verbatim-re string))
+      (cons (match-string 3 string) (match-string 4 string))
+    (cons nil string)))
+
+(defun org-fc-emphasize (string)
+  "Apply org emphasis faces to STRING."
+  (with-temp-buffer
+    (insert string)
+    (goto-char (point-min))
+    (org-do-emphasis-faces (point-max))
+    (buffer-string)))
+
+;;; Diff
+
+(defun org-fc-diff-subseq (a b start1 start2 end1 end2)
+  "Find (index-a index-b len) of the longest matching subsequence in A and B.
+Only parts of A in the range START1 to END1 and parts of B in the
+range START2 to END2 are considered.
+If there is no matching subsequence, nil is returned."
+  (let ((best-length 0) (best-i 0) (best-j 0)
+        ;; Longest matching subsequence starting at index j of B,
+        ;; offset by one to handle the case j = 0
+        (lengths (make-vector (1+ (length b)) 0)))
+    (cl-loop for i from start1 to end1 do
+             (let ((new-lengths (make-vector (1+ (length b)) 0)))
+               (cl-loop for j from start2 to end2 do
+                        (if (eql (aref a i) (aref b j))
+                            (let ((length (+ 1 (aref lengths j))))
+                              (aset new-lengths (1+ j) length)
+                              (when (> length best-length)
+                                (setq best-length length)
+                                (setq best-i (1+ (- i length)))
+                                (setq best-j (1+ (- j length)))))))
+               (setq lengths new-lengths)))
+    (if (> best-length 0)
+        (list best-i best-j best-length))))
+
+(defun org-fc-diff-matching-blocks (a b start1 start2 end1 end2)
+  "Find matching blocks of A and B.
+Only parts of A in the range START1 to END1 and parts of B in the
+range START2 to END2 are considered."
+  (if-let ((match (org-fc-diff-subseq a b start1 start2 end1 end2)))
+      (cl-destructuring-bind (i j len) match
+        (append
+         (org-fc-diff-matching-blocks a b start1 start2 (1- i) (1- j))
+         (list match)
+         (org-fc-diff-matching-blocks a b (+ i len) (+ j len) end1 end2)))))
+
+(defun org-fc-diff--propertize-got (got blocks expected-length)
+  "Propertize the GOT answer given matching BLOCKS.
+If it is shorter than EXPECTED-LENGTH, it is filled using
+`org-fc-diff-filler'."
+  (let ((last 0) res)
+    ;; Prepend filler if text at start is missing
+    (unless (null blocks)
+      (cl-destructuring-bind (i j _len) (car blocks)
+        (if (> j i)
+            (setq res
+                  (propertize
+                   (make-string (- j i) org-fc-diff-filler)
+                   'face 'org-fc-diff-wrong)))))
+    (cl-loop for (i _ len) in blocks do
+             (setq res
+                   (concat
+                    res
+                    (propertize
+                     (cl-subseq got last i)
+                     'face 'org-fc-diff-wrong)
+                    (propertize
+                     (cl-subseq got i (+ i len))
+                     'face 'org-fc-diff-correct)))
+             (setq last (+ i len)))
+    (setq res
+          (concat
+           res
+           (propertize (cl-subseq got last) 'face 'org-fc-diff-wrong)))
+    ;; Append filler if result is shorter than expected
+    (if (< (length res) expected-length)
+        (concat
+         res
+         (propertize
+          (make-string (- expected-length (length res)) org-fc-diff-filler)
+          'face 'org-fc-diff-wrong))
+      res)))
+
+(defun org-fc-diff--propertize-expected (expected blocks)
+  "Propertize the EXPECTED answer, given matching BLOCKS."
+  (let ((last 0) res)
+    (cl-loop for (_ j len) in blocks do
+             (setq res
+                   (concat
+                    res
+                    (cl-subseq expected last j)
+                    (propertize
+                     (cl-subseq expected j (+ j len))
+                     'face 'org-fc-diff-correct)))
+             (setq last (+ j len)))
+    (concat res (cl-subseq expected last))))
+
+(defun org-fc-diff (got expected)
+  "Generate a colored diff of the strings GOT and EXPECTED."
+  (if (string= got expected)
+      (propertize got 'face 'org-fc-diff-correct)
+    (let ((blocks (org-fc-diff-matching-blocks
+                   got expected
+                   0 0
+                   (1- (length got))
+                   (1- (length expected)))))
+      (cons
+       (org-fc-diff--propertize-got got blocks (length expected))
+       (org-fc-diff--propertize-expected expected blocks)))))
 
 ;;; Checking for / going to flashcard headings
 
@@ -433,6 +578,87 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
  'double
  'org-fc-type-double-setup
  'org-fc-type-double-flip
+ 'org-fc-noop)
+
+;;;; Text-Input
+
+(defun org-fc-text-input-content ()
+  "Return the first line of a cards (back) contents.
+Returns a pair (pos . string).  If the card has a 'Back' heading,
+its content is used, otherwise, the main content is used.  This
+function is expected to be called with point on a heading."
+  (save-excursion
+    ;; Go to main or "Back" heading
+    (if-let ((pos (org-fc-back-heading-position)))
+        (goto-char pos))
+
+    ;; Skip metadata & drawers
+    (forward-line)
+    (while (or (looking-at-p org-scheduled-regexp)
+               (looking-at-p org-deadline-regexp))
+      (forward-line))
+    (while (looking-at org-drawer-regexp)
+      (if (re-search-forward ":END:" nil t)
+          (forward-line)
+        (error "No :END: found for drawer")))
+    (unless (looking-at-p org-heading-regexp)
+      (cons
+       (point)
+       (buffer-substring-no-properties (point) (point-at-eol))))))
+
+(defun org-fc-type-text-input-init ()
+  "Mark headline as card of the text-input type."
+  (interactive)
+  (unless (org-fc-text-input-content)
+    (error "Card contains content"))
+  (org-fc--init-card "text-input")
+  (org-fc-review-data-update '("front")))
+
+(defvar org-fc-type-text-input--hidden '())
+
+(defun org-fc-type-text-input-setup (_position)
+  "Prepare a text-input card for review."
+  (interactive)
+  ;; Hide answer
+  (if (org-fc-has-back-heading-p)
+      (progn
+        (org-show-subtree)
+        (setq org-fc-type-text-input--hidden (org-fc-hide-subheading "Back")))
+    (org-flag-subtree t))
+  ;; Prompt user, create diff overlay
+  (let* ((pos-content (org-fc-text-input-content))
+         (content (cdr pos-content))
+         (start (car pos-content))
+         (end (+ start (length content)))
+         (deemph (org-fc-deemphasize content))
+         (diff (org-fc-diff (read-string "Answer: ") (cdr deemph))))
+    ;; Overlay for user input
+    (when (car deemph)
+      (setq start (1+ start))
+      (setq end (1- end)))
+    (org-fc-hide-region start end (car diff))
+    ;; Overlay for expected answer, using the newline after the answer
+    (org-fc-hide-region
+     end (1+ end)
+     (concat
+      " (expected: "
+      (if (null (car deemph))
+          (cdr diff)
+        (org-fc-emphasize
+         (concat (car deemph) (cdr diff) (car deemph))))
+      ")\n")))
+  ;; Reveal answer & diff
+  (save-excursion
+    (org-show-subtree)
+    (dolist (pos org-fc-type-text-input--hidden)
+      (goto-char pos)
+      (org-show-subtree)))
+  (org-fc-review-rate-hydra/body))
+
+(org-fc-register-type
+ 'text-input
+ 'org-fc-type-text-input-setup
+ 'org-fc-noop
  'org-fc-noop)
 
 ;;;; Cloze
