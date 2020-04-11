@@ -7,20 +7,29 @@ then the user is asked to rate the review performance.
 
 Positions: =front=
 * Text-Input Cards
-On review, the user is asked to type in a string which is then
-compared to the one stored in the ~:ANSWER:~ property of the card.
+If the card has a "Back" heading, the first line of its contents is
+considered as the expected answer.
 
-*Currently text-input cards are treated the same as normal cards.*
+If the card is compact (has no back heading), the first line of its
+main content is used instead.
+
+This allows adding an e.g. explanation to the card.
+
+Answers can be emphasized (e.g. ~foo~).  In that case, only the text
+between the emphasis markers is compared to the user input.
+
+On reviewing the card, the users are prompted to enter their answer,
+which is then compared to the expected answer.
+
+The expected answer is overlayed with "<got> (expected: <expected>)",
+coloring correct parts in green and incorrect parts in red.
+
+If the provided answer is shorter than the expected one, a sequence of
+=-= (colored in red) is prepended / appended to it.
+
+This filler character can be customized via ~org-fc-diff-missing-char~.
 
 Positions: =front=
-** TODO Implement review / flip function
-:PROPERTIES:
-:ID:       7dc74250-067b-4dfd-9665-8a2e51ac95bd
-:END:
-1. Prompt for user input
-2. Compare to stored answer, show diff
-
-Problem: how to show diff in hydra?
 * Double Cards
 Similar to normal cards, but reviewed both in the "Front -> Back"
 direction and in the "Back -> Front" direction.
