@@ -219,17 +219,26 @@ Used to calculate the time needed for reviewing a card.")
   (org-clear-latex-preview)
   (org-latex-preview 4))
 
-;; TODO: Rewrite using skip parameter
+(defun org-fc-back-heading-position ()
+  "Return point at the beginning of an entries 'Back' subheading.
+Return nil if there is no such heading.
+This is expected to be called on an card entry heading."
+  (let ((found nil)
+        (level (cl-first (org-heading-components))))
+    (org-map-entries
+     (lambda ()
+       (when (let ((comps (org-heading-components)))
+                   (and
+                    (string= (cl-fifth comps) "Back")
+                    (= (cl-first comps) (1+ level))))
+         (setq found (point))))
+     t 'tree)
+    found))
+
 (defun org-fc-has-back-heading-p ()
   "Check if the entry at point has a 'Back' subheading.
 Used to determine if a card uses the compact style."
-  (let ((found nil))
-    (org-map-entries
-     (lambda ()
-       (when (string= (cl-fifth (org-heading-components)) "Back")
-         (setq found t)))
-     t 'tree)
-    found))
+  (not (null (org-fc-back-heading-position))))
 
 (defun org-fc-shuffle (list)
   "Randomize the order of elements in LIST.
