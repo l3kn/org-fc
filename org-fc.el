@@ -397,7 +397,7 @@ If it is shorter than EXPECTED-LENGTH, it is filled using
 (defun org-fc-diff (got expected)
   "Generate a colored diff of the strings GOT and EXPECTED."
   (if (string= got expected)
-      (propertize got 'face 'org-fc-diff-correct)
+      (cons (propertize got 'face 'org-fc-diff-correct) nil)
     (let ((blocks (org-fc-diff-matching-blocks
                    got expected
                    0 0
@@ -638,15 +638,16 @@ function is expected to be called with point on a heading."
       (setq end (1- end)))
     (org-fc-hide-region start end (car diff))
     ;; Overlay for expected answer, using the newline after the answer
-    (org-fc-hide-region
-     end (1+ end)
-     (concat
-      " (expected: "
-      (if (null (car deemph))
-          (cdr diff)
-        (org-fc-emphasize
-         (concat (car deemph) (cdr diff) (car deemph))))
-      ")\n")))
+    (if (cdr diff)
+        (org-fc-hide-region
+         end (1+ end)
+         (concat
+          " (expected: "
+          (if (null (car deemph))
+              (cdr diff)
+            (org-fc-emphasize
+             (concat (car deemph) (cdr diff) (car deemph))))
+          ")\n"))))
   ;; Reveal answer & diff
   (save-excursion
     (org-show-subtree)
