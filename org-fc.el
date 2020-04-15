@@ -624,6 +624,7 @@ function is expected to be called with point on a heading."
       (progn
         (org-show-subtree)
         (setq org-fc-type-text-input--hidden (org-fc-hide-subheading "Back")))
+    (setq org-fc-type-text-input--hidden nil)
     (org-flag-subtree t))
   ;; Prompt user, create diff overlay
   (let* ((pos-content (org-fc-text-input-content))
