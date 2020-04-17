@@ -524,6 +524,7 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
       (progn
         (org-show-subtree)
         (setq org-fc-type-normal--hidden (org-fc-hide-subheading "Back")))
+    (setq org-fc-type-normal--hidden nil)
     (org-flag-subtree t))
   (org-fc-review-flip-hydra/body))
 
