@@ -1145,16 +1145,13 @@ Checks if the headline is a suspended card first."
 
 ;;; AWK Interface
 
-(defvar org-fc-awk--find-name
-  "[a-Z0-9_]*.org"
-  "-name argument passed to `find' when searching for org files.")
-
 (defun org-fc-awk--find (paths)
-  "Generate shell code to search PATHS for org files."
+  "Generate shell code to search PATHS for org files.
+Matches all .org files ignoring ones with names don't start with
+a '.' to exclude temporary / backup files."
   (format
-   "find %s -name \"%s\" -print0"
-   (mapconcat 'identity paths " ")
-   org-fc-awk--find-name))
+   "find %s -name \"*.org\" -not -name \".*\" -print0"
+   (mapconcat 'identity paths " ")))
 
 (defun org-fc-awk--indexer-variables ()
   "Variables to pass to indexer scripts."
