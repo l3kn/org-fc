@@ -77,16 +77,33 @@ to install it, clone the repository (e.g. to ~src/org-fc/~)
 and follow the setup instructions.
 
 *** Dependencies
-This package depends on the =gawk= extension of =awk=.
+- The =gawk= extension of =awk= for extracting review data from =.org= files
+- =find= for finding all org files in the ~org-fc-directories~
+- =xargs= for processing files in parallel
+**** Linux / UNIX
+=find= and =xargs= should be included in most distributions, =gawk=
+can be installed from source or using your package manager of choice.
 
 Examples:
-
 - =pacman -S gawk= (Arch Linux)
 - =apt-get install gawk= (Ubuntu, Debian, ...)
 - =yum install gawk= (CentOS)
-- =brew install gawk= (macOS, using [[https://brew.sh/][homebrew]])
 
 For more information, see [[https://www.gnu.org/software/gawk/manual/html_node/Installation.html][gawk manual - Installation]].
+**** MacOS
+On MacOS all dependencies can be installed using [[https://www.macports.org/][macports]] or [[https://brew.sh/][homebrew]].
+=find= and =xargs= are part of the =findutils= package.
+
+- =port install gawk findutils=
+- =brew install gawk findutils=
+
+You might have to adjust your =$PATH= to make sure Emacs can find all
+relevant binaries.
+
+~export PATH="/opt/local/libexec/gnubin:/opt/local/bin:$PATH"~
+
+For more information, refer to the documentation of macports /
+homebrew.
 *** Setup with [[https://github.com/jwiegley/use-package/][use-package]]
 #+begin_src emacs-lisp
 (use-package hydra)
