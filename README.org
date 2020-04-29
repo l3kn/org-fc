@@ -289,7 +289,7 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
-*** [2020-04-21 Tue]
+*** [2020-04-29 Wed]
 Implemented a new version of the spacing algorithm (SM2) that's used
 by org-fc.
 
@@ -304,7 +304,10 @@ In the new version (~'sm2-v2~), the interval is always multiplied by a
 factor of 1.2, similar to the version of SM2 used by Anki.
 
 ~org-fc-algorithm~ can be used to set which version of the
-algorithm should be used, defaulting to ~'sm2-v2~.
+algorithm should be used, defaulting to ~'sm2-v1~.
+
+Once I have evaluated the performance of the new algorithm,
+the default version will change to ~'sm2-v2~.
 *** [2020-04-12 Sun]
 **** Added
 - =text-input= card type

@@ -131,7 +131,7 @@ Used to generate absolute paths to the awk scripts.")
 
 ;;;; Spacing Parameters
 
-(defcustom org-fc-algorithm 'sm2-v2
+(defcustom org-fc-algorithm 'sm2-v1
   "Algorithm for spacing reviews of cards."
   :type '(choice (const sm2-v1) (const sm2-v2))
   :group 'org-fc)
