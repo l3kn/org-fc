@@ -33,20 +33,22 @@ BEGIN {
 }
 
 END {
-    print "total" "\t" total;
-    print "suspended" "\t" suspended;
-    print "due" "\t" due;
+    print "("
+    print "  :total " total;
+    print "  :suspended " suspended;
+    print "  :due " due;
     for (var in by_type) {
-        print "type-" var "\t" by_type[var];
+        print "  :type-" var " " by_type[var];
     }
 
     if (n_stats > 0) {
-        print "avg-ease" "\t" ease / n_stats;
-        print "avg-box" "\t" box / n_stats;
-        print "avg-interval" "\t" interval / n_stats;
+        print "  :avg-ease " ease / n_stats;
+        print "  :avg-box " box / n_stats;
+        print "  :avg-interval " interval / n_stats;
     } else {
-        print "avg-ease" "\t" 0.0;
-        print "avg-box" "\t" 0;
-        print "avg-interval" "\t" 0.0;
+        print "  :avg-ease " 0.0;
+        print "  :avg-box " 0;
+        print "  :avg-interval " 0.0;
     }
+    print ")"
 }
