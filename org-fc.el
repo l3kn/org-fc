@@ -1273,30 +1273,14 @@ Each element is parsed using its header specification."
        :variables (org-fc-awk--indexer-variables)))
      (org-fc-awk--command "awk/stats_cards.awk" :utils t)))))
 
-;; TODO: Optimize card order for review
 (defun org-fc-awk-due-positions-for-paths (paths)
   "Generate a list of due positions in PATHS."
-  (mapcar
-   (lambda (pos)
-     (plist-put pos
-                :tags
-                (org-fc-combine-tags
-                 (plist-get pos :inherited-tags)
-                 (plist-get pos :local-tags))))
-   (org-fc-tsv-parse
-    org-fc-awk-position-headers
-    (shell-command-to-string
-     (org-fc-awk--pipe
-      (org-fc-awk--find paths)
-      (org-fc-awk--xargs
-       (org-fc-awk--command
-        "awk/index_positions.awk"
-        :utils t
-        :variables (org-fc-awk--indexer-variables)))
-      (org-fc-awk--command "awk/filter_due.awk"))))))
+  (org-fc-awk-positions-for-paths paths t))
 
-(defun org-fc-awk-positions-for-paths (paths)
-  "Generate a list of all positions in PATHS."
+(defun org-fc-awk-positions-for-paths (paths &optional filter-due)
+  "Generate a list of all positions in PATHS.
+If FILTER-DUE is non-nil, only list non-suspended cards that are
+due for review."
   (mapcar
    (lambda (pos)
      (plist-put pos
@@ -1313,7 +1297,10 @@ Each element is parsed using its header specification."
        (org-fc-awk--command
         "awk/index_positions.awk"
         :utils t
-        :variables (org-fc-awk--indexer-variables))))))))
+        :variables
+        (cons
+         `("filter_due" . ,(if filter-due "1" "0"))
+         (org-fc-awk--indexer-variables)))))))))
 
 (cl-defun org-fc-awk-stats-positions (&optional (paths org-fc-directories))
   "Statistics for all positions in PATHS."
@@ -1345,11 +1332,12 @@ Return nil there is no history file."
 (defun org-fc-due-positions-for-paths (paths)
   "Find due positions for all cards in files in PATHS."
   (if (eq org-fc-indexer 'awk)
-      (org-fc-shuffle (org-fc-awk-due-positions-for-paths paths))
+      (org-fc-shuffle (org-fc-awk-positions-for-paths paths :filter-due))
     (error
      'org-fc-indexer-error
      (format "Indexer %s not implemented yet" org-fc-indexer))))
 
+;; TODO: Optimize card order for review
 (defun org-fc-due-positions (context)
   "Return a shuffled list [(file id position)] of due cards for CONTEXT.
 Valid contexts:
