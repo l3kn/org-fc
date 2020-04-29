@@ -8,12 +8,7 @@ BEGIN {
 
 {
     date = $1;
-    file = $2;
-    id = $3;
-    position = $4;
-    ease = $5;
     box = $6;
-    interval = $7;
     rating = $8;
 
     if (box >= min_box) {
@@ -38,17 +33,23 @@ BEGIN {
 }
 
 END {
+    print "("
+    print "  :all"
     report(ratings_all, n_all);
+    print "  :month"
     report(ratings_month, n_month);
+    print "  :week"
     report(ratings_week, n_week);
+    print "  :day"
     report(ratings_day, n_day);
+    print ")"
 }
 
 function report(values, n) {
-    if (n == 0) {
-        print 0 "\t" 0 "\t" 0 "\t" 0 "\t" 0;
-    } else {
-        print n "\t" values["again"] "\t" values["hard"] "\t" values["good"] "\t" values["easy"] ;
-
-    }
+    print "  (:total " or_default(n, 0)                   \
+        " :again " or_default(values["again"], 0)         \
+        " :hard " or_default(values["hard"], 0)           \
+        " :good " or_default(values["good"], 0)           \
+        " :easy " or_default(values["easy"], 0)           \
+        ")"
 }

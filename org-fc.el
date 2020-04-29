@@ -1332,15 +1332,13 @@ Each element is parsed using its header specification."
   "Statistics for all card reviews.
 Return nil there is no history file."
   (if (file-exists-p org-fc-review-history-file)
-      (let ((res (org-fc-tsv-parse
-                  org-fc-awk-review-stats-headers
-                  (shell-command-to-string
-                   (org-fc-awk--command
-                    "awk/stats_reviews.awk"
-                    :utils t
-                    :input org-fc-review-history-file
-                    :variables `(("min_box" . ,org-fc-stats-review-min-box)))))))
-        `(:all ,(cl-first res) :month ,(cl-second res) :week ,(cl-third res) :day ,(cl-fourth res)))))
+      (read
+       (shell-command-to-string
+        (org-fc-awk--command
+         "awk/stats_reviews.awk"
+         :utils t
+         :input org-fc-review-history-file
+         :variables `(("min_box" . ,org-fc-stats-review-min-box)))))))
 
 ;;; Indexing Cards
 
