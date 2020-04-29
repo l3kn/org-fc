@@ -1,5 +1,6 @@
 BEGIN {
     FS="|";
+    now = strftime("%FT%TZ", systime(), 1);
 
     fc_tag = ":" or_default(fc_tag, "fc") ":";
     suspended_tag = ":" or_default(suspended_tag, "suspended") ":";
@@ -64,6 +65,9 @@ in_data && /^\|.*\|$/ {
         box = trim($4);
         interval = trim($5);
         due      = trim_surrounding($6);
-        print FILENAME "\t" id "\t" type "\t" suspended "\t" position "\t" ease "\t" box "\t" interval "\t" due;
+
+        if (!(filter_due == "1") || (due < now && suspended == "0")) {
+            print FILENAME "\t" id "\t" type "\t" suspended "\t" position "\t" ease "\t" box "\t" interval "\t" due "\t" inherited_tags "\t" local_tags;
+        }
     }
 }
