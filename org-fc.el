@@ -1193,19 +1193,7 @@ file (absolute path) as input."
   "Generate the shell command for calling COMMAND with xargs."
   (concat "xargs -n 2500 -P 4 -0 " command))
 
-;;;; TSV / Key-Value Parsing
-
-(defun org-fc-awk--key-value-parse (input)
-  "Parse a string INPUT of newline separated key-value entries.
-Each key-value entry is separated by a tab.  Results are collected
-into a keyword-number plist."
-  (mapcan
-   (lambda (kv)
-     (let ((kv (split-string kv "\t")))
-       (list
-        (intern (concat ":" (car kv)))
-        (string-to-number (cadr kv)))))
-   (split-string input "\n" t)))
+;;;; TSV Parsing
 
 (defun org-fc-tsv--parse-element (header element)
   "Parse an ELEMENT of a row given a single HEADER element."
@@ -1274,7 +1262,7 @@ Each element is parsed using its header specification."
 
 (cl-defun org-fc-awk-stats-cards (&optional (paths org-fc-directories))
   "Statistics for all cards in PATHS."
-  (org-fc-awk--key-value-parse
+  (read
    (shell-command-to-string
     (org-fc-awk--pipe
      (org-fc-awk--find paths)
@@ -1288,34 +1276,48 @@ Each element is parsed using its header specification."
 ;; TODO: Optimize card order for review
 (defun org-fc-awk-due-positions-for-paths (paths)
   "Generate a list of due positions in PATHS."
-  (org-fc-tsv-parse
-   org-fc-awk-position-headers
-   (shell-command-to-string
-    (org-fc-awk--pipe
-     (org-fc-awk--find paths)
-     (org-fc-awk--xargs
-      (org-fc-awk--command
-       "awk/index_positions.awk"
-       :utils t
-       :variables (org-fc-awk--indexer-variables)))
-     (org-fc-awk--command "awk/filter_due.awk")))))
+  (mapcar
+   (lambda (pos)
+     (plist-put pos
+                :tags
+                (org-fc-combine-tags
+                 (plist-get pos :inherited-tags)
+                 (plist-get pos :local-tags))))
+   (org-fc-tsv-parse
+    org-fc-awk-position-headers
+    (shell-command-to-string
+     (org-fc-awk--pipe
+      (org-fc-awk--find paths)
+      (org-fc-awk--xargs
+       (org-fc-awk--command
+        "awk/index_positions.awk"
+        :utils t
+        :variables (org-fc-awk--indexer-variables)))
+      (org-fc-awk--command "awk/filter_due.awk"))))))
 
 (defun org-fc-awk-positions-for-paths (paths)
   "Generate a list of all positions in PATHS."
-  (org-fc-tsv-parse
-   org-fc-awk-position-headers
-   (shell-command-to-string
-    (org-fc-awk--pipe
-     (org-fc-awk--find paths)
-     (org-fc-awk--xargs
-      (org-fc-awk--command
-       "awk/index_positions.awk"
-       :utils t
-       :variables (org-fc-awk--indexer-variables)))))))
+  (mapcar
+   (lambda (pos)
+     (plist-put pos
+                :tags
+                (org-fc-combine-tags
+                 (plist-get pos :inherited-tags)
+                 (plist-get pos :local-tags))))
+   (org-fc-tsv-parse
+    org-fc-awk-position-headers
+    (shell-command-to-string
+     (org-fc-awk--pipe
+      (org-fc-awk--find paths)
+      (org-fc-awk--xargs
+       (org-fc-awk--command
+        "awk/index_positions.awk"
+        :utils t
+        :variables (org-fc-awk--indexer-variables))))))))
 
 (cl-defun org-fc-awk-stats-positions (&optional (paths org-fc-directories))
   "Statistics for all positions in PATHS."
-  (org-fc-awk--key-value-parse
+  (read
    (shell-command-to-string
     (org-fc-awk--pipe
      (org-fc-awk--find paths)

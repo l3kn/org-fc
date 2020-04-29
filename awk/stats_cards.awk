@@ -37,12 +37,14 @@ BEGIN {
 }
 
 END {
-    print "total" "\t" total;
-    print "suspended" "\t" n_suspended;
-    print "created-day" "\t" created["day"];
-    print "created-week" "\t" created["week"];
-    print "created-month" "\t" created["month"];
+    print "("
+    print "  :total " total;
+    print "  :suspended " n_suspended;
+    print "  :created-day " created["day"];
+    print "  :created-week " created["week"];
+    print "  :created-month " created["month"];
     for (var in by_type) {
-        print "type-" var "\t" by_type[var];
+        print "  :type-" var " " by_type[var];
     }
+    print ")"
 }
