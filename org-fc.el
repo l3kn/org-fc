@@ -131,6 +131,11 @@ Used to generate absolute paths to the awk scripts.")
 
 ;;;; Spacing Parameters
 
+(defcustom org-fc-algorithm 'sm2-v2
+  "Algorithm for spacing reviews of cards."
+  :type '(choice (const sm2-v1) (const sm2-v2))
+  :group 'org-fc)
+
 (defcustom org-fc-sm2-changes
   '((again . -0.3)
     (hard . -0.15)
@@ -1370,41 +1375,30 @@ INTERVAL is by a random factor between `org-fc-sm2-fuzz-min' and
    (+ org-fc-sm2-fuzz-min
       (cl-random (- org-fc-sm2-fuzz-max org-fc-sm2-fuzz-min)))))
 
-(defun org-fc-sm2-next-box (box rating)
-  "Calculate the next box of a card in BOX, rated as RATING."
-  (cond
-   ;; If a card is rated easy, skip the learning phase
-   ((and (eq box 0) (eq rating 'easy)) 2)
-   ;; If the review failed, go back to box 0
-   ((eq rating 'again) 0)
-   ;; Otherwise, move forward one box
-   (t (1+ box))))
-
-(defun org-fc-sm2-next-ease (ease box rating)
-  "Calculate the next ease of a card, based on the review RATING.
-EASE and BOX are the current parameters of the card."
-  (if (< box 2)
-      ease
-    (min
-     (max
-      (+ ease (alist-get rating org-fc-sm2-changes))
-      org-fc-sm2-ease-min)
-     org-fc-sm2-ease-max)))
-
-(defun org-fc-sm2--next-interval (interval next-box next-ease)
-  "Calculate the next interval of a card.
-INTERVAL is the current interval of the card, NEXT-BOX and
-NEXT-EASE are the new parameters of the card."
-  (if (< next-box (length org-fc-sm2-fixed-intervals))
-      (nth next-box org-fc-sm2-fixed-intervals)
-    (org-fc-sm2-fuzz (* next-ease interval))))
-
 (defun org-fc-sm2-next-parameters (ease box interval rating)
   "Calculate the next parameters of a card, based on the review RATING.
 EASE, BOX and INTERVAL are the current parameters of the card."
-  (let* ((next-ease (org-fc-sm2-next-ease ease box rating))
-         (next-box (org-fc-sm2-next-box box rating))
-         (next-interval (org-fc-sm2--next-interval interval next-box next-ease)))
+  (let* ((next-ease
+          (if (< box 2)
+              ease
+            (min
+             (max
+              (+ ease (alist-get rating org-fc-sm2-changes))
+              org-fc-sm2-ease-min)
+             org-fc-sm2-ease-max)))
+         (next-box
+          (cond
+           ;; If a card is rated easy, skip the learning phase
+           ((and (eq box 0) (eq rating 'easy)) 2)
+           ;; If the review failed, go back to box 0
+           ((eq rating 'again) 0)
+           ;; Otherwise, move forward one box
+           (t (1+ box))))
+         (next-interval
+          (cond ((< next-box (length org-fc-sm2-fixed-intervals))
+                 (nth next-box org-fc-sm2-fixed-intervals))
+                ((and (eq org-fc-algorithm 'sm2-v2) (eq rating 'hard)) (* 1.2 interval))
+                (t (org-fc-sm2-fuzz (* next-ease interval))))))
     (list next-ease next-box next-interval)))
 
 ;;;; Demo Mode
@@ -1518,14 +1512,14 @@ END is the start of the line with :END: on it."
   "Get a cards review data as a Lisp object."
   (let ((position (org-fc-review-data-position nil)))
     (if position
-        (save-excursion
-          (goto-char (car position))
-          (cddr (org-table-to-lisp))))))
+    (save-excursion
+  (goto-char (car position))
+  (cddr (org-table-to-lisp))))))
 
 (defun org-fc-set-review-data (data)
   "Set the cards review data to DATA."
   (save-excursion
-    (let ((position (org-fc-review-data-position t)))
+  (let ((position (org-fc-review-data-position t)))
       (kill-region (car position) (cdr position))
       (goto-char (car position))
       (insert "| position | ease | box | interval | due |\n")
@@ -1551,7 +1545,7 @@ removed."
     (org-fc-set-review-data
      (mapcar
       (lambda (pos)
-        (or
+  (or
          (assoc pos old-data #'string=)
          (org-fc-review-data-default pos)))
       positions))))
@@ -1727,7 +1721,8 @@ rating the card."
             (format "%d" box)
             (format "%.2f" interval)
             (symbol-name rating)
-            (format "%.2f" delta)))
+            (format "%.2f" delta)
+            (symbol-name org-fc-algorithm)))
           (cl-destructuring-bind (next-ease next-box next-interval)
               (org-fc-sm2-next-parameters ease box interval rating)
             (setcdr
