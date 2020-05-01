@@ -6,6 +6,8 @@ BEGIN {
     review_data_drawer = ":" or_default(review_data_drawer, "REVIEW_DATA") ":";
     type_property = or_default(type_property, "FC_TYPE");
     created_property = or_default(created_property, "FC_CREATED");
+
+    print "(";
 }
 
 ## Heading Parsing
@@ -40,7 +42,18 @@ in_properties && /:END:/ {
     id = properties["ID"];
     type = properties[type_property];
     created = properties[created_property];
-    print FILENAME "\t" id "\t" type "\t" suspended "\t" created;
+    print "  (" \
+        ":path \"" FILENAME "\"" \
+        " :id \""  id "\"" \
+        " :type " type \
+        " :suspended " (suspended ? "t" : "nil") \
+        " :created \"" created "\"" \
+        ")"
+
     in_properties = 0;
     in_card = 0;
+}
+
+END {
+    print ")";
 }

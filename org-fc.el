@@ -1204,7 +1204,8 @@ file (absolute path) as input."
         ('number (string-to-number element))
         ('symbol (intern element))
         ('keyword (intern (concat ":" element)))
-        ('bool (string= element "1")))
+        ('bool (string= element "1"))
+        ('tags (split-string element ":" t)))
     element))
 
 (defun org-fc-tsv--parse-row (headers elements)
@@ -1225,40 +1226,25 @@ Each element is parsed using its header specification."
    (lambda (row) (org-fc-tsv--parse-row headers (split-string row "\t")))
    (split-string input "\n" t)))
 
-(defvar org-fc-awk-card-headers
-  '(:path :id (:type . symbol) (:suspended . bool) (:created . date))
-  "Headers of the card indexer.")
-
-(defvar org-fc-awk-position-headers
-  '(:path
-    :id
-    (:type . symbol)
-    (:suspended . bool)
-    :position
-    (:ease . number)
-    (:box . box)
-    (:interval . interval)
-    (:due . date))
-  "Headers of the position indexer.")
-
-(defvar org-fc-awk-review-stats-headers
-  '((:total . number) (:again . number) (:hard . number) (:good . number) (:easy . number))
-  "Headers of the review stat aggregator.")
-
 ;;;; AWK Wrapper Functions
 
 (cl-defun org-fc-awk-cards (&optional (paths org-fc-directories))
   "List all cards in PATHS."
-  (org-fc-tsv-parse
-   org-fc-awk-card-headers
-   (shell-command-to-string
-    (org-fc-awk--pipe
-     (org-fc-awk--find paths)
-     (org-fc-awk--xargs
-      (org-fc-awk--command
-       "awk/index_cards.awk"
-       :utils t
-       :variables (org-fc-awk--indexer-variables)))))))
+  (mapcar
+   (lambda (pos)
+     (plist-put
+      pos
+      :created
+      (parse-iso8601-time-string (plist-get pos :created))))
+   (read
+    (shell-command-to-string
+     (org-fc-awk--pipe
+      (org-fc-awk--find paths)
+      (org-fc-awk--xargs
+       (org-fc-awk--command
+        "awk/index_cards.awk"
+        :utils t
+        :variables (org-fc-awk--indexer-variables))))))))
 
 (cl-defun org-fc-awk-stats-cards (&optional (paths org-fc-directories))
   "Statistics for all cards in PATHS."
@@ -1268,7 +1254,7 @@ Each element is parsed using its header specification."
      (org-fc-awk--find paths)
      (org-fc-awk--xargs
       (org-fc-awk--command
-       "awk/index_cards.awk"
+       "awk/index_cards_tsv.awk"
        :utils t
        :variables (org-fc-awk--indexer-variables)))
      (org-fc-awk--command "awk/stats_cards.awk" :utils t)))))
@@ -1283,13 +1269,19 @@ If FILTER-DUE is non-nil, only list non-suspended cards that are
 due for review."
   (mapcar
    (lambda (pos)
-     (plist-put pos
-                :tags
-                (org-fc-combine-tags
-                 (plist-get pos :inherited-tags)
-                 (plist-get pos :local-tags))))
-   (org-fc-tsv-parse
-    org-fc-awk-position-headers
+     (plist-put
+      (plist-put
+       (plist-put
+        (plist-put
+         pos
+         :tags
+         (org-fc-combine-tags
+          (split-string (plist-get pos :inherited-tags) ":" t)
+          (split-string (plist-get pos :local-tags) ":" t)))
+        :due (parse-iso8601-time-string (plist-get pos :due)))
+       :inherited-tags (split-string (plist-get pos :inherited-tags) ":" t))
+      :local-tags (split-string (plist-get pos :local-tags) ":" t)))
+   (read
     (shell-command-to-string
      (org-fc-awk--pipe
       (org-fc-awk--find paths)
@@ -1310,7 +1302,7 @@ due for review."
      (org-fc-awk--find paths)
      (org-fc-awk--xargs
       (org-fc-awk--command
-       "awk/index_positions.awk"
+       "awk/index_positions_tsv.awk"
        :utils t
        :variables (org-fc-awk--indexer-variables)))
      (org-fc-awk--command "awk/stats_positions.awk")))))
