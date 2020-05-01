@@ -7,14 +7,32 @@ BEGIN {
     review_data_drawer = ":" or_default(review_data_drawer, "REVIEW_DATA") ":";
     type_property = or_default(type_property, "FC_TYPE");
     created_property = or_default(created_property, "FC_CREATED");
+
+    print "(";
+}
+
+BEGINFILE {
+    # Stack of parent headline tags, level 0 is used for filetags
+    parent_tags[0] = "";
+}
+
+## Filetags
+
+match($0, /#\+FILETAGS:[ \t]+(.*)/, a) {
+    parent_tags[0] = a[1];
 }
 
 ## Heading Parsing
 
-/^\*+[ \t]+.*$/ {
+match($0, /^(\*)+[ \t]+.*$/, a) {
+    level = length(a[1]);
+    tags = ""
+
     # tag re based on org-tag-re
-    match($0, /^\*+[ \t]+.*[ \t]+(:([a-zA-Z0-9_@#%]+:)+)$/, a)
-    tags = a[1]
+    if (match($0, /^\*+[ \t]+.*[ \t]+(:([a-zA-Z0-9_@#%]+:)+)$/, b) != 0) {
+            tags = b[1];
+    }
+    parent_tags[level] = tags;
 
     id = "none";
 
@@ -24,6 +42,8 @@ BEGIN {
     } else {
         in_card = 0;
     }
+
+    last_level = level;
     next
 }
 
@@ -66,8 +86,30 @@ in_data && /^\|.*\|$/ {
         interval = trim($5);
         due      = trim_surrounding($6);
 
+        inherited_tags = "";
+        for (i = 0; i < level; i++) {
+            inherited_tags = combine_tags(inherited_tags, parent_tags[i]);
+        }
+        local_tags = parent_tags[level];
+
         if (!(filter_due == "1") || (due < now && suspended == "0")) {
-            print FILENAME "\t" id "\t" type "\t" suspended "\t" position "\t" ease "\t" box "\t" interval "\t" due "\t" inherited_tags "\t" local_tags;
+            print "(" \
+                ":path \"" FILENAME "\"" \
+                " :id \"" id "\"" \
+                " :type " type \
+                " :suspended " (suspended ? "t" : "nil")  \
+                " :position \"" position "\"" \
+                " :ease " ease \
+                " :box " box \
+                " :interval " interval \
+                " :due \"" due "\"" \
+                " :inherited-tags \"" inherited_tags "\"" \
+                " :local-tags \"" local_tags "\"" \
+                ")"
         }
     }
+}
+
+END {
+    print ")";
 }

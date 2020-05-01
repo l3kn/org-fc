@@ -21,3 +21,12 @@ function time_days_ago(n) {
 function or_default(var, def) {
     return (var != "") ? var : def;
 }
+
+# Combine two tag strings
+function combine_tags(tags1, tags2) {
+    if (tags1 == "") {
+        return tags2;
+    } else {
+        return substr(tags1, 0, length(tags1) - 1) tags2
+    }
+}
