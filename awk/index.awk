@@ -37,24 +37,19 @@ function parse_time(time) {
     return "(" ts_h " " ts_l ")";
 }
 
+# TODO: I'm sure there are cases not covered by this
+function escape_filename(str) {
+    gsub(/\\/, "\\\\", str);
+    gsub(/"/, "\\\"", str);
+    return str;
+}
+
 ## File Parsing
 
 BEGINFILE {
-    # Data for files is only printed once we have encountered the
-    # first card.
-    printed_file_line = 0;
-    needs_file_closing = 0;
-
-    # Stack of parent headline tags, level 0 is used for filetags
+    # Reset filetags
     parent_tags[0] = "";
     state = state_file;
-}
-
-ENDFILE {
-    if (needs_file_closing) {
-        print "  ))";
-        needs_file_closing = 0;
-    }
 }
 
 ## Filetags
@@ -111,15 +106,6 @@ $0 ~ review_data_drawer {
         state = state_properties_done;
     } else if (state == state_review_data) {
         state = state_review_data_done;
-        # If this is the first card in a file, print the file "header"
-        if (!printed_file_line) {
-            print "  ("      \
-                ":path \"" FILENAME "\""    \
-                " :cards (";
-            printed_file_line = 1;
-            needs_file_closing = 1;
-        }
-
         # Card header
         inherited_tags = "";
         for (i = 0; i < level; i++) {
@@ -127,8 +113,9 @@ $0 ~ review_data_drawer {
         }
         local_tags = parent_tags[level];
 
-        print "    (" \
-            ":id \"" properties["ID"] "\""      \
+        print "  (" \
+            ":path \"" escape_filename(FILENAME) "\""     \
+            " :id \"" properties["ID"] "\""      \
             " :type " properties[type_property]     \
             " :created " parse_time(properties[created_property]) \
             " :suspended " (suspended ? "t" : "nil")   \
@@ -138,7 +125,7 @@ $0 ~ review_data_drawer {
 
         # Card positions
         for (i = 1; i < review_index; i++) {
-            print "      ("               \
+            print "    ("               \
                 ":position \"" review_data[i]["position"] "\"" \
                 " :ease " review_data[i]["ease"]                \
                 " :box " review_data[i]["box"]                  \
@@ -146,7 +133,7 @@ $0 ~ review_data_drawer {
                 " :due " parse_time(review_data[i]["due"])      \
                 ")"
         }
-        print "    ))";
+        print "  ))";
     }
     next;
 }

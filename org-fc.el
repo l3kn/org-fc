@@ -1193,10 +1193,10 @@ file (absolute path) as input."
   "Generate the shell command for calling COMMAND with xargs."
   (concat "xargs -0 " command))
 
+;;;; AWK Wrapper Functions
+
 (defun org-fc-awk-index (paths)
-  "Generate a list of all files, cards & positions in PATHS.
-If FILTER-DUE is non-nil, only list non-suspended cards that are
-due for review."
+  "Generate a list of all cards and positions in PATHS."
   (read
    (shell-command-to-string
     (org-fc-awk--pipe
@@ -1207,27 +1207,24 @@ due for review."
        :utils t
        :variables (org-fc-awk--indexer-variables)))))))
 
-;;;; AWK Wrapper Functions
-
 (defun org-fc-awk-positions-for-paths (paths &optional filter-due)
   "Generate a list of non-suspended positions in PATHS.
 If FILTER-DUE is non-nil, only list non-suspended cards that are
 due for review."
   (let (res (now (current-time)))
-    (dolist (file (org-fc-awk-index paths))
-      (dolist (card (plist-get file :cards))
-        (unless (plist-get card :suspended)
-          (dolist (pos (plist-get card :positions))
-            (if (or (not filter-due)
-                    (time-less-p (plist-get pos :due) now))
-                (push
-                 (list
-                  :path (plist-get file :path)
-                  :id (plist-get card :id)
-                  :type (plist-get card :type)
-                  :due (plist-get pos :due)
-                  :position (plist-get pos :position))
-                 res))))))
+    (dolist (card (org-fc-awk-index paths))
+      (unless (plist-get card :suspended)
+        (dolist (pos (plist-get card :positions))
+          (if (or (not filter-due)
+                  (time-less-p (plist-get pos :due) now))
+              (push
+               (list
+                :path (plist-get card :path)
+                :id (plist-get card :id)
+                :type (plist-get card :type)
+                :due (plist-get pos :due)
+                :position (plist-get pos :position))
+               res)))))
     res))
 
 (defun org-fc-awk-stats-reviews ()
@@ -1652,6 +1649,13 @@ rating the card."
      (lambda (pos) (time-less-p (plist-get pos :due) now))
      (org-fc-awk-positions-for-paths paths))))
 
+(defun org-fc--hashtable-to-alist (ht)
+  "Convert a hash-table HT to an alist."
+  (let (res)
+    (dolist (key (hash-table-keys ht))
+      (push (cons key (gethash key ht)) res))
+    res))
+
 (defun org-fc-stats (index)
   "Compute statistics for an INDEX of cards and positions."
   (let* ((total 0) (suspended 0)
@@ -1663,30 +1667,29 @@ rating the card."
          (time-day (time-subtract now (* 24 60 60)))
          (time-week (time-subtract now (* 7 24 60 60)))
          (time-month (time-subtract now (* 30 24 60 60))))
-    (dolist (file index)
-      (dolist (card (plist-get file :cards))
-        (incf total 1)
-        (if (plist-get card :suspended)
-            (incf suspended 1)
-          (let ((created (plist-get card :created)))
-            (if (time-less-p time-day created)
-                (incf created-day 1))
-            (if (time-less-p time-week created)
-                (incf created-week 1))
-            (if (time-less-p time-month created)
-                (incf created-month 1))
-            (dolist (pos (plist-get card :positions))
-              (incf n-pos 1)
-              (if (time-less-p (plist-get pos :due) now)
-                  (incf n-due 1))
-              (incf avg-ease (plist-get pos :ease))
-              (incf avg-box (plist-get pos :box))
-              (incf avg-interval (plist-get pos :interval)))))
-        (incf (gethash (plist-get card :type) by-type 0) 1)))
+    (dolist (card index)
+      (incf total 1)
+      (if (plist-get card :suspended)
+          (incf suspended 1)
+        (let ((created (plist-get card :created)))
+          (if (time-less-p time-day created)
+              (incf created-day 1))
+          (if (time-less-p time-week created)
+              (incf created-week 1))
+          (if (time-less-p time-month created)
+              (incf created-month 1))
+          (dolist (pos (plist-get card :positions))
+            (incf n-pos 1)
+            (if (time-less-p (plist-get pos :due) now)
+                (incf n-due 1))
+            (incf avg-ease (plist-get pos :ease))
+            (incf avg-box (plist-get pos :box))
+            (incf avg-interval (plist-get pos :interval)))))
+      (incf (gethash (plist-get card :type) by-type 0) 1))
     (list :total total
           :suspended suspended
           :due n-due
-          :by-type (org-fc-hashtable-to-alist by-type)
+          :by-type (org-fc--hashtable-to-alist by-type)
           :created-day created-day
           :created-week created-week
           :created-month created-month
