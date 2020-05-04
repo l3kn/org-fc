@@ -1,0 +1,29 @@
+#+FILETAGS: :file1:file2:
+#+FILETAGS: :file3:
+
+* Double                                                                 :fc:
+:PROPERTIES:
+:FC_CREATED: 2020-05-03T16:14:52Z
+:FC_TYPE:  double
+:ID:       d96b7d6a-c719-4696-aafc-da88b23e1dcb
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-05-03T16:14:52Z |
+| back     |  2.5 |   0 |        0 | 2020-05-03T16:14:52Z |
+:END:
+* Cloze                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 2020-05-03T16:15:05Z
+:FC_TYPE:  cloze
+:ID:       54625832-2d72-46f6-8f26-862eba4e4651
+:FC_CLOZE_MAX: 0
+:FC_CLOZE_TYPE: deletion
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+|        0 |  2.5 |   0 |        0 | 2020-05-03T16:15:05Z |
+:END:
+{{hole}@0}
