@@ -4,7 +4,7 @@
 
 ;; Author: Leon Rische <emacs@leonrische.me>
 ;; Url: https://www.leonrische.me/pages/org_flashcards.html
-;; Package-requires: ((emacs "26.3") (tablist "0.15.0"))
+;; Package-requires: ((emacs "26.3") (org "9.3"))
 ;; Version: 0.0.1
 
 ;; This program is free software; you can redistribute it and/or modify
