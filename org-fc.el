@@ -1547,7 +1547,7 @@ Valid contexts:
       (message "Flashcards are already being reviewed")
     (let* ((index (org-fc-index context))
            (cards
-            (org-fc-shuffle (org-fc-index-positions index :filter-due))))
+            (org-fc-shuffle (org-fc-index-positions index 'filter-due))))
       (if (null cards)
           (message "No cards due right now")
         (progn
