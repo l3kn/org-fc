@@ -1512,15 +1512,16 @@ removed."
 (defvar org-fc-custom-contexts '()
   "User-defined review contexts.")
 
-(defvar org-fc-default-contexts
-  '((all . (:paths all))
-    (buffer . (:paths buffer)))
-  "Default review contexts.")
+(defvar org-fc-context-all '(:paths all)
+  "Default context for all cards.")
+(defvar org-fc-context-buffer '(:paths buffer)
+  "Default context for the current buffer.")
 
 (defun org-fc-contexts ()
   "List of all contexts."
-  (append
-   org-fc-default-contexts
+  (list*
+   (cons 'all org-fc-context-all)
+   (cons 'buffer org-fc-context-buffer)
    org-fc-custom-contexts))
 
 (defun org-fc-select-context ()
@@ -1558,13 +1559,13 @@ Valid contexts:
 (defun org-fc-review-buffer ()
   "Review due cards in the current buffer."
   (interactive)
-  (org-fc-review 'buffer))
+  (org-fc-review org-fc-context-buffer))
 
 ;;;###autoload
 (defun org-fc-review-all ()
   "Review all due cards."
   (interactive)
-  (org-fc-review 'all))
+  (org-fc-review org-fc-context-all))
 
 (defun org-fc-review-next-card ()
   "Review the next card of the current session."
