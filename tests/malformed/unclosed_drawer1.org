@@ -1,0 +1,11 @@
+* Normal                                                                 :fc:
+:PROPERTIES:
+:FC_CREATED: 2020-05-02T12:07:26Z
+:FC_TYPE:  normal
+:ID:       79d99ab4-6f7e-4926-a21e-7f51a5eb6b4b
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-05-02T12:07:26Z |
+:END:
+Body
