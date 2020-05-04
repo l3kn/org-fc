@@ -23,31 +23,11 @@ BEGIN {
     print "(";
 }
 
-# Convert an ISO8601 timestamp to an Emacs timestamp
-# (second_upper_16_bit, second_lower_16_bit)
-function parse_time(time) {
-    # mktime expects a format of "YYYY MM DD HH MM SS"
-    # and doesn't care about the trailing space left by the "Z"
-    gsub(/[\-T:Z]/, " ", time);
-
-    ts = mktime(time, 1);
-    ts_h = rshift(ts, 16);
-    ts_l = and(ts, 0xffff);
-
-    return "(" ts_h " " ts_l ")";
-}
-
-# TODO: I'm sure there are cases not covered by this
-function escape_filename(str) {
-    gsub(/\\/, "\\\\", str);
-    gsub(/"/, "\\\"", str);
-    return str;
-}
-
 ## File Parsing
 
 BEGINFILE {
     # Reset filetags
+    delete parent_tags;
     parent_tags[0] = "";
     state = state_file;
 }
@@ -55,13 +35,14 @@ BEGINFILE {
 ## Filetags
 
 match($0, /#\+FILETAGS:[ \t]+(.*)/, a) {
-    parent_tags[0] = a[1];
+    # Combine tags to handle multiple FILETAGS lines
+    parent_tags[0] = combine_tags(a[1], parent_tags[0]);
     next;
 }
 
 ## Heading Parsing
 
-match($0, /^(\*)+[ \t]+.*$/, a) {
+match($0, /^(\*+)[ \t]+.*$/, a) {
     level = length(a[1]);
     tags = "";
 
@@ -114,19 +95,19 @@ $0 ~ review_data_drawer {
         local_tags = parent_tags[level];
 
         print "  (" \
-            ":path \"" escape_filename(FILENAME) "\""     \
-            " :id \"" properties["ID"] "\""      \
+            ":path " escape_string(FILENAME)     \
+            " :id " escape_string(properties["ID"])  \
             " :type " properties[type_property]     \
             " :created " parse_time(properties[created_property]) \
             " :suspended " (suspended ? "t" : "nil")   \
-            " :inherited-tags \"" inherited_tags "\"" \
-            " :local-tags \"" local_tags "\""         \
+            " :inherited-tags " escape_string(inherited_tags)  \
+            " :local-tags " escape_string(local_tags)          \
             " :positions (";
 
         # Card positions
         for (i = 1; i < review_index; i++) {
             print "    ("               \
-                ":position \"" review_data[i]["position"] "\"" \
+                ":position " escape_string(review_data[i]["position"])  \
                 " :ease " review_data[i]["ease"]                \
                 " :box " review_data[i]["box"]                  \
                 " :interval " review_data[i]["interval"]        \
