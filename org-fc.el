@@ -243,8 +243,7 @@ Used to calculate the time needed for reviewing a card.")
      (* 24 60 60)))
 
 (defun org-fc-show-latex ()
-  "Show / re-display latex fragments."
-  (org-clear-latex-preview)
+  "Show latex fragments of heading at point."
   (org-latex-preview 4))
 
 (defun org-fc-back-heading-position ()
@@ -305,6 +304,21 @@ Returns a pair (marker . body)."
     (goto-char (point-min))
     (org-do-emphasis-faces (point-max))
     (buffer-string)))
+
+(defmacro org-fc-with-point-at-entry (&rest body)
+  "Execute BODY with point at the card heading.
+If point is not inside a flashcard entry, an error is raised."
+  `(save-excursion
+     (org-fc-goto-entry-heading)
+     ,@body))
+
+(defmacro org-fc-with-point-at-back-heading (&rest body)
+  "Execute BODY with point at the card's back heading.
+If point is not inside a flashcard entry, an error is raised."
+  `(if-let ((pos (org-fc-back-heading-position)))
+       (save-excursion
+         (goto-char pos)
+         ,@body)))
 
 ;;; Diff
 
@@ -530,11 +544,13 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
 (defun org-fc-type-normal-flip ()
   "Flip a normal card."
   (interactive)
+  (org-show-subtree)
   (save-excursion
-    (org-show-subtree)
     (dolist (pos org-fc-type-normal--hidden)
       (goto-char pos)
       (org-show-subtree)))
+  (org-fc-with-point-at-back-heading
+   (org-fc-show-latex))
   (org-fc-review-rate-hydra/body))
 
 (org-fc-register-type
@@ -542,6 +558,7 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
  'org-fc-type-normal-setup
  'org-fc-type-normal-flip
  'org-fc-noop)
+
 ;;;; Double
 
 (defvar org-fc-type-double-hole-re
@@ -572,6 +589,8 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
   (if org-fc-type-double--overlay
       (delete-overlay org-fc-type-double--overlay))
   (org-show-subtree)
+  (org-fc-with-point-at-back-heading
+   (org-fc-show-latex))
   (org-fc-review-rate-hydra/body))
 
 (org-fc-register-type
@@ -792,8 +811,7 @@ the hole for the current position."
 
 (defun org-fc-type-cloze-hide-holes (current-position type)
   "Hide holes of a card of TYPE in relation to the CURRENT-POSITION."
-  (save-excursion
-    (org-fc-goto-entry-heading)
+  (org-fc-with-point-at-entry
     (let* ((el (org-element-at-point))
            (overlays nil)
            (end (org-element-property :contents-end el))
@@ -1037,8 +1055,7 @@ If TEXT is non-nil, the content is replaced with TEXT."
   "Narrow the outline tree.
 Only parent headings of the current heading remain visible."
   (interactive)
-  (save-excursion
-    (org-fc-goto-entry-heading)
+  (org-fc-with-point-at-entry
     (let* ((end (org-fc-overlay--point-at-end-of-previous))
            (tags (org-get-tags nil 'local))
            (notitle (member "notitle" tags))
@@ -1074,10 +1091,7 @@ FN is called with point at the headline and no arguments."
 (defun org-fc-update ()
   "Re-process the current flashcard."
   (interactive)
-  (unless (org-fc-part-of-entry-p)
-    (error "Not part of a flashcard entry"))
-  (save-excursion
-    (org-fc-goto-entry-heading)
+  (org-fc-with-point-at-entry
     (let ((type (org-entry-get (point) "FC_TYPE")))
       (funcall (org-fc-type-update-fn type)))))
 
@@ -1093,11 +1107,8 @@ FN is called with point at the headline and no arguments."
 (defun org-fc-suspend-card ()
   "Suspend the headline at point if it is a flashcard."
   (interactive)
-  (if (org-fc-entry-p)
-      (progn
-        (org-fc-goto-entry-heading)
-        (org-fc--add-tag org-fc-suspended-tag))
-    (message "Entry at point is not a flashcard")))
+  (org-fc-with-point-at-entry
+   (org-fc--add-tag org-fc-suspended-tag)))
 
 ;;;###autoload
 (defun org-fc-suspend-buffer ()
@@ -1131,8 +1142,8 @@ to box 0, if not, keep the current parameters."
 Checks if the headline is a suspended card first."
   (interactive)
   (if (org-fc-suspended-entry-p)
-      (progn (org-fc-goto-entry-heading)
-             (org-fc--unsuspend-card))
+      (org-fc-with-point-at-entry
+       (org-fc--unsuspend-card))
     (message "Entry at point is not a suspended flashcard")))
 
 ;;;###autoload
@@ -1673,8 +1684,7 @@ Also add a new entry in the review history file.  PATH, ID,
 POSITION identify the position that was reviewed, RATING is a
 review rating and DELTA the time in seconds between showing and
 rating the card."
-  (save-excursion
-    (org-fc-goto-entry-heading)
+  (org-fc-with-point-at-entry
     (let* ((data (org-fc-get-review-data))
            (current (assoc position data #'string=)))
       (unless current
