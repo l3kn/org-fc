@@ -905,8 +905,7 @@ Returns nil if there is no previous line."
 (defun org-fc-overlay--point-after-title ()
   "Value of point at the first line after the title keyword.
 Returns nil if there is no title keyword."
-  (save-excursion
-    (goto-char (point-min))
+  (org-with-point-at (point-min)
     (when (re-search-forward (rx bol "#+TITLE:") nil t)
       (point-at-eol))))
 
@@ -1458,11 +1457,9 @@ END is the start of the line with :END: on it."
 
 (defun org-fc-get-review-data ()
   "Get a cards review data as a Lisp object."
-  (let ((position (org-fc-review-data-position nil)))
-    (if position
-        (save-excursion
-          (goto-char (car position))
-          (cddr (org-table-to-lisp))))))
+  (if-let ((position (org-fc-review-data-position nil)))
+    (org-with-point-at (car position)
+      (cddr (org-table-to-lisp)))))
 
 (defun org-fc-set-review-data (data)
   "Set the cards review data to DATA."
