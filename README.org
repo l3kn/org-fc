@@ -325,6 +325,9 @@ All double cards in the current buffer:
     '(current-double .
       (:paths buffer :filter (type double))))
 #+end_src
+*** Note
+Because parsing of tags is done in AWK, tag filters don't work for
+tags defined in the =#+FILETAGS:= of a =#+SETUP_FILE:=.
 ** Dashboard / Statistics
 ~org-fc-dashboard~ shows a buffer with statistics for review performance
 and cards / card types.
