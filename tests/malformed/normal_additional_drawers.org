@@ -1,0 +1,18 @@
+* Normal Card                                                            :fc:
+:BAR:
+:END:
+:PROPERTIES:
+:FC_CREATED: 2020-05-02T12:01:58Z
+:FC_TYPE:  normal
+:ID:       c614cee2-f2c6-484f-80b8-be64f54a1989
+:END:
+:BAZ:
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-05-02T12:01:58Z |
+:END:
+:QUX:
+:END:
+Body

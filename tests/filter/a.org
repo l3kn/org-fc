@@ -1,0 +1,23 @@
+* Normal                                                            :fc:tag1:
+:PROPERTIES:
+:FC_CREATED: 2020-05-03T15:56:55Z
+:FC_TYPE:  normal
+:ID:       9c5e1c79-e0a0-4cf9-9ddd-a2556da0d755
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-05-03T15:56:55Z |
+:END:
+* Double                                                       :fc:tag1:tag2:
+:PROPERTIES:
+:FC_CREATED: 2020-05-03T15:57:00Z
+:FC_TYPE:  double
+:ID:       dc8340e2-8725-40b7-8e88-4c7fec938fc0
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-05-03T15:57:00Z |
+| back     |  2.5 |   0 |        0 | 2020-05-03T15:57:00Z |
+:END:

@@ -4,7 +4,7 @@
 
 ;; Author: Leon Rische <emacs@leonrische.me>
 ;; Url: https://www.leonrische.me/pages/org_flashcards.html
-;; Package-requires: ((emacs "26.3") (tablist "0.15.0"))
+;; Package-requires: ((emacs "26.3") (org "9.3"))
 ;; Version: 0.0.1
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -214,12 +214,6 @@ Values are in days."
 (defvar org-fc-timestamp-format "%FT%TZ"
   "Format to use for storing timestamps.
 Defaults to ISO8601")
-
-;; TODO: Allow customizing this once different indexers are supported
-(defvar org-fc-indexer
-  'awk
-  "Indexer to use for finding cards / positions.
-Only 'awk is supported at the moment.")
 
 (defvar org-fc-demo-mode nil
   "In demo mode, the review properties & history are not updated.")
@@ -1191,177 +1185,131 @@ file (absolute path) as input."
 
 (defun org-fc-awk--xargs (command)
   "Generate the shell command for calling COMMAND with xargs."
-  (concat "xargs -n 2500 -P 4 -0 " command))
-
-;;;; TSV / Key-Value Parsing
-
-(defun org-fc-awk--key-value-parse (input)
-  "Parse a string INPUT of newline separated key-value entries.
-Each key-value entry is separated by a tab.  Results are collected
-into a keyword-number plist."
-  (mapcan
-   (lambda (kv)
-     (let ((kv (split-string kv "\t")))
-       (list
-        (intern (concat ":" (car kv)))
-        (string-to-number (cadr kv)))))
-   (split-string input "\n" t)))
-
-(defun org-fc-tsv--parse-element (header element)
-  "Parse an ELEMENT of a row given a single HEADER element."
-  (if (listp header)
-      (pcase (cdr header)
-        ('string element)
-        ('date (parse-iso8601-time-string element))
-        ('number (string-to-number element))
-        ('symbol (intern element))
-        ('keyword (intern (concat ":" element)))
-        ('bool (string= element "1")))
-    element))
-
-(defun org-fc-tsv--parse-row (headers elements)
-  "Convert two lists of HEADERS and ELEMENTS into a plist.
-Each element is parsed using its header specification."
-  (if (null headers)
-      '()
-    (let ((header (car headers)))
-      (cl-assert (not (null elements)))
-      `(,(if (listp header) (car header) header)
-        ,(org-fc-tsv--parse-element header (car elements))
-        .
-        ,(org-fc-tsv--parse-row (cdr headers) (cdr elements))))))
-
-(defun org-fc-tsv-parse (headers input)
-  "Parse a tsv INPUT into a plist, give a list of HEADERS."
-  (mapcar
-   (lambda (row) (org-fc-tsv--parse-row headers (split-string row "\t")))
-   (split-string input "\n" t)))
-
-(defvar org-fc-awk-card-headers
-  '(:path :id (:type . symbol) (:suspended . bool) (:created . date))
-  "Headers of the card indexer.")
-
-(defvar org-fc-awk-position-headers
-  '(:path
-    :id
-    (:type . symbol)
-    (:suspended . bool)
-    :position
-    (:ease . number)
-    (:box . box)
-    (:interval . interval)
-    (:due . date))
-  "Headers of the position indexer.")
-
-(defvar org-fc-awk-review-stats-headers
-  '((:total . number) (:again . number) (:hard . number) (:good . number) (:easy . number))
-  "Headers of the review stat aggregator.")
+  (concat "xargs -0 " command))
 
 ;;;; AWK Wrapper Functions
 
-(cl-defun org-fc-awk-cards (&optional (paths org-fc-directories))
-  "List all cards in PATHS."
-  (org-fc-tsv-parse
-   org-fc-awk-card-headers
-   (shell-command-to-string
-    (org-fc-awk--pipe
-     (org-fc-awk--find paths)
-     (org-fc-awk--xargs
-      (org-fc-awk--command
-       "awk/index_cards.awk"
-       :utils t
-       :variables (org-fc-awk--indexer-variables)))))))
+;; Given two tag strings,
+;; one inherited and one for the current card,
+;; combine them respecting `org-use-tag-inheritance'
+;; and `org-tags-exclude-from-inheritance'.
+;; Inheritance code is based on `org-get-tags'
+(defun org-fc--combine-tags (itags ltags)
+  "Simulate org tag inheritance on ITAGS and LTAGS.
+ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
+  (delete-dups
+   (append
+    (org-remove-uninherited-tags (split-string itags ":" t))
+    (split-string ltags ":" t))))
 
-(cl-defun org-fc-awk-stats-cards (&optional (paths org-fc-directories))
-  "Statistics for all cards in PATHS."
-  (org-fc-awk--key-value-parse
-   (shell-command-to-string
-    (org-fc-awk--pipe
-     (org-fc-awk--find paths)
-     (org-fc-awk--xargs
-      (org-fc-awk--command
-       "awk/index_cards.awk"
-       :utils t
-       :variables (org-fc-awk--indexer-variables)))
-     (org-fc-awk--command "awk/stats_cards.awk" :utils t)))))
-
-;; TODO: Optimize card order for review
-(defun org-fc-awk-due-positions-for-paths (paths)
-  "Generate a list of due positions in PATHS."
-  (org-fc-tsv-parse
-   org-fc-awk-position-headers
-   (shell-command-to-string
-    (org-fc-awk--pipe
-     (org-fc-awk--find paths)
-     (org-fc-awk--xargs
-      (org-fc-awk--command
-       "awk/index_positions.awk"
-       :utils t
-       :variables (org-fc-awk--indexer-variables)))
-     (org-fc-awk--command "awk/filter_due.awk")))))
-
-(defun org-fc-awk-positions-for-paths (paths)
-  "Generate a list of all positions in PATHS."
-  (org-fc-tsv-parse
-   org-fc-awk-position-headers
-   (shell-command-to-string
-    (org-fc-awk--pipe
-     (org-fc-awk--find paths)
-     (org-fc-awk--xargs
-      (org-fc-awk--command
-       "awk/index_positions.awk"
-       :utils t
-       :variables (org-fc-awk--indexer-variables)))))))
-
-(cl-defun org-fc-awk-stats-positions (&optional (paths org-fc-directories))
-  "Statistics for all positions in PATHS."
-  (org-fc-awk--key-value-parse
-   (shell-command-to-string
-    (org-fc-awk--pipe
-     (org-fc-awk--find paths)
-     (org-fc-awk--xargs
-      (org-fc-awk--command
-       "awk/index_positions.awk"
-       :utils t
-       :variables (org-fc-awk--indexer-variables)))
-     (org-fc-awk--command "awk/stats_positions.awk")))))
+(defun org-fc-awk-index-paths (paths)
+  "Generate a list of all cards and positions in PATHS."
+  (mapcar
+   (lambda (card)
+     (plist-put card :tags
+                (org-fc--combine-tags
+                 (plist-get card :inherited-tags)
+                 (plist-get card :local-tags))))
+   (read
+    (shell-command-to-string
+     (org-fc-awk--pipe
+      (org-fc-awk--find paths)
+      (org-fc-awk--xargs
+       (org-fc-awk--command
+        "awk/index.awk"
+        :utils t
+        :variables (org-fc-awk--indexer-variables))))))))
 
 (defun org-fc-awk-stats-reviews ()
   "Statistics for all card reviews.
 Return nil there is no history file."
   (if (file-exists-p org-fc-review-history-file)
-      (let ((res (org-fc-tsv-parse
-                  org-fc-awk-review-stats-headers
-                  (shell-command-to-string
-                   (org-fc-awk--command
-                    "awk/stats_reviews.awk"
-                    :utils t
-                    :input org-fc-review-history-file
-                    :variables `(("min_box" . ,org-fc-stats-review-min-box)))))))
-        `(:all ,(cl-first res) :month ,(cl-second res) :week ,(cl-third res) :day ,(cl-fourth res)))))
+      (read
+       (shell-command-to-string
+        (org-fc-awk--command
+         "awk/stats_reviews.awk"
+         :utils t
+         :input org-fc-review-history-file
+         :variables `(("min_box" . ,org-fc-stats-review-min-box)))))))
 
 ;;; Indexing Cards
+;;;; Card Filters
 
-(defun org-fc-due-positions-for-paths (paths)
-  "Find due positions for all cards in files in PATHS."
-  (if (eq org-fc-indexer 'awk)
-      (org-fc-shuffle (org-fc-awk-due-positions-for-paths paths))
-    (error
-     'org-fc-indexer-error
-     (format "Indexer %s not implemented yet" org-fc-indexer))))
+(defun org-fc--compile-filter (filter)
+  "Compile FILTER into a lambda function.
+Filters can be combinations of the following expressions:
 
-(defun org-fc-due-positions (context)
-  "Return a shuffled list [(file id position)] of due cards for CONTEXT.
-Valid contexts:
-- 'all, all cards in `org-fc-directories'
-- 'buffer, all cards in the current buffer
-- a list of paths"
-  (if (listp context)
-      (org-fc-due-positions-for-paths context)
-    (cl-case context
-      ('all (org-fc-due-positions-for-paths org-fc-directories))
-      ('buffer (org-fc-due-positions-for-paths (list (buffer-file-name))))
-      (t (error "Unknown review context %s" context)))))
+- `(and ex1 ex2 ...)'
+- `(or ex1 ex2 ...)'
+- `(not ex)'
+- `(tag \"tag\")'
+- `(type card-type)' or `(type \"card-type\")'
+
+For example, to match all double cards with tag \"math\",
+use `(and (type double) (tag \"math\"))'."
+  (let ((card-var (gensym)))
+    (cl-labels
+        ((check-arity-exact
+          (filter n)
+          (unless (= (length filter) (1+ n))
+            (error
+             (format "Filter '%s' expects %d argument(s)" filter n))))
+         (compile-inner
+          (filter)
+          (cl-case (car filter)
+            ('and `(and ,@(mapcar #'compile-inner (cdr filter))))
+            ('or `(or ,@(mapcar #'compile-inner (cdr filter))))
+            ('not
+             (check-arity-exact filter 1)
+             `(not ,(compile-inner (cadr filter))))
+            ('tag
+             (check-arity-exact filter 1)
+             `(member ,(cadr filter) (plist-get ,card-var :tags)))
+            ('type
+             (check-arity-exact filter 1)
+             `(eq ',(if (stringp (cadr filter))
+                        (intern (cadr filter))
+                      (cadr filter))
+                  (plist-get ,card-var :type))))))
+      `(lambda (,card-var)
+         ,(compile-inner filter)))))
+
+(defun org-fc-filter-index (index filter)
+  "Apply FILTER to cards in INDEX."
+  (cl-remove-if-not (org-fc--compile-filter filter) index))
+
+(defun org-fc-index (context)
+  "Create an index for review CONTEXT."
+  (let ((paths (plist-get context :paths))
+        (filter (plist-get context :filter)))
+    ;; Handle path formats / symbols
+    (cond
+     ((or (null paths) (eq paths 'all)) (setq paths org-fc-directories))
+     ((eq paths 'buffer) (setq paths (list (buffer-file-name))))
+     ((stringp paths) (setq paths (list paths))))
+    (if filter
+        (org-fc-filter-index (org-fc-awk-index-paths paths) filter)
+      (org-fc-awk-index-paths paths))))
+
+(defun org-fc-index-positions (index &optional filter-due)
+  "Generate a list of non-suspended positions in INDEX.
+If FILTER-DUE is non-nil, only list non-suspended cards that are
+due for review."
+  (let (res (now (current-time)))
+    (dolist (card index)
+      (unless (plist-get card :suspended)
+        (dolist (pos (plist-get card :positions))
+          (if (or (not filter-due)
+                  (time-less-p (plist-get pos :due) now))
+              (push
+               (list
+                :path (plist-get card :path)
+                :id (plist-get card :id)
+                :type (plist-get card :type)
+                :due (plist-get pos :due)
+                :position (plist-get pos :position))
+               res)))))
+    res))
 
 ;;; Review & Spacing
 ;;;; Spacing Algorithm (SM2)
@@ -1512,14 +1460,14 @@ END is the start of the line with :END: on it."
   "Get a cards review data as a Lisp object."
   (let ((position (org-fc-review-data-position nil)))
     (if position
-    (save-excursion
-  (goto-char (car position))
-  (cddr (org-table-to-lisp))))))
+        (save-excursion
+          (goto-char (car position))
+          (cddr (org-table-to-lisp))))))
 
 (defun org-fc-set-review-data (data)
   "Set the cards review data to DATA."
   (save-excursion
-  (let ((position (org-fc-review-data-position t)))
+    (let ((position (org-fc-review-data-position t)))
       (kill-region (car position) (cdr position))
       (goto-char (car position))
       (insert "| position | ease | box | interval | due |\n")
@@ -1545,7 +1493,7 @@ removed."
     (org-fc-set-review-data
      (mapcar
       (lambda (pos)
-  (or
+        (or
          (assoc pos old-data #'string=)
          (org-fc-review-data-default pos)))
       positions))))
@@ -1561,6 +1509,31 @@ removed."
 ;; 6. updating the review data based on the rating
 ;;
 
+(defvar org-fc-custom-contexts '()
+  "User-defined review contexts.")
+
+(defvar org-fc-context-all '(:paths all)
+  "Default context for all cards.")
+(defvar org-fc-context-buffer '(:paths buffer)
+  "Default context for the current buffer.")
+
+(defun org-fc-contexts ()
+  "List of all contexts."
+  (list*
+   (cons 'all org-fc-context-all)
+   (cons 'buffer org-fc-context-buffer)
+   org-fc-custom-contexts))
+
+(defun org-fc-select-context ()
+  "Select a review context."
+  (let ((context (completing-read
+                  "Context: "
+                  (mapcar (lambda (c) (car c)) (org-fc-contexts))
+                  nil
+                  :require-match)))
+    (unless (string= context "")
+      (alist-get (intern context) (org-fc-contexts)))))
+
 ;;;###autoload
 (defun org-fc-review (context)
   "Start a review session for all cards in CONTEXT.
@@ -1569,10 +1542,12 @@ Valid contexts:
 - 'all, all cards in `org-fc-directories'
 - 'buffer, all cards in the current buffer
 - a list of paths"
-  (interactive (list (intern (completing-read "Context: " '("all" "buffer")))))
+  (interactive (list (org-fc-select-context)))
   (if org-fc-review--current-session
       (message "Flashcards are already being reviewed")
-    (let ((cards (org-fc-due-positions context)))
+    (let* ((index (org-fc-index context))
+           (cards
+            (org-fc-shuffle (org-fc-index-positions index 'filter-due))))
       (if (null cards)
           (message "No cards due right now")
         (progn
@@ -1584,13 +1559,13 @@ Valid contexts:
 (defun org-fc-review-buffer ()
   "Review due cards in the current buffer."
   (interactive)
-  (org-fc-review 'buffer))
+  (org-fc-review org-fc-context-buffer))
 
 ;;;###autoload
 (defun org-fc-review-all ()
   "Review all due cards."
   (interactive)
-  (org-fc-review 'all))
+  (org-fc-review org-fc-context-all))
 
 (defun org-fc-review-next-card ()
   "Review the next card of the current session."
@@ -1742,13 +1717,54 @@ rating the card."
 
 ;;; Dashboard
 
-(defun org-fc-review-estimate (paths n)
-  "Positions due in PATHS in the next N days."
-  (let ((now (+ (time-to-seconds (current-time))
-                (* 60 60 24 n))))
-    (seq-count
-     (lambda (pos) (< (time-to-seconds (plist-get pos :due)) now))
-     (org-fc-awk-positions-for-paths paths))))
+(defun org-fc--hashtable-to-alist (ht)
+  "Convert a hash-table HT to an alist."
+  (let (res)
+    (dolist (key (hash-table-keys ht))
+      (push (cons key (gethash key ht)) res))
+    res))
+
+;; TODO: Support user-defined time ranges
+(defun org-fc-stats (index)
+  "Compute statistics for an INDEX of cards and positions."
+  (let* ((total 0) (suspended 0)
+         (by-type (make-hash-table))
+         (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0)
+         (n-pos 0) (n-due 0)
+         (created-day 0) (created-week 0) (created-month 0)
+         (now (current-time))
+         (time-day (time-subtract now (* 24 60 60)))
+         (time-week (time-subtract now (* 7 24 60 60)))
+         (time-month (time-subtract now (* 30 24 60 60))))
+    (dolist (card index)
+      (cl-incf total 1)
+      (if (plist-get card :suspended)
+          (cl-incf suspended 1)
+        (let ((created (plist-get card :created)))
+          (if (time-less-p time-day created)
+              (cl-incf created-day 1))
+          (if (time-less-p time-week created)
+              (cl-incf created-week 1))
+          (if (time-less-p time-month created)
+              (cl-incf created-month 1))
+          (dolist (pos (plist-get card :positions))
+            (cl-incf n-pos 1)
+            (if (time-less-p (plist-get pos :due) now)
+                (cl-incf n-due 1))
+            (cl-incf avg-ease (plist-get pos :ease))
+            (cl-incf avg-box (plist-get pos :box))
+            (cl-incf avg-interval (plist-get pos :interval)))))
+      (cl-incf (gethash (plist-get card :type) by-type 0) 1))
+    (list :total total
+          :suspended suspended
+          :due n-due
+          :by-type (org-fc--hashtable-to-alist by-type)
+          :created-day created-day
+          :created-week created-week
+          :created-month created-month
+          :avg-ease (/ avg-ease n-pos)
+          :avg-box (/ avg-box n-pos)
+          :avg-interval (/ avg-interval n-pos))))
 
 ;;;; Bar Chart Generation
 
@@ -1786,8 +1802,8 @@ rating the card."
   (interactive)
   (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
          (inhibit-read-only t)
-         (cards-stats (org-fc-awk-stats-cards))
-         (positions-stats (org-fc-awk-stats-positions))
+         (index (org-fc-awk-index-paths org-fc-directories))
+         (stats (org-fc-stats index))
          (reviews-stats (org-fc-awk-stats-reviews)))
     (with-current-buffer buf
       (erase-buffer)
@@ -1798,36 +1814,29 @@ rating the card."
        (propertize "  Card Statistics\n\n" 'face 'org-level-1))
 
       (insert (format "    New: %d (day) %d (week) %d (month) \n"
-                      (plist-get cards-stats :created-day)
-                      (plist-get cards-stats :created-week)
-                      (plist-get cards-stats :created-month)))
+                      (plist-get stats :created-day)
+                      (plist-get stats :created-week)
+                      (plist-get stats :created-month)))
 
       (insert "\n")
       (insert (format
                "    %6d Cards, %d suspended\n"
-               (plist-get cards-stats :total)
-               (plist-get cards-stats :suspended)))
-      (dolist (position '((:type-normal . "Normal")
-                          (:type-double . "Double")
-                          (:type-text-input . "Text Input")
-                          (:type-cloze . "Cloze")))
-        (insert
-         (format "    %6d %s\n"
-                 (or (plist-get cards-stats (car position)) 0)
-                 (cdr position))))
-
+               (plist-get stats :total)
+               (plist-get stats :suspended)))
+      (dolist (pair (plist-get stats :by-type))
+        (insert (format "    %6d %s\n" (cdr pair) (car pair))))
       (insert "\n")
       (insert
        (propertize "  Position Statistics\n\n" 'face 'org-level-1))
 
-      (insert (format "    %6d Due Now\n\n" (plist-get positions-stats :due)))
+      (insert (format "    %6d Due Now\n\n" (plist-get stats :due)))
 
       (dolist (position '((:avg-ease . "Avg. Ease")
                           (:avg-box . "Avg. Box")
                           (:avg-interval . "Avg. Interval (days)")))
         (insert
          (format "    %6.2f %s\n"
-                 (plist-get positions-stats (car position))
+                 (plist-get stats (car position))
                  (cdr position))))
 
       (insert "\n")
