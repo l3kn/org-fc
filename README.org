@@ -296,32 +296,32 @@ Filters can be combinations of the following expressions:
 *** Examples
 All double cards with tag "math":
 #+begin_src emacs-lisp
-  (add-to-list org-fc-custom-contexts
+  (add-to-list 'org-fc-custom-contexts
     '(double-math-cards . (:filter (and (type double) (tag "math")))))
 #+end_src
 
 All cards in that don't have one of the tags "foo" and "bar":
 #+begin_src emacs-lisp
-  (add-to-list org-fc-custom-contexts
+  (add-to-list 'org-fc-custom-contexts
     '(no-foo-bar-cards . (:filter (not (or (tag "foo") (tag "bar"))))))
 #+end_src
 
 All cards in =~/combinatorics/= or =~/number_theory.org=:
 #+begin_src emacs-lisp
-  (add-to-list org-fc-custom-contexts
+  (add-to-list 'org-fc-custom-contexts
     '(math-cards . (:paths ("~/combinatorics/" "~/number_theory.org"))))
 #+end_src
 
 All cards in =~/combinatorics/= with tag "theorem":
 #+begin_src emacs-lisp
-  (add-to-list org-fc-custom-contexts
+  (add-to-list 'org-fc-custom-contexts
     '(combinatorics-theorems .
       (:paths "~/combinatorics/" :filter (tag "theorem"))))
 #+end_src
 
 All double cards in the current buffer:
 #+begin_src emacs-lisp
-  (add-to-list org-fc-custom-contexts
+  (add-to-list 'org-fc-custom-contexts
     '(current-double .
       (:paths buffer :filter (type double))))
 #+end_src
