@@ -1712,35 +1712,35 @@ POSITION identify the position that was reviewed, RATING is a
 review rating and DELTA the time in seconds between showing and
 rating the card."
   (org-fc-with-point-at-entry
-    (let* ((data (org-fc-get-review-data))
-           (current (assoc position data #'string=)))
-      (unless current
-        (error "No review data found for this position"))
-      (unless (and (boundp 'org-fc-demo-mode) org-fc-demo-mode)
-        (let ((ease (string-to-number (cl-second current)))
-              (box (string-to-number (cl-third current)))
-              (interval (string-to-number (cl-fourth current))))
-          (org-fc-review-history-add
-           (list
-            (org-fc-timestamp-now)
-            path
-            id
-            position
-            (format "%.2f" ease)
-            (format "%d" box)
-            (format "%.2f" interval)
-            (symbol-name rating)
-            (format "%.2f" delta)
-            (symbol-name org-fc-algorithm)))
-          (cl-destructuring-bind (next-ease next-box next-interval)
-              (org-fc-sm2-next-parameters ease box interval rating)
-            (setcdr
-             current
-             (list (format "%.2f" next-ease)
-                   (number-to-string next-box)
-                   (format "%.2f" next-interval)
-                   (org-fc-timestamp-in next-interval)))
-            (org-fc-set-review-data data)))))))
+   (let* ((data (org-fc-get-review-data))
+          (current (assoc position data #'string=)))
+     (unless current
+       (error "No review data found for this position"))
+     (unless (and (boundp 'org-fc-demo-mode) org-fc-demo-mode)
+       (let ((ease (string-to-number (cl-second current)))
+             (box (string-to-number (cl-third current)))
+             (interval (string-to-number (cl-fourth current))))
+         (org-fc-review-history-add
+          (list
+           (org-fc-timestamp-now)
+           path
+           id
+           position
+           (format "%.2f" ease)
+           (format "%d" box)
+           (format "%.2f" interval)
+           (symbol-name rating)
+           (format "%.2f" delta)
+           (symbol-name org-fc-algorithm)))
+         (cl-destructuring-bind (next-ease next-box next-interval)
+             (org-fc-sm2-next-parameters ease box interval rating)
+           (setcdr
+            current
+            (list (format "%.2f" next-ease)
+                  (number-to-string next-box)
+                  (format "%.2f" next-interval)
+                  (org-fc-timestamp-in next-interval)))
+           (org-fc-set-review-data data)))))))
 
 ;;;###autoload
 (defun org-fc-review-quit ()
@@ -1832,7 +1832,7 @@ rating the card."
 
 ;; Based on `mu4e-main-view-real'
 (defun org-fc-dashboard-view (context)
-  "Show the dashboard view in the current buffer."
+  "Show the dashboard view for CONTEXT in the current buffer."
   (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
          (inhibit-read-only t)
          (index (org-fc-index context))
@@ -1911,7 +1911,7 @@ rating the card."
 
 ;;;###autoload
 (defun org-fc-dashboard (context)
-  "Open a buffer showing the dashboard view."
+  "Open a buffer showing the dashboard view for CONTEXT."
   (interactive (list (org-fc-select-context)))
   (setq org-fc-context-dashboard context)
   (org-fc-dashboard-view context)
