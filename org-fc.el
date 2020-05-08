@@ -1536,6 +1536,8 @@ removed."
   "Default context for all cards.")
 (defvar org-fc-context-buffer '(:paths buffer)
   "Default context for the current buffer.")
+(defvar org-fc-context-dashboard org-fc-context-all
+  "Context of the current dashboard view.")
 
 (defun org-fc-contexts ()
   "List of all contexts."
@@ -1586,6 +1588,11 @@ Valid contexts:
   "Review all due cards."
   (interactive)
   (org-fc-review org-fc-context-all))
+
+(defun org-fc-review-dashboard-context ()
+  "Review the context of the current dashboard."
+  (interactive)
+  (org-fc-review org-fc-context-dashboard))
 
 (defun org-fc-review-next-card ()
   "Review the next card of the current session."
@@ -1824,12 +1831,11 @@ rating the card."
 ;;;; Main View
 
 ;; Based on `mu4e-main-view-real'
-(defun org-fc-dashboard-view ()
+(defun org-fc-dashboard-view (context)
   "Show the dashboard view in the current buffer."
-  (interactive)
   (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
          (inhibit-read-only t)
-         (index (org-fc-awk-index-paths org-fc-directories))
+         (index (org-fc-index context))
          (stats (org-fc-stats index))
          (reviews-stats (org-fc-awk-stats-reviews)))
     (with-current-buffer buf
@@ -1870,7 +1876,7 @@ rating the card."
 
       (when reviews-stats
         (insert
-         (propertize "  Review Statistics\n\n" 'face 'org-level-1))
+         (propertize "  Review Statistics (All Cards)\n\n" 'face 'org-level-1))
 
         (dolist (scope '((:day . "Day")
                          (:week . "Week")
@@ -1893,7 +1899,7 @@ rating the card."
 
 (defvar org-fc-dashboard-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "r") 'org-fc-review-all)
+    (define-key map (kbd "r") 'org-fc-review-dashboard-context)
     (define-key map (kbd "q") 'quit-window)
     (define-key map (kbd "G") 'org-fc-dashboard-view)
     map))
@@ -1904,10 +1910,11 @@ rating the card."
   (setq-local cursor-type nil))
 
 ;;;###autoload
-(defun org-fc-dashboard ()
+(defun org-fc-dashboard (context)
   "Open a buffer showing the dashboard view."
-  (interactive)
-  (org-fc-dashboard-view)
+  (interactive (list (org-fc-select-context)))
+  (setq org-fc-context-dashboard context)
+  (org-fc-dashboard-view context)
   (switch-to-buffer org-fc-dashboard-buffer-name)
   (goto-char (point-min))
   (org-fc-dashboard-mode))
