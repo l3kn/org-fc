@@ -554,8 +554,7 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
         (org-show-subtree)
         (setq org-fc-type-normal--hidden (org-fc-hide-subheading "Back")))
     (setq org-fc-type-normal--hidden nil)
-    (org-flag-subtree t))
-  (org-fc-review-flip-hydra/body))
+    (org-flag-subtree t)))
 
 (defun org-fc-type-normal-flip ()
   "Flip a normal card."
@@ -566,8 +565,7 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
       (goto-char pos)
       (org-show-subtree)))
   (org-fc-with-point-at-back-heading
-   (org-fc-show-latex))
-  (org-fc-review-rate-hydra/body))
+   (org-fc-show-latex)))
 
 (org-fc-register-type
  'normal
@@ -596,8 +594,7 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
      (org-show-subtree)
      (if (org-fc-has-back-heading-p)
          (setq org-fc-type-double--overlay (org-fc-hide-content "[...]\n"))
-       (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]")))
-     (org-fc-review-flip-hydra/body))
+       (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]"))))
     (_ (error "Invalid double position %s" position))))
 
 (defun org-fc-type-double-flip ()
@@ -606,8 +603,7 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
       (delete-overlay org-fc-type-double--overlay))
   (org-show-subtree)
   (org-fc-with-point-at-back-heading
-   (org-fc-show-latex))
-  (org-fc-review-rate-hydra/body))
+   (org-fc-show-latex)))
 
 (org-fc-register-type
  'double
@@ -689,13 +685,12 @@ function is expected to be called with point on a heading."
     (org-show-subtree)
     (dolist (pos org-fc-type-text-input--hidden)
       (goto-char pos)
-      (org-show-subtree)))
-  (org-fc-review-rate-hydra/body))
+      (org-show-subtree))))
 
 (org-fc-register-type
  'text-input
  'org-fc-type-text-input-setup
- 'org-fc-noop
+ nil
  'org-fc-noop)
 
 ;;;; Cloze
@@ -876,8 +871,7 @@ Processes all holes in the card text."
     (org-show-subtree)
     (setq
      org-fc-type-cloze--overlays
-     (org-fc-type-cloze-hide-holes hole cloze-type)))
-  (org-fc-review-flip-hydra/body))
+     (org-fc-type-cloze-hide-holes hole cloze-type))))
 
 (defun org-fc-type-cloze-flip ()
   "Flip a cloze card."
@@ -890,8 +884,7 @@ Processes all holes in the card text."
         (org-fc-hide-overlay (plist-get overlays :hint))
         (org-fc-show-overlay
          (plist-get overlays :text)
-         'org-fc-type-cloze-hole-face)))
-  (org-fc-review-rate-hydra/body))
+         'org-fc-type-cloze-hole-face))))
 
 (defun org-fc-type-cloze-update ()
   "Update the review data & deletions of the current heading."
@@ -1383,7 +1376,6 @@ EASE, BOX and INTERVAL are the current parameters of the card."
   (interactive)
   (let ((path (expand-file-name "demo.org" org-fc-source-path)))
     (with-current-buffer (find-file path)
-      (setq-local org-fc-demo-mode t)
       (org-fc-review-buffer))))
 
 ;;;; Session Management
@@ -1618,15 +1610,23 @@ Valid contexts:
                 (goto-char (point-min))
                 (org-fc-show-all)
                 (org-fc-id-goto id path)
-                ;; Make sure the headline the card is in is expanded
+
                 (org-fc-indent)
+                ;; Make sure the headline the card is in is expanded
                 (org-reveal)
                 (org-fc-narrow-tree)
                 (org-fc-hide-drawers)
                 (org-fc-show-latex)
                 (org-display-inline-images)
                 (setq org-fc-timestamp (time-to-seconds (current-time)))
-                (funcall (org-fc-type-setup-fn type) position))))
+                (funcall (org-fc-type-setup-fn type) position)
+
+                ;; If the card has a no-noop flip function, open the
+                ;; flip hydra
+                (let ((flip-fn (org-fc-type-flip-fn type)))
+                  (if (or (null flip-fn) (eq flip-fn #'org-fc-noop))
+                      (org-fc-review-rate-hydra/body)
+                      (org-fc-review-flip-hydra/body))))))
         (error
          (message "Error during review: %s" (error-message-string err))
          (org-fc-review-quit)))
@@ -1676,7 +1676,8 @@ same ID as the current card in the session."
   (condition-case err
       (org-fc-review-with-current-item card
         (let ((type (plist-get card :type)))
-          (funcall (org-fc-type-flip-fn type))))
+          (funcall (org-fc-type-flip-fn type))
+          (org-fc-review-rate-hydra/body)))
     (error
      (message "Error flipping card: %s" (error-message-string err))
      (org-fc-review-quit))))
