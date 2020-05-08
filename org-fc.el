@@ -305,6 +305,18 @@ Returns a pair (marker . body)."
     (org-do-emphasis-faces (point-max))
     (buffer-string)))
 
+(defun org-fc-indent ()
+  "Run `org-indent' on the current headline.
+Usually org-indent runs with a delay, so when reviewing a card in
+a new file, the cards contents jump to the right (are indented)
+during the review.  We can get around this by synchronously
+indenting the current heading."
+  (if org-indent-mode
+      (let ((el (org-element-at-point)))
+        (org-indent-add-properties
+         (org-element-property :begin el)
+         (org-element-property :end el)))))
+
 (defmacro org-fc-with-point-at-entry (&rest body)
   "Execute BODY with point at the card heading.
 If point is not inside a flashcard entry, an error is raised."
@@ -1596,6 +1608,7 @@ Valid contexts:
                 (org-fc-show-all)
                 (org-fc-id-goto id path)
                 ;; Make sure the headline the card is in is expanded
+                (org-fc-indent)
                 (org-reveal)
                 (org-fc-narrow-tree)
                 (org-fc-hide-drawers)
