@@ -223,10 +223,6 @@ Values are in days."
   "Format to use for storing timestamps.
 Defaults to ISO8601")
 
-(defvar org-fc-demo-mode nil
-  "In demo mode, the review properties & history are not updated.")
-(make-variable-buffer-local 'org-fc-demo-mode)
-
 (defvar org-fc-reviewing-existing-buffer nil
   "Track if the current buffer was open before the review.")
 (make-variable-buffer-local 'org-fc-reviewing-existing-buffer)
