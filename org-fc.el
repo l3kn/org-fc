@@ -1632,6 +1632,7 @@ Valid contexts:
   ("h" (org-fc-review-rate-card 'hard) "Rate as hard" :exit t)
   ("g" (org-fc-review-rate-card 'good) "Rate as good" :exit t)
   ("e" (org-fc-review-rate-card 'easy) "Rate as easy" :exit t)
+  ("s" org-fc-review-suspend-card "Suspend" :exit t)
   ("q" org-fc-review-quit "Quit" :exit t))
 
 (defhydra org-fc-review-flip-hydra (:foreign-keys warn)
@@ -1690,6 +1691,12 @@ same ID as the current card in the session."
     (error
      (message "Error rating card: %s" (error-message-string err))
      (org-fc-review-quit))))
+
+(defun org-fc-review-suspend-card ()
+  "Suspend card and proceed to next."
+  (interactive)
+  (org-fc-suspend-card)
+  (org-fc-review-next-card))
 
 (defun org-fc-review-update-data (path id position rating delta)
   "Update the review data of the card.
