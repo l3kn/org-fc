@@ -97,6 +97,14 @@ Used to generate absolute paths to the awk scripts.")
   :type 'string
   :group 'org-fc)
 
+(defcustom org-fc-demo-tag "fc-demo"
+  "Tag for marking headlines as demo flashcards.
+When demo flashcards are reviewed, their review data is not
+updated. This is used for the `org-fc-demo' and for testing card
+types."
+  :type 'string
+  :group 'org-fc)
+
 (defcustom org-fc-review-data-drawer "REVIEW_DATA"
   "Name of the drawer used to store review data."
   :type 'string
@@ -1712,11 +1720,13 @@ POSITION identify the position that was reviewed, RATING is a
 review rating and DELTA the time in seconds between showing and
 rating the card."
   (org-fc-with-point-at-entry
-   (let* ((data (org-fc-get-review-data))
-          (current (assoc position data #'string=)))
-     (unless current
-       (error "No review data found for this position"))
-     (unless (and (boundp 'org-fc-demo-mode) org-fc-demo-mode)
+   ;; If the card is marked as a demo card, don't log its reviews and
+   ;; don't update its review data
+   (unless (member org-fc-demo-tag (org-get-tags))
+     (let* ((data (org-fc-get-review-data))
+            (current (assoc position data #'string=)))
+       (unless current
+         (error "No review data found for this position"))
        (let ((ease (string-to-number (cl-second current)))
              (box (string-to-number (cl-third current)))
              (interval (string-to-number (cl-fourth current))))

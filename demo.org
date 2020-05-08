@@ -1,31 +1,29 @@
 #+TITLE: Org-Flashcards Demo File
+#+FILETAGS: fc-demo
 
 * Normal Card                                                            :fc:
 :PROPERTIES:
 :ID:       9f80ab65-dbff-41b3-902f-0e8e177debbe
-:FC_CREATED: [2019-01-03 Fri 17:47]
+:FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  normal
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                 |
-|----------+------+-----+----------+---------------------|
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
 | front    | 2.50 |   7 |   203.25 | 2000-01-01T00:00:00Z |
 :END:
 Front of the card
 ** Back
-:PROPERTIES:
-:ID:       1a9a5308-119c-4398-a715-da3b87d1c7e1
-:END:
 Back of the card
 * Compact Double Card                                                    :fc:
 :PROPERTIES:
 :ID:       d3e290c2-a7f0-4d10-9a0a-6c1ecec3c29e
-:FC_CREATED: [2019-01-03 Fri 17:47]
+:FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  double
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                 |
-|----------+------+-----+----------+---------------------|
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
 | front    | 2.50 |   7 |   219.03 | 2000-01-01T00:00:00Z |
 | back     | 2.50 |   6 |    94.52 | 2000-01-01T00:00:00Z |
 :END:
@@ -34,29 +32,29 @@ considered as the back side.
 * Cloze Deletion                                                         :fc:
 :PROPERTIES:
 :ID:       2ffc8b34-b2b5-4472-9295-714b5422679d
-:FC_CREATED: [2019-01-03 Fri 17:47]
+:FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  cloze
 :FC_CLOZE_MAX: 1
 :FC_CLOZE_TYPE: deletion
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                 |
-|----------+------+-----+----------+---------------------|
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
 |        0 | 2.50 |   6 |    89.34 | 2000-01-01T00:00:00Z |
 |        1 | 2.50 |   7 |   216.60 | 2000-01-01T00:00:00Z |
 :END:
 A {{cloze deletion}@0} can have multiple {{holes}@1}.
 * Cloze Enumeration                                                      :fc:
 :PROPERTIES:
-:FC_CREATED: [2019-01-03 Fri 17:48]
+:FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  cloze
 :ID:       5eac5801-0ef5-4957-a818-e3f9f08a7d59
 :FC_CLOZE_MAX: 3
 :FC_CLOZE_TYPE: enumeration
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                 |
-|----------+------+-----+----------+---------------------|
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
 |        0 | 2.50 |   6 |    80.76 | 2000-01-01T00:00:00Z |
 |        1 | 2.50 |   6 |    72.76 | 2000-01-01T00:00:00Z |
 |        2 | 2.50 |   6 |    91.28 | 2000-01-01T00:00:00Z |
@@ -78,8 +76,8 @@ Enumerations are useful for
 :ID:       ae675e11-e003-4057-b6b1-1f4702837502
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                 |
-|----------+------+-----+----------+---------------------|
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
 |        0 | 2.50 |   3 |     6.00 | 2000-01-01T00:00:00Z |
 |        1 | 2.50 |   2 |     1.00 | 2000-01-01T00:00:00Z |
 |        2 | 2.50 |   3 |     6.00 | 2000-01-01T00:00:00Z |
