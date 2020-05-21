@@ -141,7 +141,7 @@ dotspacemacs-additional-packages
 '((org-fc
    :location (recipe :fetcher github
                       :repo "l3kn/org-fc"
-                      :files ("*"))))
+                      :files ("*.el" "awk" "demo.org"))))
 ...
 (defun dotspacemacs/user-config ()
   ...
