@@ -130,6 +130,29 @@ Or, using [[https://github.com/raxod502/straight.el/][straight.el]]:
 #+end_src
 
 Note that in this case, you don't have to clone the repository.
+
+*** Setup for spacemacs
+
+You should not need to clone the repository yourself and put this in your =.spacemacs=:
+
+#+begin_src emacs-lisp
+...
+dotspacemacs-additional-packages
+'((org-fc
+   :location (recipe :fetcher github
+                      :repo "l3kn/org-fc"
+                      :files (:defaults "awk" "demo.org"))))
+...
+(defun dotspacemacs/user-config ()
+  ...
+  ;; Org-fc
+  (use-package hydra)
+  (require 'org-fc-hydra)
+  (setq org-fc-directories '("~/.org"))
+  ...
+  )
+#+end_src
+
 *** Minimal Setup
 Assuming [[https://github.com/abo-abo/hydra][abo-abo/hydra]] is already loaded.
 
