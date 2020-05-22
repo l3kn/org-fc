@@ -108,51 +108,63 @@ For more information, refer to the documentation of macports /
 homebrew.
 *** Setup with [[https://github.com/jwiegley/use-package/][use-package]]
 #+begin_src emacs-lisp
-(use-package hydra)
-(use-package org-fc
-  :load-path "~/src/org-fc"
-  :custom
-  (org-fc-directories '("~/org"))
-  :config
-  (require 'org-fc-hydra))
+  (use-package hydra)
+  (use-package org-fc
+    :load-path "~/src/org-fc"
+    :custom (org-fc-directories '("~/org"))
+    :config
+    (require 'org-fc-hydra))
 #+end_src
 
 Or, using [[https://github.com/raxod502/straight.el/][straight.el]]:
 
 #+begin_src emacs-lisp
-(use-package hydra)
-(use-package org-fc
-  :straight (org-fc :type git :host github :repo "l3kn/org-fc")
-  :custom
-  (org-fc-directories '("~/org/"))
-  :config
-  (require 'org-fc-hydra))
+  (use-package hydra)
+  (use-package org-fc
+    :straight
+    (org-fc
+     :type git :host github :repo "l3kn/org-fc"
+     :files (:defaults "awk" "demo.org"))
+    :custom
+    (org-fc-directories '("~/org/"))
+    :config
+    (require 'org-fc-hydra))
 #+end_src
 
 Note that in this case, you don't have to clone the repository.
 
-*** Setup for spacemacs
-
-You should not need to clone the repository yourself and put this in your =.spacemacs=:
+*** Setup with [[https://github.com/raxod502/straight.el/][straight.el]]
+#+begin_src emacs-lisp
+  (straight-use-package 'hydra)
+  (straight-use-package
+   '(org-fc
+     :type git :host github :repo "l3kn/org-fc"
+     :files (:defaults "awk" "demo.org")
+     :custom (org-fc-directories '("~/org/"))
+     :config
+     (require 'org-fc-hydra)))
+#+end_src
+*** Setup with [[https://github.com/syl20bnr/spacemacs/][spacemacs]]
+You should not need to clone the repository yourself and put this in
+your =.spacemacs=:
 
 #+begin_src emacs-lisp
-...
-dotspacemacs-additional-packages
-'((org-fc
-   :location (recipe :fetcher github
-                      :repo "l3kn/org-fc"
-                      :files (:defaults "awk" "demo.org"))))
-...
-(defun dotspacemacs/user-config ()
-  ...
-  ;; Org-fc
-  (use-package hydra)
-  (require 'org-fc-hydra)
-  (setq org-fc-directories '("~/.org"))
-  ...
-  )
+  ;; ...
+  dotspacemacs-additional-packages
+  '((org-fc
+     :location (recipe :fetcher github
+                       :repo "l3kn/org-fc"
+                       :files (:defaults "awk" "demo.org"))))
+  ;; ...
+  (defun dotspacemacs/user-config ()
+    ;; ...
+    ;; Org-fc
+    (use-package hydra)
+    (require 'org-fc-hydra)
+    (setq org-fc-directories '("~/.org"))
+    ;; ...
+    )
 #+end_src
-
 *** Minimal Setup
 Assuming [[https://github.com/abo-abo/hydra][abo-abo/hydra]] is already loaded.
 
