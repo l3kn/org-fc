@@ -1295,7 +1295,9 @@ use `(and (type double) (tag \"math\"))'."
 
 (defun org-fc-filter-index (index filter)
   "Apply FILTER to cards in INDEX."
-  (cl-remove-if-not (org-fc--compile-filter filter) index))
+  (if filter
+      (cl-remove-if-not (org-fc--compile-filter filter) index)
+    index))
 
 (defun org-fc-index (context)
   "Create an index for review CONTEXT."
@@ -1306,9 +1308,7 @@ use `(and (type double) (tag \"math\"))'."
      ((or (null paths) (eq paths 'all)) (setq paths org-fc-directories))
      ((eq paths 'buffer) (setq paths (list (buffer-file-name))))
      ((stringp paths) (setq paths (list paths))))
-    (if filter
-        (org-fc-filter-index (org-fc-awk-index-paths paths) filter)
-      (org-fc-awk-index-paths paths))))
+    (org-fc-filter-index (org-fc-awk-index-paths paths) filter)))
 
 (defun org-fc-index-positions (index &optional filter-due)
   "Generate a list of non-suspended positions in INDEX.
