@@ -1537,7 +1537,7 @@ removed."
 
 (defun org-fc-contexts ()
   "List of all contexts."
-  (list*
+  (cl-list*
    (cons 'all org-fc-context-all)
    (cons 'buffer org-fc-context-buffer)
    org-fc-custom-contexts))
