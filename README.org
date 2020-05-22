@@ -111,7 +111,7 @@ homebrew.
   (use-package hydra)
   (use-package org-fc
     :load-path "~/src/org-fc"
-    :custom (org-fc-directories '("~/org"))
+    :custom (org-fc-directories '("~/org/"))
     :config
     (require 'org-fc-hydra))
 #+end_src
@@ -161,7 +161,7 @@ your =.spacemacs=:
     ;; Org-fc
     (use-package hydra)
     (require 'org-fc-hydra)
-    (setq org-fc-directories '("~/.org"))
+    (setq org-fc-directories '("~/org/"))
     ;; ...
     )
 #+end_src
@@ -170,7 +170,7 @@ Assuming [[https://github.com/abo-abo/hydra][abo-abo/hydra]] is already loaded.
 
 #+begin_src emacs-lisp
 (add-to-list 'load-path "~/src/org-fc/")
-(setq org-fc-directories '("~/org"))
+(setq org-fc-directories '("~/org/"))
 #+end_src
 *** Default Hydra
 [[file:org-fc-hydra.el]] defines a hydra for accessing commonly used
