@@ -28,7 +28,7 @@
 
 (defhydra org-fc-hydra ()
   ("m" org-fc-dashboard "Dashboard" :exit t)
-  ("r" org-fc-review "Start Review")
+  ("r" org-fc-review "Start Review" :exit t)
   ("u" org-fc-update "Update Card")
   ("t" org-fc-hydra-type/body "Init Type" :exit t)
   ("q" nil "Quit" :exit t))
