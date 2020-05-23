@@ -174,9 +174,22 @@ Values are in days."
   "Lower bound for random interval fuzz factor."
   :type 'float
   :group 'org-fc)
+
 (defcustom org-fc-sm2-fuzz-max 1.1
   "Upper bound for random interval fuzz factor."
   :type 'float
+  :group 'org-fc)
+
+;;;; Hooks
+
+(defcustom org-fc-before-setup-hook '()
+  "Functions run before a card is set up for review."
+  :type 'hook
+  :group 'org-fc)
+
+(defcustom org-fc-after-setup-hook '()
+  "Functions run after a card is set up for review."
+  :type 'hook
   :group 'org-fc)
 
 ;;;; Diff
@@ -1619,7 +1632,10 @@ Valid contexts:
                 (org-fc-show-latex)
                 (org-display-inline-images)
                 (setq org-fc-timestamp (time-to-seconds (current-time)))
+
+                (run-hooks 'org-fc-before-setup-hook)
                 (funcall (org-fc-type-setup-fn type) position)
+                (run-hooks 'org-fc-after-setup-hook)
 
                 ;; If the card has a no-noop flip function, open the
                 ;; flip hydra
