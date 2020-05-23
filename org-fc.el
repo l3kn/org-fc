@@ -132,6 +132,13 @@ types."
   :type 'integer
   :group 'org-fc)
 
+(defcustom org-fc-dashboard-text-bar-chart-width 40
+  "Width of the text-bar chart used to display review statistics.
+This is only used org-fc is run in a non-graphic display
+environment without svg support."
+  :type 'integer
+  :group 'org-fc)
+
 (defcustom org-fc-dashboard-buffer-name "*org-fc Main*"
   "Name of the buffer to use for displaying the dashboard view."
   :type 'string
@@ -1321,7 +1328,7 @@ use `(and (type double) (tag \"math\"))'."
      ((or (null paths) (eq paths 'all)) (setq paths org-fc-directories))
      ((eq paths 'buffer) (setq paths (list (buffer-file-name))))
      ((stringp paths) (setq paths (list paths))))
-    (org-fc-filter-index (org-fc-awk-index-paths paths) filter)))
+    (org-fc-filter-index (org-fc-flatten-index (org-fc-awk-index-paths paths)) filter)))
 
 (defun org-fc-index-positions (index &optional filter-due)
   "Generate a list of non-suspended positions in INDEX.
@@ -1842,6 +1849,26 @@ rating the card."
       (setq pos (+ pos (* width (car value)))))
     (svg-image svg)))
 
+(defun org-fc-dashboard-text-bar-chart (stat)
+  "Generate a text bar-chart for the plist STAT."
+  (cl-flet ((colored-bar (length color)
+                         (propertize
+                          (make-string length ?\s)
+                          'font-lock-face `(:background ,color))))
+    (let* ((width org-fc-dashboard-text-bar-chart-width)
+           (total (float (plist-get stat :total)))
+           (pos 0)
+           (again (floor (* width (/ (plist-get stat :again) total))))
+           (hard (floor (* width (/ (plist-get stat :hard) total))))
+           (good (floor (* width (/ (plist-get stat :good) total))))
+           ;; Make sure to use the total width
+           (easy (- width again hard good)))
+     (concat
+      (colored-bar again "red")
+      (colored-bar hard "yellow")
+      (colored-bar good "green")
+      (colored-bar easy "blue")))))
+
 (defun org-fc-dashboard-percent-right (stats)
   "Format review percentages in STATS."
   (let ((total (float (plist-get stats :total))))
@@ -1909,12 +1936,13 @@ rating the card."
             (when (> (plist-get stat :total) 0)
               (insert (propertize (format "    %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
               (insert "    ")
-              (insert-image (org-fc-dashboard-bar-chart stat))
+              (if (and (display-graphic-p)
+                       (memq 'svg (and (boundp 'image-types) image-types)))
+                  (insert-image (org-fc-dashboard-bar-chart stat))
+                  (insert (org-fc-dashboard-text-bar-chart stat)))
               (insert (org-fc-dashboard-percent-right stat))
               (insert "\n\n"))))
-
         (insert "\n"))
-
       (insert
        (propertize "  [r] Review\n" 'face 'org-level-1))
       (insert
