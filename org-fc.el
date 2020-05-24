@@ -296,6 +296,14 @@ Used to determine if a card uses the compact style."
 This mutates / destroys the input list."
   (sort list (lambda (_a _b) (< (cl-random 1.0) 0.5))))
 
+(defun org-fc-sorted-random (n)
+  "Generate a list of N sorted random numbers."
+  (sort (cl-loop for i below n collect (cl-random 1.0)) #'>))
+
+(defun org-fc-zip (as bs)
+  "Zip two lists AS and BS."
+  (cl-loop for a in as for b in bs collect (cons a b)))
+
 ;; File-scoped variant of `org-id-goto'
 (defun org-fc-id-goto (id file)
   "Go to the heading with ID in FILE."
@@ -1347,25 +1355,55 @@ use `(and (type double) (tag \"math\"))'."
      ((stringp paths) (setq paths (list paths))))
     (org-fc-filter-index (org-fc-awk-index-paths paths) filter)))
 
-(defun org-fc-index-positions (index &optional filter-due)
-  "Generate a list of non-suspended positions in INDEX.
-If FILTER-DUE is non-nil, only list non-suspended cards that are
-due for review."
+(defun org-fc-index-flatten-card (card)
+  "Flatten CARD into a list of positions.
+Relevant data from the card is included in each position
+element."
+  (mapcar
+   (lambda (pos)
+     (list
+      :path (plist-get card :path)
+      :id (plist-get card :id)
+      :type (plist-get card :type)
+      :due (plist-get pos :due)
+      :position (plist-get pos :position)))
+   (plist-get card :positions)))
+
+(defun org-fc-index-filter-due (index)
+  "Filter INDEX to include only unsuspended due positions.
+Cards with no positions are removed from the index."
   (let (res (now (current-time)))
     (dolist (card index)
       (unless (plist-get card :suspended)
-        (dolist (pos (plist-get card :positions))
-          (if (or (not filter-due)
+        (let ((due
+               (remove-if-not
+                (lambda (pos)
                   (time-less-p (plist-get pos :due) now))
-              (push
-               (list
-                :path (plist-get card :path)
-                :id (plist-get card :id)
-                :type (plist-get card :type)
-                :due (plist-get pos :due)
-                :position (plist-get pos :position))
-               res)))))
+                (plist-get card :positions))))
+          (unless (null due)
+            (plist-put card :positions due)
+            (push card res)))))
     res))
+
+(defun org-fc-index-shuffled-positions (index)
+  "Return a positions in INDEX in random order.
+Positions are shuffled in a way that preserves the order of the
+  positions for each card."
+  ;; 1. assign each position a random number
+  ;; 2. flatten the list
+  ;; 3. sort by the random number
+  ;; 4. remove the random numbers from the result
+  (let ((positions
+         (mapcan
+          (lambda (card)
+            (let ((pos (org-fc-index-flatten-card card)))
+              (org-fc-zip
+               (org-fc-sorted-random (length pos))
+               pos)))
+          index)))
+    (mapcar
+     #'cdr
+     (sort positions (lambda (a b) (> (car a) (car b)))))))
 
 ;;; Review & Spacing
 ;;;; Spacing Algorithm (SM2)
@@ -1602,7 +1640,8 @@ Valid contexts:
       (message "Flashcards are already being reviewed")
     (let* ((index (org-fc-index context))
            (cards
-            (org-fc-shuffle (org-fc-index-positions index 'filter-due))))
+            (org-fc-index-shuffled-positions
+             (org-fc-index-filter-due index))))
       (if (null cards)
           (message "No cards due right now")
         (progn
