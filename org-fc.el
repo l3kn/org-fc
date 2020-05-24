@@ -44,7 +44,7 @@
   :group 'external
   :group 'text)
 
-(defcustom org-fc-directories '("~/org")
+(defcustom org-fc-directories '("~/org/")
   "Directories to search for flashcards."
   :type 'string
   :group 'org-fc)
