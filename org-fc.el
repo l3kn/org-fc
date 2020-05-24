@@ -1196,7 +1196,7 @@ Checks if the headline is a suspended card first."
 Matches all .org files ignoring ones with names don't start with
 a '.' to exclude temporary / backup files."
   (format
-   "find %s -name \"*.org\" -not -name \".*\" -print0"
+   "find -L %s -name \"*.org\" -not -name \".*\" -print0"
    (mapconcat 'identity paths " ")))
 
 (defun org-fc-awk--indexer-variables ()
