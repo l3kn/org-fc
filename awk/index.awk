@@ -30,6 +30,16 @@ BEGINFILE {
     delete parent_tags;
     parent_tags[0] = "";
     state = state_file;
+
+    # Track if we've printed the file "header"
+    file_needs_opening = 1;
+    file_needs_closing = 0;
+}
+
+ENDFILE {
+    if (file_needs_closing) {
+        print "  ))";
+    }
 }
 
 ## Filetags
@@ -86,6 +96,14 @@ $0 ~ review_data_drawer {
     if (state == state_properties) {
         state = state_properties_done;
     } else if (state == state_review_data) {
+        if (file_needs_opening) {
+            print "  (" \
+                ":path " escape_string(FILENAME) \
+                " :cards (";
+            file_needs_opening = 0;
+            file_needs_closing = 1;
+        }
+
         state = state_review_data_done;
         # Card header
         inherited_tags = "";
@@ -94,9 +112,8 @@ $0 ~ review_data_drawer {
         }
         local_tags = parent_tags[level];
 
-        print "  (" \
-            ":path " escape_string(FILENAME)     \
-            " :id " escape_string(properties["ID"])  \
+        print "    (" \
+            ":id " escape_string(properties["ID"])  \
             " :type " properties[type_property]     \
             " :created " parse_time(properties[created_property]) \
             " :suspended " (suspended ? "t" : "nil")   \
@@ -106,7 +123,7 @@ $0 ~ review_data_drawer {
 
         # Card positions
         for (i = 1; i < review_index; i++) {
-            print "    ("               \
+            print "      ("               \
                 ":position " escape_string(review_data[i]["position"])  \
                 " :ease " review_data[i]["ease"]                \
                 " :box " review_data[i]["box"]                  \
@@ -114,7 +131,7 @@ $0 ~ review_data_drawer {
                 " :due " parse_time(review_data[i]["due"])      \
                 ")"
         }
-        print "  ))";
+        print "    ))";
     }
     next;
 }
