@@ -384,6 +384,10 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+*** [2020-05-24 Sun]
+**** Changed
+- Include file information in card index
+- Maintain order of positions in a card when shuffling
 *** [2020-05-22 Fri]
 **** Changed
 - Exit hydra when review is started
