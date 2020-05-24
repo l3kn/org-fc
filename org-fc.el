@@ -1241,14 +1241,30 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
     (org-remove-uninherited-tags (split-string itags ":" t))
     (split-string ltags ":" t))))
 
+;; TODO: Refactor to something cleaner
+(defun org-fc-flatten-index (index)
+  "Remove the file-level of an index."
+  (mapcan
+   (lambda (file)
+     (mapcar
+      (lambda (card)
+        (plist-put card :path (plist-get file :path)))
+      (plist-get file :cards)))
+   index))
+
 (defun org-fc-awk-index-paths (paths)
   "Generate a list of all cards and positions in PATHS."
   (mapcar
-   (lambda (card)
-     (plist-put card :tags
-                (org-fc--combine-tags
-                 (plist-get card :inherited-tags)
-                 (plist-get card :local-tags))))
+   (lambda (file)
+     (plist-put file :cards
+      (mapcar
+       (lambda (card)
+         (plist-put
+          card :tags
+          (org-fc--combine-tags
+           (plist-get card :inherited-tags)
+           (plist-get card :local-tags))))
+       (plist-get file :cards))))
    (read
     (shell-command-to-string
      (org-fc-awk--pipe
