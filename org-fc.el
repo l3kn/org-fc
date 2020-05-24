@@ -1194,7 +1194,8 @@ Checks if the headline is a suspended card first."
 (defun org-fc-awk--find (paths)
   "Generate shell code to search PATHS for org files.
 Matches all .org files ignoring ones with names don't start with
-a '.' to exclude temporary / backup files."
+a '.' to exclude temporary / backup files.
+With the '-L' option, 'find' follows symlinks."
   (format
    "find -L %s -name \"*.org\" -not -name \".*\" -print0"
    (mapconcat 'identity paths " ")))
