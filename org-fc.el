@@ -1254,26 +1254,27 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
 
 (defun org-fc-awk-index-paths (paths)
   "Generate a list of all cards and positions in PATHS."
-  (mapcar
-   (lambda (file)
-     (plist-put file :cards
-      (mapcar
-       (lambda (card)
-         (plist-put
-          card :tags
-          (org-fc--combine-tags
-           (plist-get card :inherited-tags)
-           (plist-get card :local-tags))))
-       (plist-get file :cards))))
-   (read
-    (shell-command-to-string
-     (org-fc-awk--pipe
-      (org-fc-awk--find paths)
-      (org-fc-awk--xargs
-       (org-fc-awk--command
-        "awk/index.awk"
-        :utils t
-        :variables (org-fc-awk--indexer-variables))))))))
+  (org-fc-flatten-index
+   (mapcar
+    (lambda (file)
+      (plist-put file :cards
+                 (mapcar
+                  (lambda (card)
+                    (plist-put
+                     card :tags
+                     (org-fc--combine-tags
+                      (plist-get card :inherited-tags)
+                      (plist-get card :local-tags))))
+                  (plist-get file :cards))))
+    (read
+     (shell-command-to-string
+      (org-fc-awk--pipe
+       (org-fc-awk--find paths)
+       (org-fc-awk--xargs
+        (org-fc-awk--command
+         "awk/index.awk"
+         :utils t
+         :variables (org-fc-awk--indexer-variables)))))))))
 
 (defun org-fc-awk-stats-reviews ()
   "Statistics for all card reviews.
@@ -1344,7 +1345,7 @@ use `(and (type double) (tag \"math\"))'."
      ((or (null paths) (eq paths 'all)) (setq paths org-fc-directories))
      ((eq paths 'buffer) (setq paths (list (buffer-file-name))))
      ((stringp paths) (setq paths (list paths))))
-    (org-fc-filter-index (org-fc-flatten-index (org-fc-awk-index-paths paths)) filter)))
+    (org-fc-filter-index (org-fc-awk-index-paths paths) filter)))
 
 (defun org-fc-index-positions (index &optional filter-due)
   "Generate a list of non-suspended positions in INDEX.
