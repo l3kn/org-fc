@@ -100,7 +100,7 @@ Used to generate absolute paths to the awk scripts.")
 (defcustom org-fc-demo-tag "fc-demo"
   "Tag for marking headlines as demo flashcards.
 When demo flashcards are reviewed, their review data is not
-updated. This is used for the `org-fc-demo' and for testing card
+updated.  This is used for the `org-fc-demo' and for testing card
 types."
   :type 'string
   :group 'org-fc)
@@ -851,28 +851,28 @@ the hole for the current position."
 (defun org-fc-type-cloze-hide-holes (current-position type)
   "Hide holes of a card of TYPE in relation to the CURRENT-POSITION."
   (org-fc-with-point-at-entry
-    (let* ((el (org-element-at-point))
-           (overlays nil)
-           (end (org-element-property :contents-end el))
-           (holes (org-fc-type-cloze--parse-holes current-position end))
-           (tagged-holes (org-fc-type-cloze--tag-holes type (car holes) (cdr holes))))
-      (cl-loop for (hole . tag) in (reverse tagged-holes) do
-               (cl-case tag
-                 (:show
-                  (org-fc-hide-region
-                   (car (plist-get hole :hole-pos))
-                   (car (plist-get hole :text-pos)))
-                  (org-fc-hide-region
-                   (cdr (plist-get hole :text-pos))
-                   (cdr (plist-get hole :hole-pos))))
-                 (:hide
-                  (org-fc-hide-region
-                   (car (plist-get hole :hole-pos))
-                   (cdr (plist-get hole :hole-pos))
-                   "..."))
-                 (:hint
-                  (setq overlays (org-fc-type-cloze--overlay-current hole)))))
-      overlays)))
+   (let* ((el (org-element-at-point))
+          (overlays nil)
+          (end (org-element-property :contents-end el))
+          (holes (org-fc-type-cloze--parse-holes current-position end))
+          (tagged-holes (org-fc-type-cloze--tag-holes type (car holes) (cdr holes))))
+     (cl-loop for (hole . tag) in (reverse tagged-holes) do
+              (cl-case tag
+                (:show
+                 (org-fc-hide-region
+                  (car (plist-get hole :hole-pos))
+                  (car (plist-get hole :text-pos)))
+                 (org-fc-hide-region
+                  (cdr (plist-get hole :text-pos))
+                  (cdr (plist-get hole :hole-pos))))
+                (:hide
+                 (org-fc-hide-region
+                  (car (plist-get hole :hole-pos))
+                  (cdr (plist-get hole :hole-pos))
+                  "..."))
+                (:hint
+                 (setq overlays (org-fc-type-cloze--overlay-current hole)))))
+     overlays)))
 
 ;;;;; Setup / Flipping
 
@@ -1093,28 +1093,28 @@ If TEXT is non-nil, the content is replaced with TEXT."
 Only parent headings of the current heading remain visible."
   (interactive)
   (org-fc-with-point-at-entry
-    (let* ((end (org-fc-overlay--point-at-end-of-previous))
-           (tags (org-get-tags nil 'local))
-           (notitle (member "notitle" tags))
-           (noheading (member "noheading" tags))
-           (el (org-element-at-point))
-           (current-end (org-element-property :contents-end el)))
-      (if noheading
-          (org-fc-hide-heading))
-      (while (org-up-heading-safe)
-        (let ((start (point-at-eol))
-              (end_ (org-fc-overlay--point-at-end-of-previous)))
-          (if (< start end)
-              (org-fc-hide-region end start))
-          (setq end end_)))
-      (let ((at (org-fc-overlay--point-after-title))
-            (eop (org-fc-overlay--point-at-end-of-previous)))
-        ;; Don't hide anything if the heading is at the beginning of the buffer
-        (if eop
-            (if (and at (not notitle))
-                (org-fc-hide-region at eop)
-              (org-fc-hide-region (point-min) eop))))
-      (org-fc-hide-region current-end (point-max)))))
+   (let* ((end (org-fc-overlay--point-at-end-of-previous))
+          (tags (org-get-tags nil 'local))
+          (notitle (member "notitle" tags))
+          (noheading (member "noheading" tags))
+          (el (org-element-at-point))
+          (current-end (org-element-property :contents-end el)))
+     (if noheading
+         (org-fc-hide-heading))
+     (while (org-up-heading-safe)
+       (let ((start (point-at-eol))
+             (end_ (org-fc-overlay--point-at-end-of-previous)))
+         (if (< start end)
+             (org-fc-hide-region end start))
+         (setq end end_)))
+     (let ((at (org-fc-overlay--point-after-title))
+           (eop (org-fc-overlay--point-at-end-of-previous)))
+       ;; Don't hide anything if the heading is at the beginning of the buffer
+       (if eop
+           (if (and at (not notitle))
+               (org-fc-hide-region at eop)
+             (org-fc-hide-region (point-min) eop))))
+     (org-fc-hide-region current-end (point-max)))))
 
 ;;; Updating Cards
 
@@ -1129,8 +1129,8 @@ FN is called with point at the headline and no arguments."
   "Re-process the current flashcard."
   (interactive)
   (org-fc-with-point-at-entry
-    (let ((type (org-entry-get (point) "FC_TYPE")))
-      (funcall (org-fc-type-update-fn type)))))
+   (let ((type (org-entry-get (point) "FC_TYPE")))
+     (funcall (org-fc-type-update-fn type)))))
 
 ;;;###autoload
 (defun org-fc-update-all ()
@@ -1251,7 +1251,7 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
 
 ;; TODO: Refactor to something cleaner
 (defun org-fc-flatten-index (index)
-  "Remove the file-level of an index."
+  "Remove the file-level of INDEX."
   (mapcan
    (lambda (file)
      (mapcar
@@ -1552,8 +1552,8 @@ END is the start of the line with :END: on it."
 (defun org-fc-get-review-data ()
   "Get a cards review data as a Lisp object."
   (if-let ((position (org-fc-review-data-position nil)))
-    (org-with-point-at (car position)
-      (cddr (org-table-to-lisp)))))
+      (org-with-point-at (car position)
+        (cddr (org-table-to-lisp)))))
 
 (defun org-fc-set-review-data (data)
   "Set the cards review data to DATA."
@@ -1705,7 +1705,7 @@ Valid contexts:
                 (let ((flip-fn (org-fc-type-flip-fn type)))
                   (if (or (null flip-fn) (eq flip-fn #'org-fc-noop))
                       (org-fc-review-rate-hydra/body)
-                      (org-fc-review-flip-hydra/body))))))
+                    (org-fc-review-flip-hydra/body))))))
         (error
          (message "Error during review: %s" (error-message-string err))
          (org-fc-review-quit)))
@@ -1919,11 +1919,11 @@ rating the card."
            (good (floor (* width (/ (plist-get stat :good) total))))
            ;; Make sure to use the total width
            (easy (- width again hard good)))
-     (concat
-      (colored-bar again "red")
-      (colored-bar hard "yellow")
-      (colored-bar good "green")
-      (colored-bar easy "blue")))))
+      (concat
+       (colored-bar again "red")
+       (colored-bar hard "yellow")
+       (colored-bar good "green")
+       (colored-bar easy "blue")))))
 
 (defun org-fc-dashboard-percent-right (stats)
   "Format review percentages in STATS."
@@ -1995,7 +1995,7 @@ rating the card."
               (if (and (display-graphic-p)
                        (memq 'svg (and (boundp 'image-types) image-types)))
                   (insert-image (org-fc-dashboard-bar-chart stat))
-                  (insert (org-fc-dashboard-text-bar-chart stat)))
+                (insert (org-fc-dashboard-text-bar-chart stat)))
               (insert (org-fc-dashboard-percent-right stat))
               (insert "\n\n"))))
         (insert "\n"))
