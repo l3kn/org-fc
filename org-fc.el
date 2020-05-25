@@ -1708,8 +1708,8 @@ Valid contexts:
                       (org-fc-review-rate-hydra/body)
                     (org-fc-review-flip-hydra/body))))))
         (error
-         (message "Error during review: %s" (error-message-string err))
-         (org-fc-review-quit)))
+         (org-fc-review-quit)
+         (signal (car err) (cdr err))))
     (message "Review Done")
     (org-fc-review-quit)))
 
@@ -1759,8 +1759,8 @@ same ID as the current card in the session."
           (funcall (org-fc-type-flip-fn type))
           (org-fc-review-rate-hydra/body)))
     (error
-     (message "Error flipping card: %s" (error-message-string err))
-     (org-fc-review-quit))))
+     (org-fc-review-quit)
+     (signal (car err) (cdr err)))))
 
 ;; TODO: Remove -card suffix
 (defun org-fc-review-rate-card (rating)
@@ -1781,8 +1781,8 @@ same ID as the current card in the session."
             (kill-buffer))
           (org-fc-review-next-card)))
     (error
-     (message "Error rating card: %s" (error-message-string err))
-     (org-fc-review-quit))))
+     (org-fc-review-quit)
+     (signal (car err) (cdr err)))))
 
 (defun org-fc-review-suspend-card ()
   "Suspend card and proceed to next."
