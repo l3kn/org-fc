@@ -603,9 +603,6 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
 
 ;;;; Double
 
-(defvar org-fc-type-double-hole-re
-  (rx "{{" (group (* (not (any "}")))) "}}"))
-
 (defvar org-fc-type-double--overlay '())
 
 (defun org-fc-type-double-init ()
