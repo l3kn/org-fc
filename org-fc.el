@@ -1374,7 +1374,7 @@ Cards with no positions are removed from the index."
     (dolist (card index)
       (unless (plist-get card :suspended)
         (let ((due
-               (remove-if-not
+               (cl-remove-if-not
                 (lambda (pos)
                   (time-less-p (plist-get pos :due) now))
                 (plist-get card :positions))))
