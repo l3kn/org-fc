@@ -110,11 +110,6 @@ types."
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-card-tags (list org-fc-suspended-tag)
-  "Card tags that can be added during review."
-  :type 'list
-  :group 'org-fc)
-
 (defcustom org-fc-stats-review-min-box 0
   "Minimum box for reviews to include in the review stats."
   :type 'integer
@@ -503,12 +498,6 @@ If it is shorter than EXPECTED-LENGTH, it is filled using
   "Add TAG to the heading at point."
   (org-set-tags
    (remove tag (org-get-tags nil 'local))))
-
-;;;###autoload
-(defun org-fc-tag-card (tag)
-  "Add one of the predefined card TAGs to the current card."
-  (interactive (list (completing-read "Tag: " org-fc-card-tags)))
-  (org-fc--add-tag tag))
 
 ;;; Card Initialization
 
