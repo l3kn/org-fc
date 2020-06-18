@@ -290,15 +290,52 @@ Ideally, don't use any other hotkeys while in a review session.
 This exits the review hydra without ending the current review session
 making it necessary to do so manually (~org-fc-review-quit~).
 
-~org-fc-tag-card~ can be used on a card heading or during review
-to add one of the ~org-fc-card-tags~ to the card.
 
-Tags can be added to this list using ~(add-to-list 'org-fc-card-tags
-"my-tag")~.
+Flip mode:
+
+| Key | Binding      |
+|-----+--------------|
+| RET | flip card    |
+| n   | flip card    |
+| s   | suspend card |
+| q   | quit review  |
+
+Rate mode:
+
+| Key | Binding      |
+|-----+--------------|
+| a   | rate again   |
+| h   | rate hard    |
+| g   | rate good    |
+| e   | rate easy    |
+| s   | suspend card |
+| q   | quit review  |
 
 See also:
 - [[file:doc/review_internals.org][Review Internals]]
 - [[file:doc/review_history.org][Review History]]
+** Use with =evil-mode=
+The key bindings used by the review modes of org-fc conflict with
+some of the bindings used by evil mode.
+
+As a workaround, you can add minor mode keymaps for
+each of the evil-mode states you're using org-fc with.
+
+#+begin_src emacs-lisp
+(evil-define-minor-mode-key '(normal insert emacs) 'org-fc-review-flip-mode
+  (kbd "RET") 'org-fc-review-flip
+  (kbd "n") 'org-fc-review-flip
+  (kbd "s") 'org-fc-review-suspend-card
+  (kbd "q") 'org-fc-review-quit)
+
+(evil-define-minor-mode-key '(normal insert emacs) 'org-fc-review-rate-mode
+  (kbd "a") 'org-fc-review-rate-again
+  (kbd "h") 'org-fc-review-rate-hard
+  (kbd "g") 'org-fc-review-rate-good
+  (kbd "e") 'org-fc-review-rate-easy
+  (kbd "s") 'org-fc-review-suspend-card
+  (kbd "q") 'org-fc-review-quit)
+#+end_src
 ** Review Contexts
 By default, two contexts are defined:
 
