@@ -242,6 +242,9 @@ Defaults to ISO8601")
   "Track if the current buffer was open before the review.")
 (make-variable-buffer-local 'org-fc-reviewing-existing-buffer)
 
+(defvar org-fc-original-header-line-format nil
+  "`header-line-format' before it was set by org-fc.")
+
 (defvar org-fc-timestamp nil
   "Time the last card was flipped.
 Used to calculate the time needed for reviewing a card.")
@@ -1754,6 +1757,9 @@ Valid contexts:
                 (if buffer
                     (setq-local org-fc-reviewing-existing-buffer t)
                   (setq-local org-fc-reviewing-existing-buffer nil))
+
+                (org-fc-set-header-line)
+
                 (goto-char (point-min))
                 (org-fc-show-all)
                 (org-fc-id-goto id path)
@@ -1771,42 +1777,17 @@ Valid contexts:
                 (funcall (org-fc-type-setup-fn type) position)
                 (run-hooks 'org-fc-after-setup-hook)
 
-                ;; If the card has a no-noop flip function, open the
-                ;; flip hydra
+                ;; If the card has a no-noop flip function,
+                ;; skip to rate-mode
                 (let ((flip-fn (org-fc-type-flip-fn type)))
                   (if (or (null flip-fn) (eq flip-fn #'org-fc-noop))
-                      (org-fc-review-rate-hydra/body)
-                    (org-fc-review-flip-hydra/body))))))
+                      (org-fc-review-rate-mode 1)
+                    (org-fc-review-flip-mode 1))))))
         (error
          (org-fc-review-quit)
          (signal (car err) (cdr err))))
     (message "Review Done")
     (org-fc-review-quit)))
-
-(defhydra org-fc-review-rate-hydra (:foreign-keys warn)
-  "
-%(length (oref org-fc-review--current-session cards)) cards remaining
-%s(org-fc-session-stats-string org-fc-review--current-session)
-
-"
-  ("a" (org-fc-review-rate-card 'again) "Rate as again" :exit t)
-  ("h" (org-fc-review-rate-card 'hard) "Rate as hard" :exit t)
-  ("g" (org-fc-review-rate-card 'good) "Rate as good" :exit t)
-  ("e" (org-fc-review-rate-card 'easy) "Rate as easy" :exit t)
-  ("s" org-fc-review-suspend-card "Suspend" :exit t)
-  ("q" org-fc-review-quit "Quit" :exit t))
-
-(defhydra org-fc-review-flip-hydra (:foreign-keys warn)
-  "
-%(length (oref org-fc-review--current-session cards)) cards remaining
-%s(org-fc-session-stats-string org-fc-review--current-session)
-
-"
-  ("RET" org-fc-review-flip "Flip" :exit t)
-  ("t" org-fc-tag-card "Add Tag")
-  ;; Neo-Layout ergonomics
-  ("n" org-fc-review-flip "Flip" :exit t)
-  ("q" org-fc-review-quit "Quit" :exit t))
 
 (defmacro org-fc-review-with-current-item (var &rest body)
   "Evaluate BODY with the current card bound to VAR.
@@ -1827,7 +1808,7 @@ same ID as the current card in the session."
       (org-fc-review-with-current-item card
         (let ((type (plist-get card :type)))
           (funcall (org-fc-type-flip-fn type))
-          (org-fc-review-rate-hydra/body)))
+          (org-fc-review-rate-mode)))
     (error
      (org-fc-review-quit)
      (signal (car err) (cdr err)))))
@@ -1846,6 +1827,8 @@ same ID as the current card in the session."
           (org-fc-session-add-rating org-fc-review--current-session rating)
           (org-fc-review-update-data path id position rating delta)
           (org-fc-show-all)
+          (org-fc-reset-header-line)
+          (org-fc-review-rate-mode -1)
           (save-buffer)
           (unless org-fc-reviewing-existing-buffer
             (kill-buffer))
@@ -1923,7 +1906,10 @@ rating the card."
 (defun org-fc-review-quit ()
   "Quit the review, remove all overlays from the buffer."
   (interactive)
+  (org-fc-review-rate-mode -1)
+  (org-fc-review-flip-mode -1)
   (setq org-fc-review--current-session nil)
+  (org-fc-reset-header-line)
   (org-fc-show-all))
 
 ;;; Dashboard
