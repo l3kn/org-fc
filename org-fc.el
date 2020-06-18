@@ -1576,14 +1576,98 @@ removed."
          (org-fc-review-data-default pos)))
       positions))))
 
+;;;; Review Modes
+;;;;; Header Line
+
+(defun org-fc-set-header-line ()
+  "Set the header-line for review."
+  (setq org-fc-original-header-line-format header-line-format)
+  (setq-local
+   header-line-format
+   `((org-fc-review-flip-mode "Review, ")
+     (org-fc-review-rate-mode "Rate, ")
+     ,(format "%d cards remaining, %s"
+             (length (oref org-fc-review--current-session cards))
+             (org-fc-session-stats-string org-fc-review--current-session)))))
+
+(defun org-fc-reset-header-line ()
+  "Reset the header-line to its original value."
+  (setq-local header-line-format org-fc-original-header-line-format))
+
+;;;;; Flip Mode
+
+(defun org-fc-review-flip-mode-header ()
+  "Header line shown in `org-fc-flip-mode'."
+  (format "Review, %d cards remaining, %s"
+          (length (oref org-fc-review--current-session cards))
+          (org-fc-session-stats-string org-fc-review--current-session)))
+
+(defvar org-fc-review-flip-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'org-fc-review-flip)
+    (define-key map (kbd "q") 'org-fc-review-quit)
+    (define-key map (kbd "s") 'org-fc-review-suspend-card)
+    map)
+  "Keymap for `org-fc-flip-mode'.")
+
+(define-minor-mode org-fc-review-flip-mode
+  "Minor mode for flipping flashcards.
+
+\\{org-fc-review-flip-mode-map}"
+  :init-value nil
+  :lighter " fc-flip"
+  :keymap org-fc-review-flip-mode-map
+  :group 'org-fc
+  (when org-fc-review-flip-mode
+    ;; Make sure only one of the modes is active at a time
+    (org-fc-review-rate-mode -1)
+    ;; Make sure we're in org mode and there is an active review session
+    (unless (and (eq major-mode 'org-mode) org-fc-review--current-session)
+      (org-fc-review-flip-mode -1))))
+
+;;;;; Rate Mode
+
+(defun org-fc-review-rate-mode-header ()
+  "Header line shown in `org-fc-rate-mode'."
+  (format "Rate, %d cards remaining, %s"
+          (length (oref org-fc-review--current-session cards))
+          (org-fc-session-stats-string org-fc-review--current-session)))
+
+(defvar org-fc-review-rate-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "a") 'org-fc-review-rate-again)
+    (define-key map (kbd "h") 'org-fc-review-rate-hard)
+    (define-key map (kbd "g") 'org-fc-review-rate-good)
+    (define-key map (kbd "e") 'org-fc-review-rate-easy)
+    (define-key map (kbd "s") 'org-fc-review-suspend-card)
+    (define-key map (kbd "q") 'org-fc-review-quit)
+    map)
+  "Keymap for `org-fc-rate-mode'.")
+
+
+(define-minor-mode org-fc-review-rate-mode
+  "Minor mode for rating flashcards.
+
+\\{org-fc-review-rate-mode-map}"
+  :init-value nil
+  :lighter " fc-rate"
+  :keymap org-fc-review-rate-mode-map
+  :group 'org-fc
+  (when org-fc-review-rate-mode
+    ;; Make sure only one of the modes is active at a time
+    (org-fc-review-flip-mode -1)
+    ;; Make sure we're in org mode and there is an active review session
+    (unless (and (eq major-mode 'org-mode) org-fc-review--current-session)
+      (org-fc-review-rate-mode -1))))
+
 ;;;; Main Loop
 ;;
 ;; Cards are reviewed by
 ;; 1. opening the file they are in
 ;; 2. calling the setup function for the card type
-;; 3. opening a hydra for flipping the card
+;; 3. switch to review-flip-mode
 ;; 4. calling the flip function for the card type
-;; 5. opening a hydra for rating the card
+;; 5. switch to review-rate-mode
 ;; 6. updating the review data based on the rating
 ;;
 
