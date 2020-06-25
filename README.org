@@ -406,8 +406,13 @@ In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
 *** [2020-06-25 Thu]
+**** Added
+- ~SCHEDULED: ...~, ~DEADLINE: ...~ timestamps are hidden during
+  review
+- Drawers in ~org-fc-drawer-whitelist~ are not hidden during review
 **** Changed
-During the review process, two minor modes are used instead of two hydras.
+- During the review process, two minor modes are used instead of two
+  hydras
 *** [2020-05-24 Sun]
 **** Changed
 - Include file information in card index
