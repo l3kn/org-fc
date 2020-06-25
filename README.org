@@ -405,6 +405,9 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+*** [2020-06-25 Thu]
+**** Changed
+During the review process, two minor modes are used instead of two hydras.
 *** [2020-05-24 Sun]
 **** Changed
 - Include file information in card index
