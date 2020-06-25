@@ -109,6 +109,11 @@ types."
   :type 'string
   :group 'org-fc)
 
+(defcustom org-fc-drawer-whitelist '()
+  "Drawers that are not hidden during review."
+  :type 'list
+  :group 'org-fc)
+
 (defcustom org-fc-stats-review-min-box 0
   "Minimum box for reviews to include in the review stats."
   :type 'integer
@@ -1005,15 +1010,17 @@ FACE can be used to set the text face of the overlay."
 ;;;; Hiding Drawers
 
 (defun org-fc-hide-drawers ()
-  "Hide all drawers after point."
+  "Hide all drawers except ones in `org-fc-drawer-whitelist' after point."
   (save-excursion
     (while (re-search-forward org-drawer-regexp nil t)
       (let ((start (1- (match-beginning 0)))
+            (name (match-string 1))
             (end))
         (if (re-search-forward ":END:" nil t)
             (setq end (point))
           (error "No :END: found for drawer"))
-        (org-fc-hide-region start end)))))
+        (unless (member name org-fc-drawer-whitelist)
+          (org-fc-hide-region start end))))))
 
 ;;;; Hiding Headings / Section Contents
 
