@@ -266,39 +266,60 @@ See also:
 - [[https://apps.ankiweb.net/docs/manual.html#what-algorithm][Anki Manual - Algorithm]]
 - [[https://www.supermemo.com/en/archives1990-2015/english/ol/sm2][SuperMemo - SM2 Algorithm]]
 ** Review
-Reviewing cards is done by opening the file the card is in,
-using a special narrowing function to hide other headings
-and drawers.
+A review session can be started with ~M-x org-fc-review~.
 
-With ~(point)~ on the headline to be reviewed,
-the setup function for this card type is called
-(e.g. to hide the cloze holes of the card).
+Due cards are reviewed in random order.
 
-Then the flip function for the card type is called,
-usually opening a *hydra* showing available hotkeys.
-
-Once the card is flipped, another hydra for rating the card is shown.
-
-A review session can be started using ~org-fc-review-all~
-to review all cards that are due, or using ~org-fc-review-buffer~ to
-review only cards in the current buffer.
-
-The current review session can be ended / reset using
-~org-fc-review-quit~.
-
-Ideally, don't use any other hotkeys while in a review session.
-This exits the review hydra without ending the current review session
-making it necessary to do so manually (~org-fc-review-quit~).
-
-~org-fc-tag-card~ can be used on a card heading or during review
-to add one of the ~org-fc-card-tags~ to the card.
-
-Tags can be added to this list using ~(add-to-list 'org-fc-card-tags
-"my-tag")~.
-
-See also:
+*** Review Process
+1. Open file of card
+2. Narrow to heading
+3. Set up card for review
+4. Activate ~org-fc-flip-mode~
+5. Flip the card (user)
+6. Switch to ~org-fc-rate-mode~
+7. Rate the card (user)
+8. Repeat process with next due card
+*** Flip Mode
+| Key | Binding      |
+|-----+--------------|
+| RET | flip card    |
+| n   | flip card    |
+| s   | suspend card |
+| q   | quit review  |
+*** Rate Mode
+| Key | Binding      |
+|-----+--------------|
+| a   | rate again   |
+| h   | rate hard    |
+| g   | rate good    |
+| e   | rate easy    |
+| s   | suspend card |
+| q   | quit review  |
+*** See Also
 - [[file:doc/review_internals.org][Review Internals]]
 - [[file:doc/review_history.org][Review History]]
+** Use with =evil-mode=
+The key bindings used by the review modes of org-fc conflict with
+some of the bindings used by evil mode.
+
+As a workaround, you can add minor mode keymaps for
+each of the evil-mode states you're using org-fc with.
+
+#+begin_src emacs-lisp
+(evil-define-minor-mode-key '(normal insert emacs) 'org-fc-review-flip-mode
+  (kbd "RET") 'org-fc-review-flip
+  (kbd "n") 'org-fc-review-flip
+  (kbd "s") 'org-fc-review-suspend-card
+  (kbd "q") 'org-fc-review-quit)
+
+(evil-define-minor-mode-key '(normal insert emacs) 'org-fc-review-rate-mode
+  (kbd "a") 'org-fc-review-rate-again
+  (kbd "h") 'org-fc-review-rate-hard
+  (kbd "g") 'org-fc-review-rate-good
+  (kbd "e") 'org-fc-review-rate-easy
+  (kbd "s") 'org-fc-review-suspend-card
+  (kbd "q") 'org-fc-review-quit)
+#+end_src
 ** Review Contexts
 By default, two contexts are defined:
 
@@ -384,6 +405,9 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+*** [2020-06-25 Thu]
+**** Changed
+During the review process, two minor modes are used instead of two hydras.
 *** [2020-05-24 Sun]
 **** Changed
 - Include file information in card index
