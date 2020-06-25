@@ -29,13 +29,12 @@
 (require 'cl-lib)
 (require 'eieio)
 (require 'org-id)
+(require 'org-indent)
 (require 'org-element)
 (require 'outline)
 (require 'parse-time)
 (require 'subr-x)
 (require 'svg)
-
-(require 'hydra)
 
 ;;; Customization
 
@@ -108,11 +107,6 @@ types."
 (defcustom org-fc-review-data-drawer "REVIEW_DATA"
   "Name of the drawer used to store review data."
   :type 'string
-  :group 'org-fc)
-
-(defcustom org-fc-card-tags (list org-fc-suspended-tag)
-  "Card tags that can be added during review."
-  :type 'list
   :group 'org-fc)
 
 (defcustom org-fc-stats-review-min-box 0
@@ -246,6 +240,9 @@ Defaults to ISO8601")
 (defvar org-fc-reviewing-existing-buffer nil
   "Track if the current buffer was open before the review.")
 (make-variable-buffer-local 'org-fc-reviewing-existing-buffer)
+
+(defvar org-fc-original-header-line-format nil
+  "`header-line-format' before it was set by org-fc.")
 
 (defvar org-fc-timestamp nil
   "Time the last card was flipped.
@@ -503,12 +500,6 @@ If it is shorter than EXPECTED-LENGTH, it is filled using
   "Add TAG to the heading at point."
   (org-set-tags
    (remove tag (org-get-tags nil 'local))))
-
-;;;###autoload
-(defun org-fc-tag-card (tag)
-  "Add one of the predefined card TAGs to the current card."
-  (interactive (list (completing-read "Tag: " org-fc-card-tags)))
-  (org-fc--add-tag tag))
 
 ;;; Card Initialization
 
@@ -1587,14 +1578,98 @@ removed."
          (org-fc-review-data-default pos)))
       positions))))
 
+;;;; Review Modes
+;;;;; Header Line
+
+(defun org-fc-set-header-line ()
+  "Set the header-line for review."
+  (setq org-fc-original-header-line-format header-line-format)
+  (setq-local
+   header-line-format
+   `((org-fc-review-flip-mode "Review, ")
+     (org-fc-review-rate-mode "Rate, ")
+     ,(format "%d cards remaining, %s"
+             (length (oref org-fc-review--current-session cards))
+             (org-fc-session-stats-string org-fc-review--current-session)))))
+
+(defun org-fc-reset-header-line ()
+  "Reset the header-line to its original value."
+  (setq-local header-line-format org-fc-original-header-line-format))
+
+;;;;; Flip Mode
+
+(defun org-fc-review-flip-mode-header ()
+  "Header line shown in `org-fc-flip-mode'."
+  (format "Review, %d cards remaining, %s"
+          (length (oref org-fc-review--current-session cards))
+          (org-fc-session-stats-string org-fc-review--current-session)))
+
+(defvar org-fc-review-flip-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'org-fc-review-flip)
+    (define-key map (kbd "q") 'org-fc-review-quit)
+    (define-key map (kbd "s") 'org-fc-review-suspend-card)
+    map)
+  "Keymap for `org-fc-flip-mode'.")
+
+(define-minor-mode org-fc-review-flip-mode
+  "Minor mode for flipping flashcards.
+
+\\{org-fc-review-flip-mode-map}"
+  :init-value nil
+  :lighter " fc-flip"
+  :keymap org-fc-review-flip-mode-map
+  :group 'org-fc
+  (when org-fc-review-flip-mode
+    ;; Make sure only one of the modes is active at a time
+    (org-fc-review-rate-mode -1)
+    ;; Make sure we're in org mode and there is an active review session
+    (unless (and (eq major-mode 'org-mode) org-fc-review--current-session)
+      (org-fc-review-flip-mode -1))))
+
+;;;;; Rate Mode
+
+(defun org-fc-review-rate-mode-header ()
+  "Header line shown in `org-fc-rate-mode'."
+  (format "Rate, %d cards remaining, %s"
+          (length (oref org-fc-review--current-session cards))
+          (org-fc-session-stats-string org-fc-review--current-session)))
+
+(defvar org-fc-review-rate-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "a") 'org-fc-review-rate-again)
+    (define-key map (kbd "h") 'org-fc-review-rate-hard)
+    (define-key map (kbd "g") 'org-fc-review-rate-good)
+    (define-key map (kbd "e") 'org-fc-review-rate-easy)
+    (define-key map (kbd "s") 'org-fc-review-suspend-card)
+    (define-key map (kbd "q") 'org-fc-review-quit)
+    map)
+  "Keymap for `org-fc-rate-mode'.")
+
+
+(define-minor-mode org-fc-review-rate-mode
+  "Minor mode for rating flashcards.
+
+\\{org-fc-review-rate-mode-map}"
+  :init-value nil
+  :lighter " fc-rate"
+  :keymap org-fc-review-rate-mode-map
+  :group 'org-fc
+  (when org-fc-review-rate-mode
+    ;; Make sure only one of the modes is active at a time
+    (org-fc-review-flip-mode -1)
+    ;; Make sure we're in org mode and there is an active review session
+    (unless (and (eq major-mode 'org-mode) org-fc-review--current-session)
+      (org-fc-review-rate-mode -1))))
+
 ;;;; Main Loop
 ;;
 ;; Cards are reviewed by
 ;; 1. opening the file they are in
 ;; 2. calling the setup function for the card type
-;; 3. opening a hydra for flipping the card
+;; 3. switch to review-flip-mode
 ;; 4. calling the flip function for the card type
-;; 5. opening a hydra for rating the card
+;; 5. switch to review-rate-mode
 ;; 6. updating the review data based on the rating
 ;;
 
@@ -1681,8 +1756,10 @@ Valid contexts:
                 (if buffer
                     (setq-local org-fc-reviewing-existing-buffer t)
                   (setq-local org-fc-reviewing-existing-buffer nil))
+
+                (org-fc-set-header-line)
+
                 (goto-char (point-min))
-                (org-fc-show-all)
                 (org-fc-id-goto id path)
 
                 (org-fc-indent)
@@ -1698,42 +1775,17 @@ Valid contexts:
                 (funcall (org-fc-type-setup-fn type) position)
                 (run-hooks 'org-fc-after-setup-hook)
 
-                ;; If the card has a no-noop flip function, open the
-                ;; flip hydra
+                ;; If the card has a no-noop flip function,
+                ;; skip to rate-mode
                 (let ((flip-fn (org-fc-type-flip-fn type)))
                   (if (or (null flip-fn) (eq flip-fn #'org-fc-noop))
-                      (org-fc-review-rate-hydra/body)
-                    (org-fc-review-flip-hydra/body))))))
+                      (org-fc-review-rate-mode 1)
+                    (org-fc-review-flip-mode 1))))))
         (error
          (org-fc-review-quit)
          (signal (car err) (cdr err))))
     (message "Review Done")
     (org-fc-review-quit)))
-
-(defhydra org-fc-review-rate-hydra (:foreign-keys warn)
-  "
-%(length (oref org-fc-review--current-session cards)) cards remaining
-%s(org-fc-session-stats-string org-fc-review--current-session)
-
-"
-  ("a" (org-fc-review-rate-card 'again) "Rate as again" :exit t)
-  ("h" (org-fc-review-rate-card 'hard) "Rate as hard" :exit t)
-  ("g" (org-fc-review-rate-card 'good) "Rate as good" :exit t)
-  ("e" (org-fc-review-rate-card 'easy) "Rate as easy" :exit t)
-  ("s" org-fc-review-suspend-card "Suspend" :exit t)
-  ("q" org-fc-review-quit "Quit" :exit t))
-
-(defhydra org-fc-review-flip-hydra (:foreign-keys warn)
-  "
-%(length (oref org-fc-review--current-session cards)) cards remaining
-%s(org-fc-session-stats-string org-fc-review--current-session)
-
-"
-  ("RET" org-fc-review-flip "Flip" :exit t)
-  ("t" org-fc-tag-card "Add Tag")
-  ;; Neo-Layout ergonomics
-  ("n" org-fc-review-flip "Flip" :exit t)
-  ("q" org-fc-review-quit "Quit" :exit t))
 
 (defmacro org-fc-review-with-current-item (var &rest body)
   "Evaluate BODY with the current card bound to VAR.
@@ -1754,7 +1806,7 @@ same ID as the current card in the session."
       (org-fc-review-with-current-item card
         (let ((type (plist-get card :type)))
           (funcall (org-fc-type-flip-fn type))
-          (org-fc-review-rate-hydra/body)))
+          (org-fc-review-rate-mode)))
     (error
      (org-fc-review-quit)
      (signal (car err) (cdr err)))))
@@ -1772,7 +1824,7 @@ same ID as the current card in the session."
                (delta (- now org-fc-timestamp)))
           (org-fc-session-add-rating org-fc-review--current-session rating)
           (org-fc-review-update-data path id position rating delta)
-          (org-fc-show-all)
+          (org-fc-review-reset)
           (save-buffer)
           (unless org-fc-reviewing-existing-buffer
             (kill-buffer))
@@ -1781,10 +1833,31 @@ same ID as the current card in the session."
      (org-fc-review-quit)
      (signal (car err) (cdr err)))))
 
+(defun org-fc-review-rate-again ()
+  "Rate the card at point with 'again'."
+  (interactive)
+  (org-fc-review-rate-card 'again))
+
+(defun org-fc-review-rate-hard ()
+  "Rate the card at point with 'hard'."
+  (interactive)
+  (org-fc-review-rate-card 'hard))
+
+(defun org-fc-review-rate-good ()
+  "Rate the card at point with 'good'."
+  (interactive)
+  (org-fc-review-rate-card 'good))
+
+(defun org-fc-review-rate-easy ()
+  "Rate the card at point with 'easy'."
+  (interactive)
+  (org-fc-review-rate-card 'easy))
+
 (defun org-fc-review-suspend-card ()
   "Suspend card and proceed to next."
   (interactive)
   (org-fc-suspend-card)
+  (org-fc-review-reset)
   (org-fc-review-next-card))
 
 (defun org-fc-review-update-data (path id position rating delta)
@@ -1826,12 +1899,19 @@ rating the card."
                   (org-fc-timestamp-in next-interval)))
            (org-fc-set-review-data data)))))))
 
+(defun org-fc-review-reset ()
+  "Reset the buffer to its state before the review."
+  (org-fc-review-rate-mode -1)
+  (org-fc-review-flip-mode -1)
+  (org-fc-reset-header-line)
+  (org-fc-show-all))
+
 ;;;###autoload
 (defun org-fc-review-quit ()
   "Quit the review, remove all overlays from the buffer."
   (interactive)
-  (setq org-fc-review--current-session nil)
-  (org-fc-show-all))
+  (org-fc-review-reset)
+  (setq org-fc-review--current-session nil))
 
 ;;; Dashboard
 
