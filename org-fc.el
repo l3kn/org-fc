@@ -1009,6 +1009,14 @@ FACE can be used to set the text face of the overlay."
 
 ;;;; Hiding Drawers
 
+(defun org-fc-hide-keyword-times ()
+  "Hide all timestamp keywords (e.g. DEADLINE) after point."
+  (save-excursion
+    (while (re-search-forward org-keyword-time-regexp nil t)
+      (let ((start (1- (match-beginning 0)))
+            (end (match-end 0)))
+        (org-fc-hide-region start end)))))
+
 (defun org-fc-hide-drawers ()
   "Hide all drawers except ones in `org-fc-drawer-whitelist' after point."
   (save-excursion
@@ -1773,6 +1781,7 @@ Valid contexts:
                 ;; Make sure the headline the card is in is expanded
                 (org-reveal)
                 (org-fc-narrow-tree)
+                (org-fc-hide-keyword-times)
                 (org-fc-hide-drawers)
                 (org-fc-show-latex)
                 (org-display-inline-images)
