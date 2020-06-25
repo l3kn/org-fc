@@ -145,8 +145,8 @@ Note that in this case, you don't have to clone the repository.
      (require 'org-fc-hydra)))
 #+end_src
 *** Setup with [[https://github.com/syl20bnr/spacemacs/][spacemacs]]
-You should not need to clone the repository yourself and put this in
-your =.spacemacs=:
+You don't need to manually clone the repository,
+just put this in your =.spacemacs=:
 
 #+begin_src emacs-lisp
   ;; ...
