@@ -266,42 +266,27 @@ See also:
 - [[https://apps.ankiweb.net/docs/manual.html#what-algorithm][Anki Manual - Algorithm]]
 - [[https://www.supermemo.com/en/archives1990-2015/english/ol/sm2][SuperMemo - SM2 Algorithm]]
 ** Review
-Reviewing cards is done by opening the file the card is in,
-using a special narrowing function to hide other headings
-and drawers.
+A review session can be started with ~M-x org-fc-review~.
 
-With ~(point)~ on the headline to be reviewed,
-the setup function for this card type is called
-(e.g. to hide the cloze holes of the card).
+Due cards are reviewed in random order.
 
-Then the flip function for the card type is called,
-usually opening a *hydra* showing available hotkeys.
-
-Once the card is flipped, another hydra for rating the card is shown.
-
-A review session can be started using ~org-fc-review-all~
-to review all cards that are due, or using ~org-fc-review-buffer~ to
-review only cards in the current buffer.
-
-The current review session can be ended / reset using
-~org-fc-review-quit~.
-
-Ideally, don't use any other hotkeys while in a review session.
-This exits the review hydra without ending the current review session
-making it necessary to do so manually (~org-fc-review-quit~).
-
-
-Flip mode:
-
+*** Review Process
+1. Open file of card
+2. Narrow to heading
+3. Set up card for review
+4. Activate ~org-fc-flip-mode~
+5. Flip the card (user)
+6. Switch to ~org-fc-rate-mode~
+7. Rate the card (user)
+8. Repeat process with next due card
+*** Flip Mode
 | Key | Binding      |
 |-----+--------------|
 | RET | flip card    |
 | n   | flip card    |
 | s   | suspend card |
 | q   | quit review  |
-
-Rate mode:
-
+*** Rate Mode
 | Key | Binding      |
 |-----+--------------|
 | a   | rate again   |
@@ -310,8 +295,7 @@ Rate mode:
 | e   | rate easy    |
 | s   | suspend card |
 | q   | quit review  |
-
-See also:
+*** See Also
 - [[file:doc/review_internals.org][Review Internals]]
 - [[file:doc/review_history.org][Review History]]
 ** Use with =evil-mode=
