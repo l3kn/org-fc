@@ -1761,7 +1761,6 @@ Valid contexts:
                 (org-fc-set-header-line)
 
                 (goto-char (point-min))
-                (org-fc-show-all)
                 (org-fc-id-goto id path)
 
                 (org-fc-indent)
@@ -1826,9 +1825,7 @@ same ID as the current card in the session."
                (delta (- now org-fc-timestamp)))
           (org-fc-session-add-rating org-fc-review--current-session rating)
           (org-fc-review-update-data path id position rating delta)
-          (org-fc-show-all)
-          (org-fc-reset-header-line)
-          (org-fc-review-rate-mode -1)
+          (org-fc-review-reset)
           (save-buffer)
           (unless org-fc-reviewing-existing-buffer
             (kill-buffer))
@@ -1861,6 +1858,7 @@ same ID as the current card in the session."
   "Suspend card and proceed to next."
   (interactive)
   (org-fc-suspend-card)
+  (org-fc-review-reset)
   (org-fc-review-next-card))
 
 (defun org-fc-review-update-data (path id position rating delta)
@@ -1902,15 +1900,19 @@ rating the card."
                   (org-fc-timestamp-in next-interval)))
            (org-fc-set-review-data data)))))))
 
+(defun org-fc-review-reset ()
+  "Reset the buffer to its state before the review."
+  (org-fc-review-rate-mode -1)
+  (org-fc-review-flip-mode -1)
+  (org-fc-reset-header-line)
+  (org-fc-show-all))
+
 ;;;###autoload
 (defun org-fc-review-quit ()
   "Quit the review, remove all overlays from the buffer."
   (interactive)
-  (org-fc-review-rate-mode -1)
-  (org-fc-review-flip-mode -1)
-  (setq org-fc-review--current-session nil)
-  (org-fc-reset-header-line)
-  (org-fc-show-all))
+  (org-fc-review-reset)
+  (setq org-fc-review--current-session nil))
 
 ;;; Dashboard
 
