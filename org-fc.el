@@ -29,13 +29,12 @@
 (require 'cl-lib)
 (require 'eieio)
 (require 'org-id)
+(require 'org-indent)
 (require 'org-element)
 (require 'outline)
 (require 'parse-time)
 (require 'subr-x)
 (require 'svg)
-
-(require 'hydra)
 
 ;;; Customization
 
