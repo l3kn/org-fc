@@ -1027,8 +1027,9 @@ FACE can be used to set the text face of the overlay."
         (if (re-search-forward ":END:" nil t)
             (setq end (point))
           (error "No :END: found for drawer"))
-        (unless (member name org-fc-drawer-whitelist)
-          (org-fc-hide-region start end))))))
+	(if (member name org-fc-drawer-whitelist)
+	    (org-flag-drawer nil nil start end)
+	    (org-fc-hide-region start end))))))
 
 ;;;; Hiding Headings / Section Contents
 
