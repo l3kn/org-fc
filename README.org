@@ -398,13 +398,25 @@ See also:
 
 - [[file:doc/review_history.org][Review History]]
 - [[file:doc/advanced_statistics.org][Advanced Statistics]] (todo)
+** Hooks
+- ~org-fc-before-setup-hook~
+  Runs before a card is set up for review
+- ~org-fc-after-setup-hook~
+  Runs after a card is set up for review
+- ~org-fc-after-review-hook~
+  Runs when the review ends / is quit
 ** Changelog
 I hope the current card / log format is flexible enough to accommodate
 upcoming changes.
 
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
-
+*** [2020-06-26 Fri]
+**** Changed
+- Messages are not inhibited during review
+- Whitelisted drawers are expanded during review
+**** Added
+- A ~org-fc-after-review-hook~ that runs when the review ends / is quit
 *** [2020-06-25 Thu]
 **** Added
 - ~SCHEDULED: ...~, ~DEADLINE: ...~ timestamps are hidden during
