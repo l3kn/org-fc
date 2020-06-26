@@ -1763,9 +1763,7 @@ Valid contexts:
                  (path (plist-get card :path))
                  (id (plist-get card :id))
                  (type (plist-get card :type))
-                 (position (plist-get card :position))
-                 ;; Prevent messages from hiding the multiple-choice card dialog
-                 (inhibit-message t))
+                 (position (plist-get card :position)))
             (let ((buffer (find-buffer-visiting path)))
               (with-current-buffer (find-file path)
                 ;; If buffer was already open, don't kill it after rating the card
