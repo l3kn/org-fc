@@ -11,6 +11,8 @@ entry with updating instructions.
 - Whitelisted drawers are expanded during review
 *** Added
 - A ~org-fc-after-review-hook~ that runs when the review ends / is quit
+- ~org-fc-keymap-hint~ extension
+- ~org-fc-audio~ extension
 ** [2020-06-25 Thu]
 *** Added
 - ~SCHEDULED: ...~, ~DEADLINE: ...~ timestamps are hidden during
