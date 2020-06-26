@@ -185,12 +185,6 @@ It can be loaded and bound to a hotkey like this:
 *** Demo Mode
 A file demonstrating all card types is included.
 ~M-x org-fc-demo~ starts a review of this file.
-** Known Issues
-If you want to execute any other emacs command during review,
-make sure to quit the review using the =q= key.
-
-Otherwise the buffer is left in a narrowed state (this can be reset by
-manually calling =M-x org-fc-review-quit=).
 ** Card Types
 This package comes with a few predefined card types.
 They are documented in [[file:doc/card_types.org][Card Types]].
