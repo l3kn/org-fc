@@ -198,6 +198,11 @@ Values are in days."
   :type 'hook
   :group 'org-fc)
 
+(defcustom org-fc-after-review-hook '()
+  "Functions run when a review session ends / is quit."
+  :type 'hook
+  :group 'org-fc)
+
 ;;;; Diff
 
 (defcustom org-fc-diff-filler ?-
@@ -1926,6 +1931,7 @@ rating the card."
   "Quit the review, remove all overlays from the buffer."
   (interactive)
   (org-fc-review-reset)
+  (run-hooks 'org-fc-after-review-hook)
   (setq org-fc-review--current-session nil))
 
 ;;; Dashboard
