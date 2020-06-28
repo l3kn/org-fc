@@ -5,6 +5,9 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** [2020-06-28 Sun]
+*** Added
+- ~org-fc-before-review-hook~ that runs when a review session is started
 ** [2020-06-26 Fri]
 *** Changed
 - Messages are not inhibited during review
