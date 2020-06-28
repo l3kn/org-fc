@@ -198,6 +198,11 @@ Values are in days."
   :type 'hook
   :group 'org-fc)
 
+(defcustom org-fc-before-review-hook '()
+  "Functions run when a review session is started."
+  :type 'hook
+  :group 'org-fc)
+
 (defcustom org-fc-after-review-hook '()
   "Functions run when a review session ends / is quit."
   :type 'hook
@@ -1741,6 +1746,7 @@ Valid contexts:
         (progn
           (setq org-fc-review--current-session
                 (org-fc-make-review-session cards))
+          (run-hooks 'org-fc-before-review-hook)
           (org-fc-review-next-card))))))
 
 ;;;###autoload
