@@ -124,7 +124,7 @@ Or, using [[https://github.com/raxod502/straight.el/][straight.el]]:
     :straight
     (org-fc
      :type git :host github :repo "l3kn/org-fc"
-     :files (:defaults "awk" "demo.org"))
+     :files (:defaults "contrib/*.el" "awk" "demo.org"))
     :custom
     (org-fc-directories '("~/org/"))
     :config
@@ -139,7 +139,7 @@ Note that in this case, you don't have to clone the repository.
   (straight-use-package
    '(org-fc
      :type git :host github :repo "l3kn/org-fc"
-     :files (:defaults "awk" "demo.org")
+     :files (:defaults "contrib/*.el" "awk" "demo.org")
      :custom (org-fc-directories '("~/org/"))
      :config
      (require 'org-fc-hydra)))
@@ -154,7 +154,7 @@ just put this in your =.spacemacs=:
   '((org-fc
      :location (recipe :fetcher github
                        :repo "l3kn/org-fc"
-                       :files (:defaults "awk" "demo.org"))))
+                       :files (:defaults "contrib/*.el" "awk" "demo.org"))))
   ;; ...
   (defun dotspacemacs/user-config ()
     ;; ...
