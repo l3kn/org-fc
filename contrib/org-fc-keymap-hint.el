@@ -54,11 +54,6 @@
    (reverse (cdr keymap))
    " "))
 
-(defun org-fc-review-flip-mode-hint ()
-  (message (org-fc-keymap-hint org-fc-review-flip-mode-map)))
-
-(defun org-fc-review-rate-mode-hint ()
-
 (add-hook 'org-fc-review-flip-mode-hook
           (lambda () (message (org-fc-keymap-hint org-fc-review-flip-mode-map))))
 (add-hook 'org-fc-review-rate-mode-hook
