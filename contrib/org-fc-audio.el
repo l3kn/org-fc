@@ -70,7 +70,7 @@ Look up the file from PROPERTY."
   (start-process-shell-command
    "org-fc audio"
    nil
-   (format "mpv %s" (shell-quote-argument file))))
+   (format "mpv %s" file)))
 
 (add-hook
  'org-fc-before-setup-hook
