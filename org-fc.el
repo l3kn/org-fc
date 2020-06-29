@@ -1277,39 +1277,44 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
 
 (defun org-fc-awk-index-paths (paths)
   "Generate a list of all cards and positions in PATHS."
-  (org-fc-flatten-index
-   (mapcar
-    (lambda (file)
-      (plist-put file :cards
-                 (mapcar
-                  (lambda (card)
-                    (plist-put
-                     card :tags
-                     (org-fc--combine-tags
-                      (plist-get card :inherited-tags)
-                      (plist-get card :local-tags))))
-                  (plist-get file :cards))))
-    (read
-     (shell-command-to-string
-      (org-fc-awk--pipe
-       (org-fc-awk--find paths)
-       (org-fc-awk--xargs
-        (org-fc-awk--command
-         "awk/index.awk"
-         :utils t
-         :variables (org-fc-awk--indexer-variables)))))))))
+  (let ((output (shell-command-to-string
+                 (org-fc-awk--pipe
+                  (org-fc-awk--find paths)
+                  (org-fc-awk--xargs
+                   (org-fc-awk--command
+                    "awk/index.awk"
+                    :utils t
+                    :variables (org-fc-awk--indexer-variables)))))))
+    (if (string-prefix-p "(" output)
+        (org-fc-flatten-index
+         (mapcar
+          (lambda (file)
+            (plist-put file :cards
+                       (mapcar
+                        (lambda (card)
+                          (plist-put
+                           card :tags
+                           (org-fc--combine-tags
+                            (plist-get card :inherited-tags)
+                            (plist-get card :local-tags))))
+                        (plist-get file :cards))))
+          (read output)))
+      (error "org-fc shell error: %s" output))))
 
 (defun org-fc-awk-stats-reviews ()
   "Statistics for all card reviews.
 Return nil there is no history file."
   (if (file-exists-p org-fc-review-history-file)
-      (read
-       (shell-command-to-string
-        (org-fc-awk--command
-         "awk/stats_reviews.awk"
-         :utils t
-         :input org-fc-review-history-file
-         :variables `(("min_box" . ,org-fc-stats-review-min-box)))))))
+      (let ((output
+             (shell-command-to-string
+              (org-fc-awk--command
+               "awk/stats_reviews.awk"
+               :utils t
+               :input org-fc-review-history-file
+               :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
+        (if (string-prefix-p "(" output)
+            (read output)
+          (error "org-fc shell error: %s" output)))))
 
 ;;; Indexing Cards
 ;;;; Card Filters
