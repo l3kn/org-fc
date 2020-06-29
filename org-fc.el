@@ -64,6 +64,11 @@ Used to generate absolute paths to the awk scripts.")
   :type 'float
   :group 'org-fc)
 
+(defcustom org-fc-shuffle-positions t
+  "Shuffle positions before review."
+  :type 'boolean
+  :group 'org-fc)
+
 ;;;; Org Tags / Properties
 
 (defcustom org-fc-type-property "FC_TYPE"
@@ -1405,8 +1410,12 @@ Cards with no positions are removed from the index."
             (push card res)))))
     res))
 
+(defun org-fc-index-positions (index)
+  "Return all positions in INDEX."
+  (mapcan (lambda (card) (org-fc-index-flatten-card card)) index))
+
 (defun org-fc-index-shuffled-positions (index)
-  "Return a positions in INDEX in random order.
+  "Return all positions in INDEX in random order.
 Positions are shuffled in a way that preserves the order of the
   positions for each card."
   ;; 1. assign each position a random number
@@ -1743,9 +1752,10 @@ Valid contexts:
   (if org-fc-review--current-session
       (message "Flashcards are already being reviewed")
     (let* ((index (org-fc-index context))
-           (cards
-            (org-fc-index-shuffled-positions
-             (org-fc-index-filter-due index))))
+           (cards (org-fc-index-filter-due index)))
+      (if org-fc-shuffle-positions
+          (setq cards (org-fc-index-shuffled-positions cards))
+          (setq cards (org-fc-index-positions cards)))
       (if (null cards)
           (message "No cards due right now")
         (progn

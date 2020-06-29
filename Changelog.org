@@ -5,6 +5,12 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** [2020-06-29 Mon]
+*** Added
+- Shuffling of positions for the review can be disabled
+  by setting ~org-fc-shuffle-positions~ to ~nil~
+*** Changed
+- Error messages from shell commands are promoted
 ** [2020-06-28 Sun]
 *** Added
 - ~org-fc-before-review-hook~ that runs when a review session is started
