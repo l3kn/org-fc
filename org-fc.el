@@ -1486,6 +1486,7 @@ EASE, BOX and INTERVAL are the current parameters of the card."
 
 (defclass org-fc-review-session ()
   ((current-item :initform nil)
+   (history :initform nil)
    (ratings :initform nil :initarg :ratings)
    (cards :initform nil :initarg :cards)))
 
@@ -1498,6 +1499,29 @@ EASE, BOX and INTERVAL are the current parameters of the card."
        (plist-get stats :day)
      '(:total 0 :again 0 :hard 0 :good 0 :easy 0))
    :cards cards))
+
+(defun org-fc-review-history-add (elements)
+  "Add ELEMENTS to review history."
+  (push
+   elements
+   (slot-value org-fc-review--current-session 'history)))
+
+(defun org-fc-review-history-save ()
+  "Save all history entries in the current session."
+  (when org-fc-review--current-session
+    (append-to-file
+     (concat
+      (mapconcat
+       (lambda (elements) (mapconcat #'identity elements "\t"))
+       (reverse (slot-value org-fc-review--current-session 'history))
+       "\n")
+      "\n")
+     nil
+     org-fc-review-history-file)
+    (setf (slot-value org-fc-review--current-session 'history) nil)))
+
+;; Make sure the history is saved even if Emacs is killed
+(add-hook 'kill-emacs-hook #'org-fc-review-history-save)
 
 (defun org-fc-session-cards-pending-p (session)
   "Check if there are any cards in SESSION."
@@ -1533,16 +1557,6 @@ EASE, BOX and INTERVAL are the current parameters of the card."
 
 (defvar org-fc-review--current-session nil
   "Current review session.")
-;;;; Writing Review History
-
-(defun org-fc-review-history-add (elements)
-  "Add ELEMENTS to the history csv file."
-  (append-to-file
-   (concat
-    (mapconcat #'identity elements "\t")
-    "\n")
-   nil
-   org-fc-review-history-file))
 
 ;;;; Reading / Writing Review Data
 
@@ -1953,6 +1967,7 @@ rating the card."
   (interactive)
   (org-fc-review-reset)
   (run-hooks 'org-fc-after-review-hook)
+  (org-fc-review-history-save)
   (setq org-fc-review--current-session nil))
 
 ;;; Dashboard
