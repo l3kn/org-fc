@@ -5,6 +5,13 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** [2020-07-02 Thu]
+*** Changed
+- ~org-fc-review-rate-card~ was renamed to ~org-fc-review-rate~
+** [2020-07-01 Wed]
+*** Changed
+- The review history file is only written once per review,
+  as a first step towards implementing a "undo-rating" command
 ** [2020-06-29 Mon]
 *** Added
 - Shuffling of positions for the review can be disabled
