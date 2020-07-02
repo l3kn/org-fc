@@ -1880,7 +1880,8 @@ same ID as the current card in the session."
           (org-fc-review-update-data path id position rating delta)
           (org-fc-review-reset)
           (save-buffer)
-          (unless org-fc-reviewing-existing-buffer
+          (if org-fc-reviewing-existing-buffer
+             (org-fc-review-reset)
             (kill-buffer))
           (org-fc-review-next-card)))
     (error
