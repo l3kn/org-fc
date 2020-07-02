@@ -1866,8 +1866,7 @@ same ID as the current card in the session."
      (org-fc-review-quit)
      (signal (car err) (cdr err)))))
 
-;; TODO: Remove -card suffix
-(defun org-fc-review-rate-card (rating)
+(defun org-fc-review-rate (rating)
   "Rate the card at point with RATING."
   (interactive)
   (condition-case err
@@ -1888,25 +1887,27 @@ same ID as the current card in the session."
      (org-fc-review-quit)
      (signal (car err) (cdr err)))))
 
+(define-obsolete-function-alias 'org-fc-review-rate-card 'org-fc-review-rate)
+
 (defun org-fc-review-rate-again ()
   "Rate the card at point with 'again'."
   (interactive)
-  (org-fc-review-rate-card 'again))
+  (org-fc-review-rate 'again))
 
 (defun org-fc-review-rate-hard ()
   "Rate the card at point with 'hard'."
   (interactive)
-  (org-fc-review-rate-card 'hard))
+  (org-fc-review-rate 'hard))
 
 (defun org-fc-review-rate-good ()
   "Rate the card at point with 'good'."
   (interactive)
-  (org-fc-review-rate-card 'good))
+  (org-fc-review-rate 'good))
 
 (defun org-fc-review-rate-easy ()
   "Rate the card at point with 'easy'."
   (interactive)
-  (org-fc-review-rate-card 'easy))
+  (org-fc-review-rate 'easy))
 
 (defun org-fc-review-suspend-card ()
   "Suspend card and proceed to next."
