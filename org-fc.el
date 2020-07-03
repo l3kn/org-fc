@@ -69,6 +69,11 @@ Used to generate absolute paths to the awk scripts.")
   :type 'boolean
   :group 'org-fc)
 
+(defcustom org-fc-append-failed-cards t
+  "Add failed cards to the end of the review session."
+  :type 'boolean
+  :group 'org-fc)
+
 ;;;; Org Tags / Properties
 
 (defcustom org-fc-type-property "FC_TYPE"
@@ -1533,6 +1538,11 @@ EASE, BOX and INTERVAL are the current parameters of the card."
     (setf (oref session current-item) card)
     card))
 
+(defun org-fc-session-append-card (session card)
+  "Append CARD to the cards of SESSION."
+  (with-slots (cards) session
+    (setf cards (append cards (list card)))))
+
 (defun org-fc-session-add-rating (session rating)
   "Store RATING in the review history of SESSION."
   (with-slots (ratings) session
@@ -1879,6 +1889,10 @@ same ID as the current card in the session."
           (org-fc-session-add-rating org-fc-review--current-session rating)
           (org-fc-review-update-data path id position rating delta)
           (org-fc-review-reset)
+
+          (if (and (eq rating 'again) org-fc-append-failed-cards)
+              (org-fc-session-append-card org-fc-review--current-session card))
+
           (save-buffer)
           (if org-fc-reviewing-existing-buffer
              (org-fc-review-reset)
