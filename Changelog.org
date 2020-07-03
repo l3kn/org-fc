@@ -5,6 +5,10 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** [2020-07-03 Fri]
+*** Changed
+- By default, failed cards are appended to the end of the review session.
+  This can be configured via ~org-fc-append-failed-cards~
 ** [2020-07-02 Thu]
 *** Changed
 - ~org-fc-review-rate-card~ was renamed to ~org-fc-review-rate~

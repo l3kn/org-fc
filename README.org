@@ -251,8 +251,11 @@ See also:
 - [[https://www.supermemo.com/en/archives1990-2015/english/ol/sm2][SuperMemo - SM2 Algorithm]]
 ** Review
 A review session can be started with ~M-x org-fc-review~.
-
 Due cards are reviewed in random order.
+
+If a card was rated "again", it will be reviewed again at the end of
+the current review session.
+This can be disabled by setting ~org-fc-append-failed-cards~ to ~nil~.
 
 *** Review Process
 1. Open file of card
