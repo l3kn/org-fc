@@ -1214,6 +1214,12 @@ Checks if the headline is a suspended card first."
     (message "Entry at point is not a suspended flashcard")))
 
 ;;;###autoload
+(defun org-fc-unsuspend-tree ()
+  "Un-suspend all cards in the subtree at point."
+  (interactive)
+  (org-fc-map-cards 'org-fc--unsuspend-card 'tree))
+
+;;;###autoload
 (defun org-fc-unsuspend-buffer ()
   "Un-suspend all cards in the current buffer."
   (interactive)
