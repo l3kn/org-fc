@@ -1142,11 +1142,17 @@ Only parent headings of the current heading remain visible."
 
 ;;; Updating Cards
 
-(defun org-fc-map-cards (fn)
-  "Call FN for each flashcard headline in the current buffer.
-FN is called with point at the headline and no arguments."
+(defun org-fc-map-cards (fn &optional scope)
+  "Call FN for each flashcard headline in SCOPE.
+FN is called with point at the headline and no arguments.
+If SCOPE is nil, it defaults to the full buffer.
+Other useful values are:
+- tree
+- region"
   (org-map-entries
-   (lambda () (if (org-fc-entry-p) (funcall fn)))))
+   (lambda () (if (org-fc-entry-p) (funcall fn)))
+   nil
+   scope))
 
 ;;;###autoload
 (defun org-fc-update ()
