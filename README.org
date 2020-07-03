@@ -1,8 +1,10 @@
 * Org Flashcards
 Spaced-repetition system for use with Emacs org-mode.
-
 #+CAPTION: Review Demo
 [[file:images/review.png]]
+
+Org-fc has been tested with org-mode version 9.3.6,
+you can check your version with ~M-x org-version~.
 
 ** Introduction
 In the most abstract sense, this package deals with
