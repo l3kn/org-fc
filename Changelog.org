@@ -9,6 +9,10 @@ entry with updating instructions.
 *** Changed
 - By default, failed cards are appended to the end of the review session.
   This can be configured via ~org-fc-append-failed-cards~
+- ~org-fc-map-cards~ takes an optional ~scope~ argument,
+  similar to ~org-map-entries~.
+*** Added
+- ~org-fc-unsuspend-tree~ unsuspends all cards in the subtree at point
 ** [2020-07-02 Thu]
 *** Changed
 - ~org-fc-review-rate-card~ was renamed to ~org-fc-review-rate~
