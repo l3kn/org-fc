@@ -5,6 +5,11 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** [2020-07-04 Sat]
+*** Added
+- ~org-fc-review-edit~ (bound to ~p~) pauses the review for editing
+  the current card. A new mode ~org-fc-review-edit-mode~ adds
+  keybindings for resuming & quitting the review.
 ** [2020-07-03 Fri]
 *** Changed
 - By default, failed cards are appended to the end of the review session.

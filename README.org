@@ -269,21 +269,23 @@ This can be disabled by setting ~org-fc-append-failed-cards~ to ~nil~.
 7. Rate the card (user)
 8. Repeat process with next due card
 *** Flip Mode
-| Key | Binding      |
-|-----+--------------|
-| RET | flip card    |
-| n   | flip card    |
-| s   | suspend card |
-| q   | quit review  |
+| Key | Binding                  |
+|-----+--------------------------|
+| RET | flip card                |
+| n   | flip card                |
+| s   | suspend card             |
+| p   | pause review for editing |
+| q   | quit review              |
 *** Rate Mode
-| Key | Binding      |
-|-----+--------------|
-| a   | rate again   |
-| h   | rate hard    |
-| g   | rate good    |
-| e   | rate easy    |
-| s   | suspend card |
-| q   | quit review  |
+| Key | Binding                  |
+|-----+--------------------------|
+| a   | rate again               |
+| h   | rate hard                |
+| g   | rate good                |
+| e   | rate easy                |
+| s   | suspend card             |
+| p   | pause review for editing |
+| q   | quit review              |
 *** See Also
 - [[file:doc/review_internals.org][Review Internals]]
 - [[file:doc/review_history.org][Review History]]

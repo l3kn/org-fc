@@ -1503,6 +1503,7 @@ EASE, BOX and INTERVAL are the current parameters of the card."
 
 (defclass org-fc-review-session ()
   ((current-item :initform nil)
+   (paused :initform nil :initarg :paused)
    (history :initform nil)
    (ratings :initform nil :initarg :ratings)
    (cards :initform nil :initarg :cards)))
@@ -1554,6 +1555,11 @@ EASE, BOX and INTERVAL are the current parameters of the card."
   "Append CARD to the cards of SESSION."
   (with-slots (cards) session
     (setf cards (append cards (list card)))))
+
+(defun org-fc-session-prepend-card (session card)
+  "Prepend CARD to the cards of SESSION."
+  (with-slots (cards) session
+    (setf cards (cons card cards))))
 
 (defun org-fc-session-add-rating (session rating)
   "Store RATING in the review history of SESSION."
@@ -1662,11 +1668,18 @@ removed."
   (setq org-fc-original-header-line-format header-line-format)
   (setq-local
    header-line-format
-   `((org-fc-review-flip-mode "Review, ")
-     (org-fc-review-rate-mode "Rate, ")
-     ,(format "%d cards remaining, %s"
-             (length (oref org-fc-review--current-session cards))
-             (org-fc-session-stats-string org-fc-review--current-session)))))
+   `((org-fc-review-flip-mode
+      ,(format "Review, %d cards remaining, %s"
+               (length (oref org-fc-review--current-session cards))
+               (org-fc-session-stats-string org-fc-review--current-session)))
+     (org-fc-review-rate-mode
+      ,(format "Rate, %d cards remaining, %s"
+               (length (oref org-fc-review--current-session cards))
+               (org-fc-session-stats-string org-fc-review--current-session)))
+     ((org-fc-review-edit-mode
+       ,(substitute-command-keys
+         "\\<org-fc-review-edit-mode-map>Org-fc edit.  Resume \
+`\\[org-fc-review-resume]', quit review `\\[org-fc-review-quit]'."))))))
 
 (defun org-fc-reset-header-line ()
   "Reset the header-line to its original value."
@@ -1725,6 +1738,28 @@ removed."
     ;; Make sure we're in org mode and there is an active review session
     (unless (and (eq major-mode 'org-mode) org-fc-review--current-session)
       (org-fc-review-rate-mode -1))))
+
+(defvar org-fc-review-edit-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") 'org-fc-review-resume)
+    (define-key map (kbd "C-c C-k") 'org-fc-review-quit)
+    map)
+  "Keymap for `org-fc-edit-mode'.")
+
+(define-minor-mode org-fc-review-edit-mode
+  "Minor mode for editing flashcards.
+
+\\{org-fc-review-edit-mode-map}"
+  :init-value nil
+  :lighter " fc-edit"
+  :keymap org-fc-review-edit-mode-map
+  :group 'org-fc
+  (when org-fc-review-edit-mode
+    (org-fc-review-flip-mode -1)
+    (org-fc-review-rate-mode -1)
+    ;; Make sure we're in org mode and there is an active review session
+    (unless (and (eq major-mode 'org-mode) org-fc-review--current-session)
+      (org-fc-review-edit-mode -1))))
 
 ;;;; Main Loop
 ;;
@@ -1788,6 +1823,15 @@ Valid contexts:
           (run-hooks 'org-fc-before-review-hook)
           (org-fc-review-next-card))))))
 
+(defun org-fc-review-resume ()
+  "Resume review session, if it was paused."
+  (interactive)
+  (if org-fc-review--current-session
+      (progn
+        (org-fc-review-edit-mode -1)
+        (org-fc-review-next-card 'resuming))
+    (message "No session to resume to")))
+
 ;;;###autoload
 (defun org-fc-review-buffer ()
   "Review due cards in the current buffer."
@@ -1805,8 +1849,9 @@ Valid contexts:
   (interactive)
   (org-fc-review org-fc-context-dashboard))
 
-(defun org-fc-review-next-card ()
-  "Review the next card of the current session."
+(defun org-fc-review-next-card (&optional resuming)
+  "Review the next card of the current session.
+If RESUMING is non-nil, some parts of the buffer setup are skipped."
   (if (org-fc-session-cards-pending-p org-fc-review--current-session)
       (condition-case err
           (let* ((card (org-fc-session-pop-next-card org-fc-review--current-session))
@@ -1816,12 +1861,12 @@ Valid contexts:
                  (position (plist-get card :position)))
             (let ((buffer (find-buffer-visiting path)))
               (with-current-buffer (find-file path)
-                ;; If buffer was already open, don't kill it after rating the card
-                (if buffer
-                    (setq-local org-fc-reviewing-existing-buffer t)
-                  (setq-local org-fc-reviewing-existing-buffer nil))
-
-                (org-fc-set-header-line)
+                (unless resuming
+                  ;; If buffer was already open, don't kill it after rating the card
+                  (if buffer
+                      (setq-local org-fc-reviewing-existing-buffer t)
+                    (setq-local org-fc-reviewing-existing-buffer nil))
+                  (org-fc-set-header-line))
 
                 (goto-char (point-min))
                 (org-fc-id-goto id path)
@@ -1974,6 +2019,7 @@ rating the card."
   "Reset the buffer to its state before the review."
   (org-fc-review-rate-mode -1)
   (org-fc-review-flip-mode -1)
+  (org-fc-review-edit-mode -1)
   (org-fc-reset-header-line)
   (org-fc-show-all))
 
@@ -1985,6 +2031,21 @@ rating the card."
   (run-hooks 'org-fc-after-review-hook)
   (org-fc-review-history-save)
   (setq org-fc-review--current-session nil))
+
+;;;###autoload
+(defun org-fc-review-edit ()
+  "Edit current flashcard.
+Pauses the review, unnarrows the buffer and activates
+`org-fc-edit-mode'."
+  (interactive)
+  (org-fc-show-all)
+  ;; Queue the current flashcard so it's reviewed a second time
+  (org-fc-session-prepend-card
+   org-fc-review--current-session
+   (oref org-fc-review--current-session current-item))
+  (setf (oref org-fc-review--current-session paused) t)
+  (setf (oref org-fc-review--current-session current-item) nil)
+  (org-fc-review-edit-mode 1))
 
 ;;; Dashboard
 
