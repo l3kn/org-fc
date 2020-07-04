@@ -1691,6 +1691,7 @@ removed."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'org-fc-review-flip)
     (define-key map (kbd "q") 'org-fc-review-quit)
+    (define-key map (kbd "p") 'org-fc-review-edit)
     (define-key map (kbd "s") 'org-fc-review-suspend-card)
     map)
   "Keymap for `org-fc-flip-mode'.")
@@ -1719,10 +1720,10 @@ removed."
     (define-key map (kbd "g") 'org-fc-review-rate-good)
     (define-key map (kbd "e") 'org-fc-review-rate-easy)
     (define-key map (kbd "s") 'org-fc-review-suspend-card)
+    (define-key map (kbd "p") 'org-fc-review-edit)
     (define-key map (kbd "q") 'org-fc-review-quit)
     map)
   "Keymap for `org-fc-rate-mode'.")
-
 
 (define-minor-mode org-fc-review-rate-mode
   "Minor mode for rating flashcards.
