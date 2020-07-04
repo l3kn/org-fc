@@ -1674,12 +1674,6 @@ removed."
 
 ;;;;; Flip Mode
 
-(defun org-fc-review-flip-mode-header ()
-  "Header line shown in `org-fc-flip-mode'."
-  (format "Review, %d cards remaining, %s"
-          (length (oref org-fc-review--current-session cards))
-          (org-fc-session-stats-string org-fc-review--current-session)))
-
 (defvar org-fc-review-flip-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'org-fc-review-flip)
@@ -1704,12 +1698,6 @@ removed."
       (org-fc-review-flip-mode -1))))
 
 ;;;;; Rate Mode
-
-(defun org-fc-review-rate-mode-header ()
-  "Header line shown in `org-fc-rate-mode'."
-  (format "Rate, %d cards remaining, %s"
-          (length (oref org-fc-review--current-session cards))
-          (org-fc-session-stats-string org-fc-review--current-session)))
 
 (defvar org-fc-review-rate-mode-map
   (let ((map (make-sparse-keymap)))
