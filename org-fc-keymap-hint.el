@@ -56,6 +56,7 @@
 
 (add-hook 'org-fc-review-flip-mode-hook
           (lambda () (message (org-fc-keymap-hint org-fc-review-flip-mode-map))))
+
 (add-hook 'org-fc-review-rate-mode-hook
           (lambda () (message (org-fc-keymap-hint org-fc-review-rate-mode-map))))
 
