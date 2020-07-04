@@ -395,7 +395,7 @@ See also:
 - ~org-fc-after-review-hook~
   Runs when the review ends / is quit
 ** Extensions
-A number of extensions can be found in the ~contrib/~ folder.
+Org-fc comes with a number of extensions that are not enabled by default.
 
 *** ~org-fc-audio~
 Can be enabled with ~(require 'org-fc-audio)~.
