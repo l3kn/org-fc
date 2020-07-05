@@ -1670,16 +1670,16 @@ removed."
    header-line-format
    `((org-fc-review-flip-mode
       ,(format "Review, %d cards remaining, %s"
-               (length (oref org-fc-review--current-session cards))
+               (1+ (length (oref org-fc-review--current-session cards)))
                (org-fc-session-stats-string org-fc-review--current-session)))
      (org-fc-review-rate-mode
       ,(format "Rate, %d cards remaining, %s"
-               (length (oref org-fc-review--current-session cards))
+               (1+ (length (oref org-fc-review--current-session cards)))
                (org-fc-session-stats-string org-fc-review--current-session)))
-     ((org-fc-review-edit-mode
+     (org-fc-review-edit-mode
        ,(substitute-command-keys
          "\\<org-fc-review-edit-mode-map>Org-fc edit.  Resume \
-`\\[org-fc-review-resume]', quit review `\\[org-fc-review-quit]'."))))))
+`\\[org-fc-review-resume]', quit review `\\[org-fc-review-quit]'.")))))
 
 (defun org-fc-reset-header-line ()
   "Reset the header-line to its original value."
