@@ -59,11 +59,6 @@ Used to generate absolute paths to the awk scripts.")
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-unsuspend-overdue-percentage 0.1
-  "Time suspended cards can be overdue before resetting them."
-  :type 'float
-  :group 'org-fc)
-
 (defcustom org-fc-shuffle-positions t
   "Shuffle positions before review."
   :type 'boolean
@@ -1178,58 +1173,35 @@ Other useful values are:
    (org-fc--add-tag org-fc-suspended-tag)))
 
 ;;;###autoload
+(defun org-fc-suspend-tree ()
+  "Suspend all cards in the subtree at point."
+  (interactive)
+  (org-fc-map-cards 'org-fc-suspend-card 'tree))
+
+;;;###autoload
 (defun org-fc-suspend-buffer ()
   "Suspend all cards in the current buffer."
   (interactive)
   (org-fc-map-cards 'org-fc-suspend-card))
 
 ;;;###autoload
-(defun org-fc-suspend-tree ()
-  "Suspend all cards in the subtree at point."
-  (interactive)
-  (org-fc-map-cards 'org-fc-suspend-card 'tree))
-
-(defun org-fc--unsuspend-card ()
-  "Unsuspend the card at point, updating its review data.
-If a position is overdue by more than
-`org-fc-unsuspend-overdue-percentage' of its interval, reset it
-to box 0, if not, keep the current parameters."
-  (when (org-fc-suspended-entry-p)
-    (org-fc--remove-tag org-fc-suspended-tag)
-    ;; Reset all positions overdue more than `org-fc-unsuspend-overdue-percentage'.
-    (org-fc-set-review-data
-     (mapcar
-      (lambda (row)
-        (let* ((pos (cl-first row))
-               (interval (string-to-number (cl-fourth row)))
-               (due (cl-fifth row))
-               (days-overdue (org-fc-days-overdue due)))
-          (if (< days-overdue (* org-fc-unsuspend-overdue-percentage interval))
-              row
-            (org-fc-review-data-default pos))))
-      (org-fc-get-review-data)))))
-
-;;;###autoload
 (defun org-fc-unsuspend-card ()
   "Unsuspend the headline at point.
 Checks if the headline is a suspended card first."
   (interactive)
-  (if (org-fc-suspended-entry-p)
-      (org-fc-with-point-at-entry
-       (org-fc--unsuspend-card))
-    (message "Entry at point is not a suspended flashcard")))
+  (org-fc--remove-tag org-fc-suspended-tag))
 
 ;;;###autoload
 (defun org-fc-unsuspend-tree ()
   "Un-suspend all cards in the subtree at point."
   (interactive)
-  (org-fc-map-cards 'org-fc--unsuspend-card 'tree))
+  (org-fc-map-cards 'org-fc-unsuspend-card 'tree))
 
 ;;;###autoload
 (defun org-fc-unsuspend-buffer ()
   "Un-suspend all cards in the current buffer."
   (interactive)
-  (org-fc-map-cards 'org-fc--unsuspend-card))
+  (org-fc-map-cards 'org-fc-unsuspend-card))
 
 ;;; AWK Interface
 
