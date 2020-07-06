@@ -1183,6 +1183,12 @@ Other useful values are:
   (interactive)
   (org-fc-map-cards 'org-fc-suspend-card))
 
+;;;###autoload
+(defun org-fc-suspend-tree ()
+  "Suspend all cards in the subtree at point."
+  (interactive)
+  (org-fc-map-cards 'org-fc-suspend-card 'tree))
+
 (defun org-fc--unsuspend-card ()
   "Unsuspend the card at point, updating its review data.
 If a position is overdue by more than
