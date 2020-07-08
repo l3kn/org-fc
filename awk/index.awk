@@ -52,14 +52,20 @@ match($0, /#\+FILETAGS:[ \t]+(.*)/, a) {
 
 ## Heading Parsing
 
-match($0, /^(\*+)[ \t]+.*$/, a) {
+match($0, /^(\*+)[ \t]+(.*)$/, a) {
     level = length(a[1]);
+    title = a[2];
     tags = "";
 
     # tag re based on org-tag-re
+    # this only guarantees that there is at least one tab/space
+    # between the headline text and the tags.
     # TODO: Do this in a single match
-    if (match($0, /^\*+[ \t]+.*[ \t]+(:([a-zA-Z0-9_@#%]+:)+)$/, b) != 0) {
-        tags = b[1];
+    if (match(title, /^(.*)[ \t]+(:([a-zA-Z0-9_@#%]+:)+)$/, b) != 0) {
+        title = b[1];
+        # remove trailing tabs/spaces
+        sub(/[ \t]*$/, "", title);
+        tags = b[2];
     }
     parent_tags[level] = tags;
 
@@ -114,6 +120,7 @@ $0 ~ review_data_drawer {
 
         print "    (" \
             ":id " escape_string(properties["ID"])  \
+            " :title " escape_string(title)  \
             " :type " properties[type_property]     \
             " :created " parse_time(properties[created_property]) \
             " :suspended " (suspended ? "t" : "nil")   \
