@@ -1500,21 +1500,21 @@ EASE, BOX and INTERVAL are the current parameters of the card."
   "Add ELEMENTS to review history."
   (push
    elements
-   (slot-value org-fc-review--current-session 'history)))
+   (slot-value org-fc--session 'history)))
 
 (defun org-fc-review-history-save ()
   "Save all history entries in the current session."
-  (when org-fc-review--current-session
+  (when org-fc--session
     (append-to-file
      (concat
       (mapconcat
        (lambda (elements) (mapconcat #'identity elements "\t"))
-       (reverse (slot-value org-fc-review--current-session 'history))
+       (reverse (slot-value org-fc--session 'history))
        "\n")
       "\n")
      nil
      org-fc-review-history-file)
-    (setf (slot-value org-fc-review--current-session 'history) nil)))
+    (setf (slot-value org-fc--session 'history) nil)))
 
 ;; Make sure the history is saved even if Emacs is killed
 (add-hook 'kill-emacs-hook #'org-fc-review-history-save)
@@ -1561,7 +1561,7 @@ EASE, BOX and INTERVAL are the current parameters of the card."
                   (/ (* 100.0 (plist-get ratings :easy)) total))
         "No ratings yet"))))
 
-(defvar org-fc-review--current-session nil
+(defvar org-fc--session nil
   "Current review session.")
 
 ;;;; Reading / Writing Review Data
@@ -1648,12 +1648,12 @@ removed."
    header-line-format
    `((org-fc-review-flip-mode
       ,(format "Review, %d cards remaining, %s"
-               (1+ (length (oref org-fc-review--current-session cards)))
-               (org-fc-session-stats-string org-fc-review--current-session)))
+               (1+ (length (oref org-fc--session cards)))
+               (org-fc-session-stats-string org-fc--session)))
      (org-fc-review-rate-mode
       ,(format "Rate, %d cards remaining, %s"
-               (1+ (length (oref org-fc-review--current-session cards)))
-               (org-fc-session-stats-string org-fc-review--current-session)))
+               (1+ (length (oref org-fc--session cards)))
+               (org-fc-session-stats-string org-fc--session)))
      (org-fc-review-edit-mode
        ,(substitute-command-keys
          "\\<org-fc-review-edit-mode-map>Org-fc edit.  Resume \
@@ -1686,7 +1686,7 @@ removed."
     ;; Make sure only one of the modes is active at a time
     (org-fc-review-rate-mode -1)
     ;; Make sure we're in org mode and there is an active review session
-    (unless (and (eq major-mode 'org-mode) org-fc-review--current-session)
+    (unless (and (eq major-mode 'org-mode) org-fc--session)
       (org-fc-review-flip-mode -1))))
 
 ;;;;; Rate Mode
@@ -1715,7 +1715,7 @@ removed."
     ;; Make sure only one of the modes is active at a time
     (org-fc-review-flip-mode -1)
     ;; Make sure we're in org mode and there is an active review session
-    (unless (and (eq major-mode 'org-mode) org-fc-review--current-session)
+    (unless (and (eq major-mode 'org-mode) org-fc--session)
       (org-fc-review-rate-mode -1))))
 
 (defvar org-fc-review-edit-mode-map
@@ -1737,7 +1737,7 @@ removed."
     (org-fc-review-flip-mode -1)
     (org-fc-review-rate-mode -1)
     ;; Make sure we're in org mode and there is an active review session
-    (unless (and (eq major-mode 'org-mode) org-fc-review--current-session)
+    (unless (and (eq major-mode 'org-mode) org-fc--session)
       (org-fc-review-edit-mode -1))))
 
 ;;;; Main Loop
@@ -1787,7 +1787,7 @@ Valid contexts:
 - 'buffer, all cards in the current buffer
 - a list of paths"
   (interactive (list (org-fc-select-context)))
-  (if org-fc-review--current-session
+  (if org-fc--session
       (message "Flashcards are already being reviewed")
     (let* ((index (org-fc-index context))
            (cards (org-fc-index-filter-due index)))
@@ -1797,7 +1797,7 @@ Valid contexts:
       (if (null cards)
           (message "No cards due right now")
         (progn
-          (setq org-fc-review--current-session
+          (setq org-fc--session
                 (org-fc-make-review-session cards))
           (run-hooks 'org-fc-before-review-hook)
           (org-fc-review-next-card))))))
@@ -1805,7 +1805,7 @@ Valid contexts:
 (defun org-fc-review-resume ()
   "Resume review session, if it was paused."
   (interactive)
-  (if org-fc-review--current-session
+  (if org-fc--session
       (progn
         (org-fc-review-edit-mode -1)
         (org-fc-review-next-card 'resuming))
@@ -1831,9 +1831,9 @@ Valid contexts:
 (defun org-fc-review-next-card (&optional resuming)
   "Review the next card of the current session.
 If RESUMING is non-nil, some parts of the buffer setup are skipped."
-  (if (org-fc-session-cards-pending-p org-fc-review--current-session)
+  (if (org-fc-session-cards-pending-p org-fc--session)
       (condition-case err
-          (let* ((card (org-fc-session-pop-next-card org-fc-review--current-session))
+          (let* ((card (org-fc-session-pop-next-card org-fc--session))
                  (path (plist-get card :path))
                  (id (plist-get card :id))
                  (type (plist-get card :type))
@@ -1881,8 +1881,8 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
 Before evaluating BODY, check if the heading at point has the
 same ID as the current card in the session."
   (declare (indent defun))
-  `(if org-fc-review--current-session
-       (if-let ((,var (oref org-fc-review--current-session current-item)))
+  `(if org-fc--session
+       (if-let ((,var (oref org-fc--session current-item)))
            (if (string= (plist-get ,var :id) (org-id-get))
                (progn ,@body)
              (message "Flashcard ID mismatch"))
@@ -1910,12 +1910,12 @@ same ID as the current card in the session."
                (position (plist-get card :position))
                (now (time-to-seconds (current-time)))
                (delta (- now org-fc-timestamp)))
-          (org-fc-session-add-rating org-fc-review--current-session rating)
+          (org-fc-session-add-rating org-fc--session rating)
           (org-fc-review-update-data path id position rating delta)
           (org-fc-review-reset)
 
           (if (and (eq rating 'again) org-fc-append-failed-cards)
-              (org-fc-session-append-card org-fc-review--current-session card))
+              (org-fc-session-append-card org-fc--session card))
 
           (save-buffer)
           (if org-fc-reviewing-existing-buffer
@@ -2009,7 +2009,7 @@ rating the card."
   (org-fc-review-reset)
   (run-hooks 'org-fc-after-review-hook)
   (org-fc-review-history-save)
-  (setq org-fc-review--current-session nil))
+  (setq org-fc--session nil))
 
 ;;;###autoload
 (defun org-fc-review-edit ()
@@ -2020,10 +2020,10 @@ Pauses the review, unnarrows the buffer and activates
   (org-fc-show-all)
   ;; Queue the current flashcard so it's reviewed a second time
   (org-fc-session-prepend-card
-   org-fc-review--current-session
-   (oref org-fc-review--current-session current-item))
-  (setf (oref org-fc-review--current-session paused) t)
-  (setf (oref org-fc-review--current-session current-item) nil)
+   org-fc--session
+   (oref org-fc--session current-item))
+  (setf (oref org-fc--session paused) t)
+  (setf (oref org-fc--session current-item) nil)
   (org-fc-review-edit-mode 1))
 
 ;;; Dashboard
