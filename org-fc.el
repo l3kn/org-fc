@@ -270,6 +270,14 @@ Used to calculate the time needed for reviewing a card.")
 
 ;;; Helper Functions
 
+(defun org-fc-member-p (path)
+  "Check if PATH is member of one of the `org-fc-directories'."
+  (setq path (expand-file-name path))
+  (and (string= (file-name-extension file) "org")
+       (cl-some
+        (lambda (dir) (string-prefix-p (expand-file-name dir) path))
+        org-fc-directories)))
+
 (defun org-fc-noop ()
   "Noop-function.")
 
