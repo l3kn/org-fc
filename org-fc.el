@@ -1042,17 +1042,18 @@ FACE can be used to set the text face of the overlay."
 
 (defun org-fc-hide-drawers ()
   "Hide all drawers except ones in `org-fc-drawer-whitelist' after point."
-  (save-excursion
-    (while (re-search-forward org-drawer-regexp nil t)
-      (let ((start (1- (match-beginning 0)))
-            (name (match-string 1))
-            (end))
-        (if (re-search-forward ":END:" nil t)
-            (setq end (point))
-          (error "No :END: found for drawer"))
-	(if (member name org-fc-drawer-whitelist)
-	    (org-flag-drawer nil nil start end)
-	    (org-fc-hide-region start end))))))
+  (let ((bound (org-element-property :end (org-element-at-point))))
+   (save-excursion
+     (while (re-search-forward org-drawer-regexp bound t)
+       (let ((start (1- (match-beginning 0)))
+             (name (match-string 1))
+             (end))
+         (if (re-search-forward ":END:" bound t)
+             (setq end (point))
+           (error "No :END: found for drawer"))
+	       (if (member name org-fc-drawer-whitelist)
+	           (org-flag-drawer nil nil start end)
+	         (org-fc-hide-region start end)))))))
 
 ;;;; Hiding Headings / Section Contents
 
