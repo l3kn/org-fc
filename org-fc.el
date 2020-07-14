@@ -963,7 +963,7 @@ Processes all holes in the card text."
 ;;; Working with Overlays / Hiding Text
 ;;;; Finding Locations in the Buffer
 
-(defun org-fc-overlay--point-at-end-of-previous ()
+(defun org-fc-point-at-end-of-previous ()
   "Value of point at the end of the previous line.
 Returns nil if there is no previous line."
   (save-excursion
@@ -973,7 +973,7 @@ Returns nil if there is no previous line."
       (progn (backward-char)
              (point)))))
 
-(defun org-fc-overlay--point-after-title ()
+(defun org-fc-point-after-title ()
   "Value of point at the first line after the title keyword.
 Returns nil if there is no title keyword."
   (org-with-point-at (point-min)
@@ -1121,7 +1121,7 @@ If TEXT is non-nil, the content is replaced with TEXT."
 Only parent headings of the current heading remain visible."
   (interactive)
   (org-fc-with-point-at-entry
-   (let* ((end (org-fc-overlay--point-at-end-of-previous))
+   (let* ((end (org-fc-point-at-end-of-previous))
           (tags (org-get-tags nil 'local))
           (notitle (member "notitle" tags))
           (noheading (member "noheading" tags))
@@ -1131,12 +1131,12 @@ Only parent headings of the current heading remain visible."
          (org-fc-hide-heading))
      (while (org-up-heading-safe)
        (let ((start (point-at-eol))
-             (end_ (org-fc-overlay--point-at-end-of-previous)))
+             (end_ (org-fc-point-at-end-of-previous)))
          (if (< start end)
              (org-fc-hide-region end start))
          (setq end end_)))
-     (let ((at (org-fc-overlay--point-after-title))
-           (eop (org-fc-overlay--point-at-end-of-previous)))
+     (let ((at (org-fc-point-after-title))
+           (eop (org-fc-point-at-end-of-previous)))
        ;; Don't hide anything if the heading is at the beginning of the buffer
        (if eop
            (if (and at (not notitle))
