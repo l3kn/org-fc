@@ -5,6 +5,21 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** [2020-07-16 Thu]
+*** Changed
+- Suspending a card during review now removes all other positions of
+  it from the current session, to avoid reviewing suspended cards
+** [2020-07-08 Wed]
+*** Changed
+The awk index now also includes the headline text of each card.
+
+This will be useful for building a ~tabulated-list-mode~ based card
+overview.
+** [2020-07-06 Mon]
+*** Added
+- ~org-fc-suspend-tree~ for suspending all cards in a subtree
+*** Changed
+- unsuspending overdue cards doesn't reset their review data anymore
 ** [2020-07-04 Sat]
 *** Added
 - ~org-fc-review-edit~ (bound to ~p~) pauses the review for editing
