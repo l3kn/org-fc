@@ -1886,15 +1886,18 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
                 (setq org-fc-timestamp (time-to-seconds (current-time)))
 
                 (run-hooks 'org-fc-before-setup-hook)
-                (funcall (org-fc-type-setup-fn type) position)
-                (run-hooks 'org-fc-after-setup-hook)
+                (let ((step (funcall (org-fc-type-setup-fn type) position)))
+                  (run-hooks 'org-fc-after-setup-hook)
 
-                ;; If the card has a no-noop flip function,
-                ;; skip to rate-mode
-                (let ((flip-fn (org-fc-type-flip-fn type)))
-                  (if (or (null flip-fn) (eq flip-fn #'org-fc-noop))
-                      (org-fc-review-rate-mode 1)
-                    (org-fc-review-flip-mode 1))))))
+                  ;; If the card has a no-noop flip function,
+                  ;; skip to rate-mode
+                  (let ((flip-fn (org-fc-type-flip-fn type)))
+                    (if (or
+                         (eq step 'rate)
+                         (null flip-fn)
+                         (eq flip-fn #'org-fc-noop))
+                        (org-fc-review-rate-mode 1)
+                      (org-fc-review-flip-mode 1)))))))
         (error
          (org-fc-review-quit)
          (signal (car err) (cdr err))))
