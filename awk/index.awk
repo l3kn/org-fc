@@ -9,6 +9,7 @@ BEGIN {
     suspended_tag = ":" or_default(suspended_tag, "suspended") ":";
     review_data_drawer = ":" or_default(review_data_drawer, "REVIEW_DATA") ":";
     type_property = or_default(type_property, "FC_TYPE");
+    cloze_type_property = or_default(cloze_type_property, "FC_CLOZE_TYPE");
     created_property = or_default(created_property, "FC_CREATED");
 
     # Small state machine to make sure cards are in the correct format
@@ -118,10 +119,15 @@ $0 ~ review_data_drawer {
         }
         local_tags = parent_tags[level];
 
+        cloze_type = ""
+        if (cloze_type_property in properties)
+            cloze_type = " :cloze-type " properties[cloze_type_property]
+
         print "    (" \
             ":id " escape_string(properties["ID"])  \
             " :title " escape_string(title)  \
             " :type " properties[type_property]     \
+            cloze_type                                            \
             " :created " parse_time(properties[created_property]) \
             " :suspended " (suspended ? "t" : "nil")   \
             " :inherited-tags " escape_string(inherited_tags)  \

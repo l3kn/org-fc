@@ -76,6 +76,11 @@ Used to generate absolute paths to the awk scripts.")
   :type 'string
   :group 'org-fc)
 
+(defcustom org-fc-cloze-type-property "FC_CLOZE_TYPE"
+  "Property used to store the card's subtype for cloze cards."
+  :type 'string
+  :group 'org-fc)
+
 (defcustom org-fc-created-property "FC_CREATED"
   "Property used to store the cards creation time."
   :type 'string
@@ -189,6 +194,12 @@ Values are in days."
 (defcustom org-fc-sm2-fuzz-max 1.1
   "Upper bound for random interval fuzz factor."
   :type 'float
+  :group 'org-fc)
+
+(defcustom org-fc-bury-siblings nil
+  "Whether or not multiple positions of the same card should be shown during
+review. Does not apply to cloze single and cloze enumeration cards."
+  :type 'boolean
   :group 'org-fc)
 
 ;;;; Hooks
@@ -1228,6 +1239,7 @@ With the '-L' option, 'find' follows symlinks."
   `(("fc_tag" . ,org-fc-flashcard-tag)
     ("suspended_tag" . ,org-fc-suspended-tag)
     ("type_property" . ,org-fc-type-property)
+    ("cloze_type_property" . ,org-fc-cloze-type-property)
     ("created_property" . ,org-fc-created-property)
     ("review_data_drawer" . ,org-fc-review-data-drawer)))
 
@@ -1410,7 +1422,11 @@ Cards with no positions are removed from the index."
                   (time-less-p (plist-get pos :due) now))
                 (plist-get card :positions))))
           (unless (null due)
-            (plist-put card :positions due)
+            (plist-put
+             card :positions
+             (if (or (not org-fc-bury-siblings)
+                     (member (plist-get card :cloze-type) '(single enumeration)))
+                 due (list (car due))))
             (push card res)))))
     res))
 
