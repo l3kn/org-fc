@@ -1,7 +1,0 @@
-#+TITLE: Sharing Decks
-
-It should be possible to share sets of cards by removing the review
-data and syncing them with git.
-
-At least one of the existing emacs flashcard packages implements this
-functionality.

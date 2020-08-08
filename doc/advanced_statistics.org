@@ -1,6 +1,0 @@
-#+TITLE: Advanced Statistics
-
-A combination of the awk scripts and R can be used to generate
-advanced card / position / review statistics.
-
-* TODO Implement proof of concept
