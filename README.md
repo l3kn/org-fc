@@ -11,6 +11,6 @@ next review interval is calculated based on how well you remembered
 the contents of the card.
 
 - [Documentation](https://www.leonrische.me/fc/index.html)
-- [Mailing List, Announcments related to org-fc](https://lists.sr.ht/~l3kn/org-fc-devel)
-- [Mailing List, Development Discussion](https://lists.sr.ht/~l3kn/org-fc-announce)
+- [Mailing List, Announcments related to org-fc](https://lists.sr.ht/~l3kn/org-fc-announce)
+- [Mailing List, Development Discussion](https://lists.sr.ht/~l3kn/org-fc-devel)
 - [Issue Tracker](https://todo.sr.ht/~l3kn/org-fc)
