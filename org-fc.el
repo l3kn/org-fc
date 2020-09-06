@@ -602,27 +602,26 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
   (org-fc--init-card "normal")
   (org-fc-review-data-update '("front")))
 
-(defvar org-fc-type-normal--hidden '())
-
 (defun org-fc-type-normal-setup (_position)
   "Prepare a normal card for review."
   (interactive)
-  (if (org-fc-has-back-heading-p)
-      (progn
-        (org-show-subtree)
-        (setq org-fc-type-normal--hidden (org-fc-hide-subheading "Back")))
-    (setq org-fc-type-normal--hidden nil)
-    (org-flag-subtree t)))
+  ;; Make sure the card is collapsed
+  (outline-hide-subtree)
+  (when (org-fc-has-back-heading-p)
+    (org-show-entry)
+    ;; Make sure the back heading is visible
+    (org-fc-with-point-at-back-heading
+     (org-show-set-visibility 'minimal))))
 
 (defun org-fc-type-normal-flip ()
   "Flip a normal card."
   (interactive)
-  (org-show-subtree)
-  (save-excursion
-    (dolist (pos org-fc-type-normal--hidden)
-      (goto-char pos)
-      (org-show-subtree)))
+  (org-show-entry)
+  (org-show-children)
+  ;; NOTE: the body only runs if the card has a back heading
   (org-fc-with-point-at-back-heading
+   (org-show-entry)
+   (org-show-children)
    (org-fc-show-latex)))
 
 (org-fc-register-type
