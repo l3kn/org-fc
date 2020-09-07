@@ -645,18 +645,22 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
   (pcase position
     ("front" (org-fc-type-normal-setup position))
     ("back"
-     (org-show-subtree)
+     (outline-hide-subtree)
      (if (org-fc-has-back-heading-p)
-         (setq org-fc-type-double--overlay (org-fc-hide-content "[...]\n"))
-       (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]"))))
+         (outline-hide-entry)
+         (org-show-entry)
+         (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]"))))
     (_ (error "Invalid double position %s" position))))
 
 (defun org-fc-type-double-flip ()
   "Flip a double card."
   (if org-fc-type-double--overlay
       (delete-overlay org-fc-type-double--overlay))
-  (org-show-subtree)
+  (org-show-entry)
+  (org-show-children)
   (org-fc-with-point-at-back-heading
+   (org-show-entry)
+   (org-show-children)
    (org-fc-show-latex)))
 
 (org-fc-register-type
