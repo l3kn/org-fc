@@ -647,7 +647,9 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
     ("back"
      (outline-hide-subtree)
      (if (org-fc-has-back-heading-p)
-         (outline-hide-entry)
+         (org-fc-with-point-at-back-heading
+          (org-fc-show-latex)
+          (outline-show-entry))
          (org-show-entry)
          (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]"))))
     (_ (error "Invalid double position %s" position))))
