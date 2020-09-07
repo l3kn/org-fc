@@ -197,8 +197,8 @@ Values are in days."
   :group 'org-fc)
 
 (defcustom org-fc-bury-siblings nil
-  "Whether or not multiple positions of the same card should be shown during
-review. Does not apply to cloze single and cloze enumeration cards."
+  "If non-nil, show at most one position of a card per review.
+Does not apply to cloze single and cloze enumeration cards."
   :type 'boolean
   :group 'org-fc)
 
@@ -969,6 +969,7 @@ FACE can be used to set the text face of the overlay."
     o))
 
 (defun org-fc-make-overlay (begin end &rest props)
+  "Create an overlay from BEGIN to END with PROPS."
   (let ((o (make-overlay begin end)))
     (overlay-put o 'category 'org-fc)
     (cl-loop for (prop value) on props by #'cddr do
@@ -976,7 +977,7 @@ FACE can be used to set the text face of the overlay."
     o))
 
 (defun org-fc-overlay-surround (o before after &optional face)
-  "Surround OV with strings BEFORE and AFTER with optional FACE."
+  "Surround O with strings BEFORE and AFTER with optional FACE."
   (overlay-put o 'before-string (propertize before 'face face))
   (overlay-put o 'after-string (propertize after 'face face))
   o)
@@ -1227,7 +1228,7 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
                             (plist-get card :local-tags))))
                         (plist-get file :cards))))
           (read output)))
-      (error "org-fc shell error: %s" output))))
+      (error "Org-fc shell error: %s" output))))
 
 (defun org-fc-awk-stats-reviews ()
   "Statistics for all card reviews.
@@ -1242,7 +1243,7 @@ Return nil there is no history file."
                :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
         (if (string-prefix-p "(" output)
             (read output)
-          (error "org-fc shell error: %s" output)))))
+          (error "Org-fc shell error: %s" output)))))
 
 ;;; Indexing Cards
 ;;;; Card Filters
