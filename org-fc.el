@@ -1078,39 +1078,6 @@ If TEXT is non-nil, the heading is replaced with TEXT."
           (org-fc-hide-region (match-beginning 4) (match-end 4) (or text "..."))
         (error "Point is not on a heading")))))
 
-(defun org-fc-hide-subheadings-if (test)
-  "Hide subheadings matching the predicate TEST.
-TEST is a function taking no arguments and will be called for
-each of the immediate subheadings of the current headline, with
-the point on the relevant subheading.  TEST should return nil if
-the subheading is to be revealed, non-nil if it is to be hidden.
-Returns a list containing the position of each immediate
-subheading of the current topic."
-  (let ((entry-level (org-current-level))
-        (sections nil))
-    (org-show-subtree)
-    (save-excursion
-      (org-map-entries
-       (lambda ()
-         (when (and (not (outline-invisible-p))
-                    (> (org-current-level) entry-level))
-           (when (or (/= (org-current-level) (1+ entry-level))
-                     (funcall test))
-             (outline-hide-subtree))
-           (push (point) sections)))
-       t 'tree))
-    (reverse sections)))
-
-(defun org-fc-hide-subheading (name)
-  "Hide all subheadings matching NAME."
-  (org-fc-hide-subheadings-if
-   (lambda () (string= (org-get-heading t) name))))
-
-(defun org-fc-hide-all-subheadings-except (heading-list)
-  "Hide all subheadings except HEADING-LIST."
-  (org-fc-hide-subheadings-if
-   (lambda () (not (member (org-get-heading t) heading-list)))))
-
 (defun org-fc-hide-content (&optional text)
   "Hide the main text of a heading *before* the first subheading.
 If TEXT is non-nil, the content is replaced with TEXT."
