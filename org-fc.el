@@ -918,15 +918,17 @@ Processes all holes in the card text."
 
 (defun org-fc-type-cloze-setup (position)
   "Prepare POSITION of a cloze card for review."
+  (outline-hide-subtree)
   (let ((hole (string-to-number position))
         (cloze-type (intern (org-entry-get (point) org-fc-type-cloze-type-property))))
-    (org-show-subtree)
+    (org-show-entry)
     (setq
      org-fc-type-cloze--overlays
      (org-fc-type-cloze-hide-holes hole cloze-type))))
 
 (defun org-fc-type-cloze-flip ()
   "Flip a cloze card."
+  (org-show-children)
   (if-let ((overlays org-fc-type-cloze--overlays))
       (progn
         (if (plist-member overlays :separator)
