@@ -752,7 +752,10 @@ function is expected to be called with point on a heading."
   '(deletion enumeration context single)
   "List of valid cloze card subtypes.")
 
-(defvar org-fc-type-cloze--overlays '())
+(defvar org-fc-type-cloze--text '()
+  "Text overlay.")
+(defvar org-fc-type-cloze--hint '()
+  "Hint overlay.")
 
 (defcustom org-fc-type-cloze-context 1
   "Number of surrounding cards to show for 'context' type cards."
@@ -767,25 +770,11 @@ function is expected to be called with point on a heading."
     "{{"
     (group-n 1 (* (or (seq "$" (+ (not (any "$"))) "$")
                       (not (any "}"))))) "}"
-    (?  (seq "{" (group-n 2 (* (or
-                                (seq "$" (not (any "$")) "$")
-                                (not (any "}"))))) "}"))
-    (?  "@" (group-n 3 (+ digit)))
+    (? (seq "{" (group-n 2 (* (or (seq "$" (not (any "$")) "$")
+                                  (not (any "}"))))) "}"))
+    (? "@" (group-n 3 (+ digit)))
     "}"))
-  "Regexp for a cloze hole without an id.")
-
-(defvar org-fc-type-cloze-position-hole-re
-  (rx
-   (seq
-    "{{"
-    (group-n 1 (* (or (seq "$" (+ (not (any "$"))) "$")
-                      (not (any "}"))))) "}"
-    (?  (seq "{" (group-n 2 (* (or
-                                (seq "$" (not (any "$")) "$")
-                                (not (any "}"))))) "}"))
-    (seq "@" (group-n 3 (+ digit)))
-    "}"))
-  "Regexp for a cloze hole with an id.")
+  "Regexp for a cloze holes.")
 
 (defun org-fc-type-cloze-max-hole-id ()
   "Get the max-hole property of the heading at point."
@@ -793,110 +782,70 @@ function is expected to be called with point on a heading."
       (string-to-number max-id)
     -1))
 
-;; NOTE: The way parts of the hole are hidden / revealed is probably
-;; unnecessarily complicated. I couldn't get latex / org text emphasis
-;; to work otherwise.  If the hole has no hint, we can't use any
-;; properties of match 2.
-(defun org-fc-type-cloze--overlay-current (hole)
-  "Generate a list of overlays for the current card.
-HOLE is the id of the hole being reviewed."
-  (let ((hole-pos (plist-get hole :hole-pos))
-        (text-pos (plist-get hole :text-pos))
-        (hint-pos (plist-get hole :hint-pos)))
-    (if (car hint-pos)
-        (list
-         :before-text
-         (org-fc-hide-region (car hole-pos) (car text-pos))
-         :text
-         (org-fc-hide-region (car text-pos) (cdr text-pos))
-         :separator
-         (org-fc-hide-region (cdr text-pos) (car hint-pos)
-                             "[..."
-                             'org-fc-type-cloze-hole-face)
-         :hint
-         (org-fc-overlay-region (car hint-pos) (cdr hint-pos)
-                                'org-fc-type-cloze-hole-face)
-         :after-hint
-         (org-fc-hide-region (cdr hint-pos) (cdr hole-pos)
-                             "]"
-                             'org-fc-type-cloze-hole-face))
-      (list
-       :before-text
-       (org-fc-hide-region (car hole-pos) (car text-pos))
-       :text
-       (org-fc-hide-region (car text-pos) (cdr text-pos))
-       :hint
-       (org-fc-hide-region (cdr text-pos) (cdr hole-pos)
-                           "[...]"
-                           'org-fc-type-cloze-hole-face)))))
-
 (defun org-fc-type-cloze--parse-holes (current-position end)
   "Starting at point, collect all cloze holes before END.
 CURRENT-POSITION is the id of the hole being reviewed.  Returns a
 pair (holes . current-index) where current-index is the index of
 the hole for the current position."
-  (let ((holes nil)
-        (current-index nil))
-    (while (re-search-forward org-fc-type-cloze-position-hole-re end t)
-      (let ((text (match-string 1))
-            (hint (match-string 2))
-            (position (string-to-number (match-string 3))))
-        (push (list
-               :text text
-               :hint hint
-               :hole-pos (cons (match-beginning 0) (match-end 0))
-               :text-pos (cons (match-beginning 1) (match-end 1))
-               :hint-pos (cons (match-beginning 2) (match-end 2)))
-              holes)
-        ;; Track the position of the current hole in the list of holes
-        (if (= current-position position) (setq current-index (1- (length holes))))))
+  (let (holes current-index)
+    (while (re-search-forward org-fc-type-cloze-hole-re end t)
+      (when (match-beginning 3)
+        (push (match-data) holes)
+        (if (= current-position (string-to-number (match-string 3)))
+            (setq current-index (1- (length holes))))))
     (cons (reverse holes) current-index)))
 
-(defun org-fc-type-cloze--tag-holes (type holes current-index)
-  "Tag HOLES of a card of TYPE in relation to the hole at CURRENT-INDEX."
-  (cl-loop for i below (length holes)
-           for hole in holes
-           collect
-           (if (= i current-index)
-               (cons hole :hint)
-             (cl-case type
-               ('enumeration
-                (if (< i current-index)
-                    (cons hole :show)
-                  (cons hole :hide)))
-               ('deletion (cons hole :show))
-               ('single (cons hole :hide))
-               ('context
-                (if (<= (abs (- i current-index)) org-fc-type-cloze-context)
-                    (cons hole :show)
-                  (cons hole :hide)))
-               (t (error "Org-fc: Unknown cloze card type %s" type))))))
+(defun org-fc-type-cloze--hole-visible-p (type i current-index)
+  "Determine whether hole I of card TYPE should be visible based.
+CURRENT-INDEX is the index of the current position in the list of all holes."
+  (cl-case type
+    ('enumeration (< i current-index))
+    ('deletion t)
+    ('single nil)
+    ('context (<= (abs (- i current-index)) org-fc-type-cloze-context))
+    (t (error "Org-fc: Unknown cloze card type %s" type))))
 
-(defun org-fc-type-cloze-hide-holes (current-position type)
-  "Hide holes of a card of TYPE in relation to the CURRENT-POSITION."
+(defun org-fc-type-cloze-hide-holes (position)
+  "Hide holes of a card of TYPE in relation to POSITION."
   (org-fc-with-point-at-entry
-   (let* ((el (org-element-at-point))
-          (overlays nil)
-          (end (org-element-property :contents-end el))
-          (holes (org-fc-type-cloze--parse-holes current-position end))
-          (tagged-holes (org-fc-type-cloze--tag-holes type (car holes) (cdr holes))))
-     (cl-loop for (hole . tag) in (reverse tagged-holes) do
-              (cl-case tag
-                (:show
-                 (org-fc-hide-region
-                  (car (plist-get hole :hole-pos))
-                  (car (plist-get hole :text-pos)))
-                 (org-fc-hide-region
-                  (cdr (plist-get hole :text-pos))
-                  (cdr (plist-get hole :hole-pos))))
-                (:hide
-                 (org-fc-hide-region
-                  (car (plist-get hole :hole-pos))
-                  (cdr (plist-get hole :hole-pos))
-                  "..."))
-                (:hint
-                 (setq overlays (org-fc-type-cloze--overlay-current hole)))))
-     overlays)))
+   (let* ((type (intern (org-entry-get (point) org-fc-type-cloze-type-property)))
+          (end (cdr (org-fc-content-position)))
+          (holes-index (org-fc-type-cloze--parse-holes position end))
+          (holes (car holes-index))
+          (current-index (cdr holes-index)))
+     (cl-loop
+      for i below (length holes)
+      for (hole-beg hole-end text-beg text-end hint-beg hint-end) in holes
+      do
+      (progn
+        ;; Fake position if there is no hint
+        (unless hint-beg (setq hint-beg text-end))
+        (unless hint-end (setq hint-end text-end))
+        (cond
+         ;; If the hole is the one currently being reviewed, hide all
+         ;; the hole markup, hide the answer, format the hint as
+         ;; "[...hint]" and set the font for the whole hole.
+         ((= i current-index)
+          (org-fc-hide-region hole-beg text-beg "")
+          (setq org-fc-type-cloze--text
+                (org-fc-make-overlay text-beg text-end 'invisible t))
+          (org-fc-hide-region text-end hint-beg "")
+          (setq org-fc-type-cloze--hint
+                (org-fc-overlay-surround
+                 (org-fc-make-overlay hint-beg hint-end)
+                 "[..." "]" 'org-fc-type-cloze-hole-face))
+          (org-fc-hide-region hint-end hole-end "")
+          (org-fc-make-overlay
+           hole-beg hole-end
+           'face 'org-fc-type-cloze-hole-face))
+         ;; If the text of another hole should be visible,
+         ;; hide the hole markup and the hint
+         ((org-fc-type-cloze--hole-visible-p type i current-index)
+          (org-fc-hide-region hole-beg text-beg)
+          (org-fc-hide-region text-end hole-end))
+         ;; If the text of another hole should not be visible,
+         ;; hide the whole hole
+         (t (org-fc-hide-region hole-beg hole-end "..."))))))))
 
 ;;;;; Setup / Flipping
 
@@ -905,45 +854,35 @@ the hole for the current position."
 Processes all holes in the card text."
   (interactive (list
                 (intern
-                 (completing-read
-                  "Cloze Type: "
-                  org-fc-type-cloze-types))))
+                 (completing-read "Cloze Type: " org-fc-type-cloze-types))))
   (unless (member type org-fc-type-cloze-types)
     (error "Invalid cloze card type: %s" type))
   (org-fc--init-card "cloze")
   (org-fc-type-cloze-update)
-  (org-set-property
-   org-fc-type-cloze-type-property
-   (format "%s" type)))
+  (org-set-property org-fc-type-cloze-type-property (format "%s" type)))
 
 (defun org-fc-type-cloze-setup (position)
   "Prepare POSITION of a cloze card for review."
+  (setq org-fc-type-cloze--text nil)
+  (setq org-fc-type-cloze--hint nil)
   (outline-hide-subtree)
-  (let ((hole (string-to-number position))
-        (cloze-type (intern (org-entry-get (point) org-fc-type-cloze-type-property))))
-    (org-show-entry)
-    (setq
-     org-fc-type-cloze--overlays
-     (org-fc-type-cloze-hide-holes hole cloze-type))))
+  (org-show-entry)
+  (org-fc-type-cloze-hide-holes (string-to-number position)))
 
 (defun org-fc-type-cloze-flip ()
   "Flip a cloze card."
   (org-show-children)
-  (if-let ((overlays org-fc-type-cloze--overlays))
-      (progn
-        (if (plist-member overlays :separator)
-            (org-fc-hide-overlay (plist-get overlays :separator)))
-        (if (plist-member overlays :after-hint)
-            (org-fc-hide-overlay (plist-get overlays :after-hint)))
-        (org-fc-hide-overlay (plist-get overlays :hint))
-        (org-fc-show-overlay
-         (plist-get overlays :text)
-         'org-fc-type-cloze-hole-face))))
+  (overlay-put org-fc-type-cloze--text 'invisible nil)
+  ;; Remove all overlays in the region of the hint to get rid of
+  ;; latex overlays in the hint, then hide the region again.
+  (let* ((hint-start (overlay-start org-fc-type-cloze--hint))
+         (hint-end (overlay-end org-fc-type-cloze--hint)))
+    (remove-overlays hint-start hint-end)
+    (org-fc-hide-region hint-start hint-end)))
 
 (defun org-fc-type-cloze-update ()
   "Update the review data & deletions of the current heading."
-  (let* ((el (org-element-at-point))
-         (end (org-element-property :contents-end el))
+  (let* ((end (cdr (org-fc-content-position)))
          (hole-id (1+ (org-fc-type-cloze-max-hole-id)))
          ids)
     (save-excursion
@@ -1005,13 +944,12 @@ FACE can be used to set the text face of the overlay, e.g. to
 make it bold."
   ;; (remove-overlays from to 'category 'org-fc-hidden)
   (let ((o (make-overlay from to nil 'front-advance)))
-    (overlay-put o 'display-original (overlay-get o 'display))
     (overlay-put o 'category 'org-fc-hidden)
     (overlay-put o 'evaporate t)
+    (if face (overlay-put o 'face face))
     (if (stringp text)
         (progn
           (overlay-put o 'invisible nil)
-          (if face (overlay-put o 'face face))
           (overlay-put o 'display text))
       (overlay-put o 'invisible t))
     o))
@@ -1039,6 +977,20 @@ FACE can be used to set the text face of the overlay."
   (overlay-put o 'invisible nil)
   (if face
       (overlay-put o 'face face)))
+
+(defun org-fc-make-overlay (begin end &rest props)
+  (let ((o (make-overlay begin end)))
+    ;; TODO: Rename to 'org-fc
+    (overlay-put o 'category 'org-fc-visible)
+    (cl-loop for (prop value) on props by #'cddr do
+             (overlay-put o prop value))
+    o))
+
+(defun org-fc-overlay-surround (o before after &optional face)
+  "Surround OV with strings BEFORE and AFTER with optional FACE."
+  (overlay-put o 'before-string (propertize before 'face face))
+  (overlay-put o 'after-string (propertize after 'face face))
+  o)
 
 ;;;; Hiding Drawers
 
