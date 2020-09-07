@@ -699,18 +699,14 @@ function is expected to be called with point on a heading."
   (org-fc--init-card "text-input")
   (org-fc-review-data-update '("front")))
 
-(defvar org-fc-type-text-input--hidden '())
-
 (defun org-fc-type-text-input-setup (_position)
   "Prepare a text-input card for review."
   (interactive)
   ;; Hide answer
-  (if (org-fc-has-back-heading-p)
-      (progn
-        (org-show-subtree)
-        (setq org-fc-type-text-input--hidden (org-fc-hide-subheading "Back")))
-    (setq org-fc-type-text-input--hidden nil)
-    (org-flag-subtree t))
+  (outline-hide-subtree)
+  (when (org-fc-has-back-heading-p)
+    (org-show-entry)
+    (org-fc-with-point-at-back-heading (org-show-set-visibility 'minimal)))
   ;; Prompt user, create diff overlay
   (let* ((pos-content (org-fc-text-input-content))
          (content (cdr pos-content))
@@ -736,10 +732,12 @@ function is expected to be called with point on a heading."
           ")\n"))))
   ;; Reveal answer & diff
   (save-excursion
-    (org-show-subtree)
-    (dolist (pos org-fc-type-text-input--hidden)
-      (goto-char pos)
-      (org-show-subtree))))
+    (org-show-entry)
+    (org-show-children)
+    (org-fc-with-point-at-back-heading
+      (org-show-entry)
+      (org-show-children)
+      (org-fc-show-latex))))
 
 (org-fc-register-type
  'text-input
