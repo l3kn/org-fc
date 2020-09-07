@@ -934,17 +934,16 @@ Returns nil if there is no title keyword."
 (defun org-fc-show-all ()
   "Remove all org-fc overlays in the current buffer."
   (interactive)
-  (remove-overlays (point-min) (point-max) 'category 'org-fc-hidden)
-  (remove-overlays (point-min) (point-max) 'category 'org-fc-visible))
+  (remove-overlays (point-min) (point-max) 'category 'org-fc))
 
 ;; Based on `outline-flag-region'
 (defun org-fc-hide-region (from to &optional text face)
   "Hide region FROM ... TO, optionally replacing it with TEXT.
 FACE can be used to set the text face of the overlay, e.g. to
 make it bold."
-  ;; (remove-overlays from to 'category 'org-fc-hidden)
+  ;; (remove-overlays from to 'category 'org-fc)
   (let ((o (make-overlay from to nil 'front-advance)))
-    (overlay-put o 'category 'org-fc-hidden)
+    (overlay-put o 'category 'org-fc)
     (overlay-put o 'evaporate t)
     (if face (overlay-put o 'face face))
     (if (stringp text)
@@ -957,31 +956,17 @@ make it bold."
 (defun org-fc-overlay-region (from to &optional face)
   "Wrap region FROM ... TO in an overlay for later hiding.
 FACE can be used to set the text face of the overlay."
-  ;; (remove-overlays from to 'category 'org-fc-hidden)
+  ;; (remove-overlays from to 'category 'org-fc)
   (let ((o (make-overlay from to)))
     (overlay-put o 'evaporate t)
     (if face (overlay-put o 'face face))
     (overlay-put o 'invisible nil)
-    (overlay-put o 'category 'org-fc-visible)
+    (overlay-put o 'category 'org-fc)
     o))
-
-(defun org-fc-hide-overlay (o)
-  "Hide the overlay O."
-  (overlay-put o 'category 'org-fc-hidden)
-  (overlay-put o 'invisible t)
-  (overlay-put o 'display ""))
-
-(defun org-fc-show-overlay (o &optional face)
-  "Show the overlay O using an optional font FACE."
-  (overlay-put o 'category 'org-fc-hidden)
-  (overlay-put o 'invisible nil)
-  (if face
-      (overlay-put o 'face face)))
 
 (defun org-fc-make-overlay (begin end &rest props)
   (let ((o (make-overlay begin end)))
-    ;; TODO: Rename to 'org-fc
-    (overlay-put o 'category 'org-fc-visible)
+    (overlay-put o 'category 'org-fc)
     (cl-loop for (prop value) on props by #'cddr do
              (overlay-put o prop value))
     o))
