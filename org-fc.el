@@ -545,7 +545,7 @@ If it is shorter than EXPECTED-LENGTH, it is filled using
 (defun org-fc--init-card (type)
   "Initialize the current card as a flashcard.
 Should only be used by the init functions of card TYPEs."
-  (if (org-fc-part-of-entry-p)
+  (if (org-fc-entry-p)
       (error "Headline is already a flashcard"))
   (org-back-to-heading)
   (org-set-property
