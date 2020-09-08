@@ -833,6 +833,7 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
          ;; "[...hint]" and set the font for the whole hole.
          ((= i current-index)
           (org-fc-hide-region hole-beg text-beg "")
+          (remove-overlays text-beg text-end)
           (setq org-fc-type-cloze--text
                 (org-fc-make-overlay text-beg text-end 'invisible t))
           (org-fc-hide-region text-end hint-beg "")
@@ -879,6 +880,7 @@ Processes all holes in the card text."
   "Flip a cloze card."
   (org-show-children)
   (overlay-put org-fc-type-cloze--text 'invisible nil)
+  (org-fc-show-latex)
   ;; Remove all overlays in the region of the hint to get rid of
   ;; latex overlays in the hint, then hide the region again.
   (let* ((hint-start (overlay-start org-fc-type-cloze--hint))
