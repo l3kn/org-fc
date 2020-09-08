@@ -1895,8 +1895,10 @@ same ID as the current card in the session."
   ;; Remove all other positions from review session
   (with-slots (current-item cards) org-fc--session
     (let ((id (plist-get current-item :id)))
-      (setf cards (remove-if (lambda (card)
-                               (string= id (plist-get card :id))) cards))))
+      (setf cards
+            (cl-remove-if
+             (lambda (card)
+               (string= id (plist-get card :id))) cards))))
   (org-fc-review-reset)
   (org-fc-review-next-card))
 
