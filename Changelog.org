@@ -5,6 +5,14 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** [2020-09-09 Wed]
+Org-fc now supports nested flashcards.
+
+*** Changed
+- It's now possible to mark child headings of flashcards as a flashcards
+- When flipping a card, child headings (except the "Back" heading)
+  remain collapsed
+- Subheadings are ignored when searching for holes of cloze cards
 ** [2020-07-16 Thu]
 *** Changed
 - Suspending a card during review now removes all other positions of
