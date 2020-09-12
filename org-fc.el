@@ -284,7 +284,7 @@ Used to calculate the time needed for reviewing a card.")
 (defun org-fc-member-p (path)
   "Check if PATH is member of one of the `org-fc-directories'."
   (setq path (expand-file-name path))
-  (and (string= (file-name-extension file) "org")
+  (and (string= (file-name-extension path) "org")
        (cl-some
         (lambda (dir) (string-prefix-p (expand-file-name dir) path))
         org-fc-directories)))
