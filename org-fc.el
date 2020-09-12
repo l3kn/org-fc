@@ -262,8 +262,7 @@ Does not apply to cloze single and cloze enumeration cards."
 
 ;;; Variables
 
-;; TODO: Allow customizing this, currently that's not possible because
-;; the indexers / filters expect a ISO8601 format.
+;; Not customizable because the indexers / filters expect ISO8601
 (defvar org-fc-timestamp-format "%FT%TZ"
   "Format to use for storing timestamps.
 Defaults to ISO8601")
@@ -1162,7 +1161,6 @@ If UTILS is set to a non-nil value, the shared util file is
 included, too.  If INPUT is set to a string, use that
 file (absolute path) as input."
   (concat "gawk "
-          ;; TODO: quote strings
           (mapconcat
            (lambda (kv) (format "-v %s=%s" (car kv) (cdr kv)))
            variables
@@ -1197,7 +1195,6 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
     (org-remove-uninherited-tags (split-string itags ":" t))
     (split-string ltags ":" t))))
 
-;; TODO: Refactor to something cleaner
 (defun org-fc-flatten-index (index)
   "Remove the file-level of INDEX."
   (mapcan
@@ -1982,7 +1979,6 @@ Pauses the review, unnarrows the buffer and activates
       (push (cons key (gethash key ht)) res))
     res))
 
-;; TODO: Support user-defined time ranges
 (defun org-fc-stats (index)
   "Compute statistics for an INDEX of cards and positions."
   (let* ((total 0) (suspended 0)
