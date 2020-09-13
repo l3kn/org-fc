@@ -810,11 +810,18 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
     ('context (<= (abs (- i current-index)) org-fc-type-cloze-context))
     (t (error "Org-fc: Unknown cloze card type %s" type))))
 
+(defun org-fc-type-cloze--end ()
+  "End of contents of heading at point, excluding subheadings. "
+  (save-excursion
+    ;; If there is no next heading, we end up at `(point-max)`
+    (outline-next-heading)
+    (1- (point))))
+
 (defun org-fc-type-cloze-hide-holes (position)
   "Hide holes of a card of TYPE in relation to POSITION."
   (org-fc-with-point-at-entry
    (let* ((type (intern (org-entry-get (point) org-fc-type-cloze-type-property)))
-          (end (org-element-property :contents-end (org-element-at-point)))
+          (end (org-fc-type-cloze--end))
           (holes-index (org-fc-type-cloze--parse-holes position end))
           (holes (car holes-index))
           (current-index (cdr holes-index)))
@@ -889,7 +896,7 @@ Processes all holes in the card text."
 
 (defun org-fc-type-cloze-update ()
   "Update the review data & deletions of the current heading."
-  (let* ((end (org-element-property :contents-end (org-element-at-point)))
+  (let* ((end (org-fc-type-cloze--end))
          (hole-id (1+ (org-fc-type-cloze-max-hole-id)))
          ids)
     (save-excursion
