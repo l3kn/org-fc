@@ -1892,6 +1892,12 @@ same ID as the current card in the session."
   (interactive)
   (org-fc-review-rate 'easy))
 
+(defun org-fc-review-skip-card ()
+  "Skip card and proceed to next."
+  (interactive)
+  (org-fc-review-reset)
+  (org-fc-review-next-card))
+
 (defun org-fc-review-suspend-card ()
   "Suspend card and proceed to next."
   (interactive)
