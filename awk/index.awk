@@ -29,6 +29,7 @@ BEGIN {
 BEGINFILE {
     # Reset filetags
     delete parent_tags;
+    file_title = "";
     parent_tags[0] = "";
     state = state_file;
 
@@ -43,11 +44,19 @@ ENDFILE {
     }
 }
 
-## Filetags
+## File Tags
 
 match($0, /#\+FILETAGS:[ \t]+(.*)/, a) {
     # Combine tags to handle multiple FILETAGS lines
     parent_tags[0] = combine_tags(a[1], parent_tags[0]);
+    next;
+}
+
+## File Title
+
+match($0, /#\+TITLE:[ \t]+(.*)/, a) {
+    # Combine tags to handle multiple FILETAGS lines
+    file_title = a[1]
     next;
 }
 
@@ -106,6 +115,7 @@ $0 ~ review_data_drawer {
         if (file_needs_opening) {
             print "  (" \
                 ":path " escape_string(FILENAME) \
+                " :title " (file_title ? escape_string(file_title) : "nil") \
                 " :cards (";
             file_needs_opening = 0;
             file_needs_closing = 1;

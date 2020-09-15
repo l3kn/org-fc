@@ -83,7 +83,8 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
    (lambda (file)
      (mapcar
       (lambda (card)
-        (plist-put card :path (plist-get file :path)))
+        (plist-put card :path (plist-get file :path))
+        (plist-put card :filetitle (plist-get file :title)))
       (plist-get file :cards)))
    index))
 
