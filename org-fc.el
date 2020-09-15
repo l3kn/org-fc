@@ -539,13 +539,17 @@ If it is shorter than EXPECTED-LENGTH, it is filled using
   (org-set-tags
    (remove tag (org-get-tags nil 'local))))
 
+;;; Card Indexing (AWK)
+
+(require 'org-fc-awk)
+
 ;;; Card Initialization
 
 (defun org-fc--init-card (type)
   "Initialize the current card as a flashcard.
 Should only be used by the init functions of card TYPEs."
   (if (org-fc-entry-p)
-      (error "Headline is already a flashcard"))
+    (error "Headline is already a flashcard"))
   (org-back-to-heading)
   (org-set-property
    org-fc-created-property
