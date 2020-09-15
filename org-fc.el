@@ -1480,21 +1480,16 @@ removed."
 
 (defun org-fc-set-header-line ()
   "Set the header-line for review."
-  (setq org-fc-original-header-line-format header-line-format)
-  (setq-local
-   header-line-format
-   `((org-fc-review-flip-mode
-      ,(format "Review, %d cards remaining, %s"
-               (1+ (length (oref org-fc--session cards)))
-               (org-fc-session-stats-string org-fc--session)))
-     (org-fc-review-rate-mode
-      ,(format "Rate, %d cards remaining, %s"
-               (1+ (length (oref org-fc--session cards)))
-               (org-fc-session-stats-string org-fc--session)))
-     (org-fc-review-edit-mode
-       ,(substitute-command-keys
-         "\\<org-fc-review-edit-mode-map>Org-fc edit.  Resume \
-`\\[org-fc-review-resume]', quit review `\\[org-fc-review-quit]'.")))))
+  (let ((remaining (1+ (length (oref org-fc--session cards))))
+        (title (plist-get (oref org-fc--session current-item) :filetitle)))
+    (setq org-fc-original-header-line-format header-line-format)
+    (setq-local
+     header-line-format
+     `((org-fc-review-flip-mode "Flip")
+       (org-fc-review-rate-mode "Rate")
+       (org-fc-review-edit-mode "Edit")
+       ,(format " (%d) " remaining)
+       ,title))))
 
 (defun org-fc-reset-header-line ()
   "Reset the header-line to its original value."
