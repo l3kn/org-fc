@@ -1211,6 +1211,10 @@ element."
   (mapcar
    (lambda (pos)
      (list
+      ;; FIXME: This is rather inelegant
+      :filetitle
+      (unless (member "notitle" (plist-get card :tags))
+        (plist-get card :filetitle))
       :path (plist-get card :path)
       :id (plist-get card :id)
       :type (plist-get card :type)
