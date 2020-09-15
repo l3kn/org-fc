@@ -41,7 +41,7 @@ With the '-L' option, 'find' follows symlinks."
     ("created_property" . ,org-fc-created-property)
     ("review_data_drawer" . ,org-fc-review-data-drawer)))
 
-(cl-defun org-fc-awk--command (file &optional &key variables utils input)
+(cl-defun org-fc-awk--command (file &optional &key variables input)
   "Generate the shell command for calling awk.
 The script is called on FILE with (key . value) pairs VARIABLES.
 If UTILS is set to a non-nil value, the shared util file is
@@ -52,11 +52,8 @@ file (absolute path) as input."
            (lambda (kv) (format "-v %s=%s" (car kv) (cdr kv)))
            variables
            " ")
-          " "
-          (if utils
-              (concat "-f "
-                      (expand-file-name "awk/utils.awk" org-fc-source-path) " "))
-          (concat "-f " (expand-file-name file org-fc-source-path))
+          " -f " (expand-file-name "awk/utils.awk" org-fc-source-path)
+          " -f " (expand-file-name file org-fc-source-path)
           " " input))
 
 (defun org-fc-awk--pipe (&rest commands)
@@ -98,7 +95,6 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
                   (org-fc-awk--xargs
                    (org-fc-awk--command
                     "awk/index.awk"
-                    :utils t
                     :variables (org-fc-awk--indexer-variables)))))))
     (if (string-prefix-p "(" output)
         (org-fc-awk-flatten-index
@@ -124,7 +120,6 @@ Return nil there is no history file."
              (shell-command-to-string
               (org-fc-awk--command
                "awk/stats_reviews.awk"
-               :utils t
                :input org-fc-review-history-file
                :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
         (if (string-prefix-p "(" output)
