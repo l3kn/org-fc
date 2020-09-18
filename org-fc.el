@@ -1341,17 +1341,17 @@ EASE, BOX and INTERVAL are the current parameters of the card."
 
 (defun org-fc-review-history-save ()
   "Save all history entries in the current session."
-  (when org-fc--session
+  (when (and org-fc--session (oref org-fc--session history))
     (append-to-file
      (concat
       (mapconcat
        (lambda (elements) (mapconcat #'identity elements "\t"))
-       (reverse (slot-value org-fc--session 'history))
+       (reverse (oref org-fc--session history))
        "\n")
       "\n")
      nil
      org-fc-review-history-file)
-    (setf (slot-value org-fc--session 'history) nil)))
+    (setf (oref org-fc--session history) nil)))
 
 ;; Make sure the history is saved even if Emacs is killed
 (add-hook 'kill-emacs-hook #'org-fc-review-history-save)
