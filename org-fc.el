@@ -949,7 +949,7 @@ Returns nil if there is no title keyword."
 
 ;;;; Showing / Hiding Overlays
 
-(defun org-fc-show-all ()
+(defun org-fc-remove-overlays ()
   "Remove all org-fc overlays in the current buffer."
   (interactive)
   (remove-overlays (point-min) (point-max) 'category 'org-fc))
@@ -1848,7 +1848,7 @@ rating the card."
   (org-fc-review-flip-mode -1)
   (org-fc-review-edit-mode -1)
   (org-fc-reset-header-line)
-  (org-fc-show-all)
+  (org-fc-remove-overlays)
   (widen))
 
 ;;;###autoload
@@ -1866,7 +1866,8 @@ rating the card."
 Pauses the review, unnarrows the buffer and activates
 `org-fc-edit-mode'."
   (interactive)
-  (org-fc-show-all)
+  (widen)
+  (org-fc-remove-overlays)
   ;; Queue the current flashcard so it's reviewed a second time
   (org-fc-session-prepend-card
    org-fc--session
