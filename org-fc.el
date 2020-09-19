@@ -36,6 +36,8 @@
 (require 'subr-x)
 (require 'svg)
 
+(require 'org-fc-compat)
+
 ;;; Customization
 
 (defgroup org-fc nil
