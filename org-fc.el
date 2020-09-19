@@ -1690,9 +1690,9 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
                 (org-fc-hide-drawers)
                 (org-fc-show-latex)
                 (org-display-inline-images)
-                (setq org-fc-timestamp (time-to-seconds (current-time)))
-
                 (run-hooks 'org-fc-before-setup-hook)
+
+                (setq org-fc-timestamp (time-to-seconds (current-time)))
                 (let ((step (funcall (org-fc-type-setup-fn type) position)))
                   (run-hooks 'org-fc-after-setup-hook)
 
