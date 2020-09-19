@@ -1685,7 +1685,7 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
                 (org-fc-indent)
                 ;; Make sure the headline the card is in is expanded
                 (org-reveal)
-                (org-fc-narrow-tree)
+                (org-fc-narrow)
                 (org-fc-hide-keyword-times)
                 (org-fc-hide-drawers)
                 (org-fc-show-latex)
@@ -1848,7 +1848,8 @@ rating the card."
   (org-fc-review-flip-mode -1)
   (org-fc-review-edit-mode -1)
   (org-fc-reset-header-line)
-  (org-fc-show-all))
+  (org-fc-show-all)
+  (widen))
 
 ;;;###autoload
 (defun org-fc-review-quit ()
