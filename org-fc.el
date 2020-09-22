@@ -817,7 +817,7 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
     (t (error "Org-fc: Unknown cloze card type %s" type))))
 
 (defun org-fc-type-cloze--end ()
-  "End of contents of heading at point, excluding subheadings. "
+  "End of contents of heading at point, excluding subheadings."
   (save-excursion
     ;; If there is no next heading, we end up at `(point-max)`
     (outline-next-heading)
