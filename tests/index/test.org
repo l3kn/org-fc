@@ -1,0 +1,36 @@
+* Headline                                                          :fc:tag1:
+:PROPERTIES:
+:FC_CREATED: 2020-07-08T12:05:04Z
+:FC_TYPE:  normal
+:ID:       edee8940-5c9a-4c70-b1c4-f45c194c0c97
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-07-08T12:05:04Z |
+:END:
+body
+* Headline 2                                                        :fc:tag2:
+:PROPERTIES:
+:FC_CREATED: 2020-07-08T12:05:06Z
+:FC_TYPE:  normal
+:ID:       59b3b102-aebd-44ba-a1fd-6dc912c34fcf
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-07-08T12:05:06Z |
+:END:
+body
+* Headline 3:not_a_tag:                                             :fc:tag3:
+:PROPERTIES:
+:FC_CREATED: 2020-07-08T12:18:45Z
+:FC_TYPE:  normal
+:ID:       a7ed2686-73e6-4780-825d-78cf4b2e5374
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-07-08T12:18:46Z |
+:END:
+body
