@@ -1054,7 +1054,9 @@ If TEXT is non-nil, the content is replaced with TEXT."
 (defcustom org-fc-narrow-visibility 'ancestors
   "Visibility of the current heading during review.
 See `org-show-set-visibility' for possible values"
-  :group 'org-fc)
+  :group 'org-fc
+  :type 'symbol
+  :options '(ancestors lineage minimal local tree canonical))
 
 (defun org-fc-narrow ()
   "Narrow the outline tree.
