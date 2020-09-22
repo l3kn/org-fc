@@ -1051,33 +1051,25 @@ If TEXT is non-nil, the content is replaced with TEXT."
 
 ;;;; Outline Trees
 
-(defun org-fc-narrow-tree ()
+(defcustom org-fc-narrow-visibility 'ancestors
+  "Visibility of the current heading during review.
+See `org-show-set-visibility' for possible values"
+  :group 'org-fc)
+
+(defun org-fc-narrow ()
   "Narrow the outline tree.
 Only parent headings of the current heading remain visible."
   (interactive)
-  (org-fc-with-point-at-entry
-   (let* ((end (org-fc-point-at-end-of-previous))
-          (tags (org-get-tags nil 'local))
-          (notitle (member "notitle" tags))
-          (noheading (member "noheading" tags))
-          (el (org-element-at-point))
-          (current-end (org-element-property :contents-end el)))
-     (if noheading
-         (org-fc-hide-heading))
-     (while (org-up-heading-safe)
-       (let ((start (point-at-eol))
-             (end_ (org-fc-point-at-end-of-previous)))
-         (if (< start end)
-             (org-fc-hide-region end start))
-         (setq end end_)))
-     (let ((at (org-fc-point-after-title))
-           (eop (org-fc-point-at-end-of-previous)))
-       ;; Don't hide anything if the heading is at the beginning of the buffer
-       (if eop
-           (if (and at (not notitle))
-               (org-fc-hide-region at eop)
-             (org-fc-hide-region (point-min) eop))))
-     (org-fc-hide-region current-end (point-max)))))
+  (let* ((tags (org-get-tags nil 'local)))
+    ;; Find the first heading with a :narrow: tag or the top level
+    ;; ancestor of the current heading and narrow to its region
+    (save-excursion
+      (while (org-up-heading-safe))
+      (org-narrow-to-subtree)
+      (outline-hide-subtree))
+    ;; Show only the ancestors of the current card
+    (org-show-set-visibility org-fc-narrow-visibility)
+    (if (member "noheading" tags) (org-fc-hide-heading))))
 
 ;;; Updating Cards
 
