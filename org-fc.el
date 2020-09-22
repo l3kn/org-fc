@@ -551,7 +551,7 @@ If it is shorter than EXPECTED-LENGTH, it is filled using
   "Initialize the current card as a flashcard.
 Should only be used by the init functions of card TYPEs."
   (if (org-fc-entry-p)
-    (error "Headline is already a flashcard"))
+      (error "Headline is already a flashcard"))
   (org-back-to-heading)
   (org-set-property
    org-fc-created-property
@@ -655,8 +655,8 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
          (org-fc-with-point-at-back-heading
           (org-fc-show-latex)
           (outline-show-entry))
-         (org-show-entry)
-         (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]"))))
+       (org-show-entry)
+       (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]"))))
     (_ (error "Invalid double position %s" position))))
 
 (defun org-fc-type-double-flip ()
@@ -746,9 +746,9 @@ function is expected to be called with point on a heading."
     (org-show-entry)
     (org-show-children)
     (org-fc-with-point-at-back-heading
-      (org-show-entry)
-      (org-show-children)
-      (org-fc-show-latex))))
+     (org-show-entry)
+     (org-show-children)
+     (org-fc-show-latex))))
 
 (org-fc-register-type
  'text-input
@@ -1011,17 +1011,17 @@ FACE can be used to set the text face of the overlay."
 (defun org-fc-hide-drawers ()
   "Hide all drawers except ones in `org-fc-drawer-whitelist' after point."
   (let ((bound (org-element-property :end (org-element-at-point))))
-   (save-excursion
-     (while (re-search-forward org-drawer-regexp bound t)
-       (let ((start (1- (match-beginning 0)))
-             (name (match-string 1))
-             (end))
-         (if (re-search-forward ":END:" bound t)
-             (setq end (point))
-           (error "No :END: found for drawer"))
-	       (if (member name org-fc-drawer-whitelist)
-	           (org-flag-drawer nil nil start end)
-	         (org-fc-hide-region start end)))))))
+    (save-excursion
+      (while (re-search-forward org-drawer-regexp bound t)
+        (let ((start (1- (match-beginning 0)))
+              (name (match-string 1))
+              (end))
+          (if (re-search-forward ":END:" bound t)
+              (setq end (point))
+            (error "No :END: found for drawer"))
+          (if (member name org-fc-drawer-whitelist)
+              (org-flag-drawer nil nil start end)
+            (org-fc-hide-region start end)))))))
 
 ;;;; Hiding Headings / Section Contents
 
@@ -1430,7 +1430,7 @@ END is the start of the line with :END: on it."
 (defun org-fc-get-review-data ()
   "Get a cards review data as a Lisp object."
   (if-let ((position (org-fc-review-data-position)))
-    (org-with-point-at (car position)
+      (org-with-point-at (car position)
         (cddr (org-table-to-lisp)))))
 
 (defun org-fc-set-review-data (data)
@@ -1620,7 +1620,7 @@ Valid contexts:
            (cards (org-fc-index-filter-due index)))
       (if org-fc-shuffle-positions
           (setq cards (org-fc-index-shuffled-positions cards))
-          (setq cards (org-fc-index-positions cards)))
+        (setq cards (org-fc-index-positions cards)))
       (if (null cards)
           (message "No cards due right now")
         (progn
@@ -1749,7 +1749,7 @@ same ID as the current card in the session."
 
           (save-buffer)
           (if org-fc-reviewing-existing-buffer
-             (org-fc-review-reset)
+              (org-fc-review-reset)
             (kill-buffer))
           (org-fc-review-next-card)))
     (error
