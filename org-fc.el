@@ -1213,10 +1213,8 @@ element."
   (mapcar
    (lambda (pos)
      (list
-      ;; FIXME: This is rather inelegant
-      :filetitle
-      (unless (member "notitle" (plist-get card :tags))
-        (plist-get card :filetitle))
+      :filetitle (plist-get card :filetitle)
+      :tags (plist-get card :tags)
       :path (plist-get card :path)
       :id (plist-get card :id)
       :type (plist-get card :type)
@@ -1482,8 +1480,11 @@ removed."
 
 (defun org-fc-set-header-line ()
   "Set the header-line for review."
-  (let ((remaining (1+ (length (oref org-fc--session cards))))
-        (title (plist-get (oref org-fc--session current-item) :filetitle)))
+  (let* ((remaining (1+ (length (oref org-fc--session cards))))
+         (current (oref org-fc--session current-item))
+         (title
+          (unless (member "notitle" (plist-get current :tags))
+            (plist-get current :filetitle))))
     (setq org-fc-original-header-line-format header-line-format)
     (setq-local
      header-line-format
