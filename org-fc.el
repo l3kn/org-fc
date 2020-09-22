@@ -1437,23 +1437,23 @@ END is the start of the line with :END: on it."
 
 (defun org-fc-get-review-data ()
   "Get a cards review data as a Lisp object."
-  (if-let ((position (org-fc-review-data-position nil)))
-      (org-with-point-at (car position)
+  (if-let ((position (org-fc-review-data-position)))
+    (org-with-point-at (car position)
         (cddr (org-table-to-lisp)))))
 
 (defun org-fc-set-review-data (data)
   "Set the cards review data to DATA."
   (save-excursion
-    (let ((position (org-fc-review-data-position t)))
+    (let ((position (org-fc-review-data-position 'create)))
       (kill-region (car position) (cdr position))
       (goto-char (car position))
       (insert "| position | ease | box | interval | due |\n")
       (insert "|-|-|-|-|-|\n")
-      (cl-loop for datum in data do
-               (insert
-                "| "
-                (mapconcat (lambda (x) (format "%s" x)) datum " | ")
-                " |\n"))
+      (dolist (datum data)
+        (insert
+         "| "
+         (mapconcat (lambda (x) (format "%s" x)) datum " | ")
+         " |\n"))
       (org-table-align))))
 
 (defun org-fc-review-data-default (position)
