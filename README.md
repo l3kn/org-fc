@@ -1,6 +1,8 @@
 Org Flashcards
 ==============
 
+[![builds.sr.ht status](https://builds.sr.ht/~l3kn/org-fc.svg)](https://builds.sr.ht/~l3kn/org-fc?)
+
 Org-fc is a spaced-repetition system for Emacs' org-mode.
 
 It allows you to mark headlines in a file as "flashcards", turning
