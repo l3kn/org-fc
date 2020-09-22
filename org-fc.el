@@ -1948,7 +1948,6 @@ Pauses the review, unnarrows the buffer and activates
                           'font-lock-face `(:background ,color))))
     (let* ((width org-fc-dashboard-text-bar-chart-width)
            (total (float (plist-get stat :total)))
-           (pos 0)
            (again (floor (* width (/ (plist-get stat :again) total))))
            (hard (floor (* width (/ (plist-get stat :hard) total))))
            (good (floor (* width (/ (plist-get stat :good) total))))
