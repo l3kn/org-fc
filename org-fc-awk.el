@@ -22,6 +22,7 @@
 ;;
 ;;
 ;;; Code:
+;;;; Shell wrappers
 
 (defun org-fc-awk--find (paths)
   "Generate shell code to search PATHS for org files.
@@ -131,4 +132,4 @@ Return nil there is no history file."
 
 (provide 'org-fc-awk)
 
-;;; org-fc-hydra.el ends here
+;;; org-fc-awk.el ends here

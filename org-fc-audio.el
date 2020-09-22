@@ -80,4 +80,8 @@ Look up the file from PROPERTY."
  'org-fc-after-setup-hook
  (lambda () (org-fc-audio-play org-fc-audio-property-after)))
 
+;;; Footer
+
 (provide 'org-fc-audio)
+
+;;; org-fc-audio.el ends here

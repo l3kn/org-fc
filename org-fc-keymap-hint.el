@@ -67,4 +67,4 @@
 
 (provide 'org-fc-keymap-hint)
 
-;;; org-fc.el ends here
+;;; org-fc-keymap-hint.el ends here
