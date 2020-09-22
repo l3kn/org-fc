@@ -1,0 +1,12 @@
+image: archlinux
+packages:
+  - emacs
+  - gawk
+  - findutils
+  - bash
+sources:
+  - https://git.sr.ht/~l3kn/org-fc
+tasks:
+  - test: |
+      cd org-fc
+      bash makem.sh -ssandbox -i hydra test
