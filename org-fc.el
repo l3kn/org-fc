@@ -930,25 +930,6 @@ Processes all holes in the card text."
  'org-fc-type-cloze-update)
 
 ;;; Working with Overlays / Hiding Text
-;;;; Finding Locations in the Buffer
-
-(defun org-fc-point-at-end-of-previous ()
-  "Value of point at the end of the previous line.
-Returns nil if there is no previous line."
-  (save-excursion
-    (beginning-of-line)
-    (if (bobp)
-        nil
-      (progn (backward-char)
-             (point)))))
-
-(defun org-fc-point-after-title ()
-  "Value of point at the first line after the title keyword.
-Returns nil if there is no title keyword."
-  (org-with-point-at (point-min)
-    (when (re-search-forward (rx bol "#+TITLE:") nil t)
-      (point-at-eol))))
-
 ;;;; Showing / Hiding Overlays
 
 (defun org-fc-remove-overlays ()
