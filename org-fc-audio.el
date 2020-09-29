@@ -59,18 +59,19 @@
   (if (org-fc-entry-p)
       (org-set-property org-fc-audio-property-after file)))
 
-(cl-defun org-fc-audio-play (property)
+(defun org-fc-audio-play (property &optional speed)
   "Play the audio of the current card.
-Look up the file from PROPERTY."
+Look up the file from PROPERTY. If SPEED is non-nil, play back
+the file at the given speed."
   (if-let ((file (org-entry-get (point) property)))
-      (org-fc-audio-play-file file)))
+      (org-fc-audio-play-file file (or speed 1.0))))
 
-(defun org-fc-audio-play-file (file)
-  "Play the audio file FILE."
+(defun org-fc-audio-play-file (file speed)
+  "Play the audio FILE at SPEED."
   (start-process-shell-command
    "org-fc audio"
    nil
-   (format "mpv %s" file)))
+   (format "mpv %s --speed=%f" file speed)))
 
 (add-hook
  'org-fc-before-setup-hook
