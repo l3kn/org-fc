@@ -756,6 +756,91 @@ function is expected to be called with point on a heading."
  nil
  'org-fc-noop)
 
+;;;; Vocab
+
+(defcustom org-fc-type-vocab-slow-speed 0.7
+  "Speed to use for slow playback.")
+
+(defcustom org-fc-type-vocab-audio-property "FC_VOCAB_AUDIO"
+  "Property with path to audio file.")
+
+(defun org-fc-type-vocab-init ()
+  "Mark headline as card of the vocab type."
+  (interactive)
+  (org-fc--init-card "vocab")
+  (org-fc-review-data-update '("front" "back")))
+
+(defun org-fc-type-vocab-setup (position)
+  "Prepare POSITION of a vocab card for review."
+  (pcase position
+    ("front"
+     (org-fc-audio-play org-fc-type-vocab-audio-property)
+     (org-fc-type-normal-setup position))
+    ("back"
+     (org-fc-type-vocab-typing-setup)
+     (org-fc-audio-play org-fc-type-vocab-audio-property)
+     'rate)
+    (_ (error "Invalid vocab position %s" position))))
+
+(defun org-fc-type-vocab-flip ()
+  "Flip a vocab card."
+  (org-fc-type-normal-flip))
+
+(defun org-fc-type-vocab-play ()
+  "Play vocab audio file at normal speed."
+  (interactive)
+  (org-fc-audio-play org-fc-type-vocab-audio-property))
+
+(defun org-fc-type-vocab-play-slow ()
+  "Play vocab audio file at slow speed."
+  (interactive)
+  (org-fc-audio-play org-fc-type-vocab-audio-property org-fc-type-vocab-slow-speed))
+
+(defun org-fc-vocab-content ()
+  "Heading position & text as a (pos . string) pair."
+  (save-excursion
+  (org-fc-goto-entry-heading)
+  (let ((case-fold-search nil))
+   (if (looking-at org-complex-heading-regexp)
+       (cons
+        (match-beginning 4)
+        (buffer-substring-no-properties (match-beginning 4) (match-end 4)))))))
+
+(defun org-fc-type-vocab-typing-setup ()
+  "Prepare a text-input vocab card for review."
+  (interactive)
+  (org-show-subtree)
+  (let* ((pos-content (org-fc-vocab-content))
+         (content (cdr pos-content))
+         (start (car pos-content))
+         (end (+ start (length content)))
+         (ov (org-fc-hide-region start end "..."))
+         (deemph (org-fc-deemphasize content))
+         (diff (org-fc-diff (read-string "Answer: ") (cdr deemph))))
+    (delete-overlay ov)
+    ;; Overlay for user input
+    (when (car deemph)
+      (setq start (1+ start))
+      (setq end (1- end)))
+    (org-fc-hide-region start end (car diff))
+    ;; Overlay for expected answer, using the newline after the answer
+    (if (cdr diff)
+        (org-fc-hide-region
+         end (1+ end)
+         (concat
+          "\n! "
+          (if (null (car deemph))
+              (cdr diff)
+            (org-fc-emphasize
+             (concat (car deemph) (cdr diff) (car deemph))))
+          "")))))
+
+(org-fc-register-type
+ 'vocab
+ 'org-fc-type-vocab-setup
+ 'org-fc-type-vocab-flip
+ 'org-fc-noop)
+
 ;;;; Cloze
 
 ;; NOTE: The context type is not implemented yet
