@@ -1570,6 +1570,7 @@ Pauses the review, unnarrows the buffer and activates
   "Generate a svg bar-chart for the plist STAT."
   (let* ((width org-fc-dashboard-bar-chart-width)
          (height org-fc-dashboard-bar-chart-height)
+         (fontsize (floor (* height 0.6)))
          (total (float (plist-get stat :total)))
          (pos 0)
          (values
@@ -1580,6 +1581,14 @@ Pauses the review, unnarrows the buffer and activates
          (svg (svg-create width height)))
     (dolist (value values)
       (svg-rectangle svg pos 0 (* width (car value)) height :fill (cdr value))
+      (if (> (* width (car value)) (* 2 fontsize))
+       (svg-text svg (format "%.1f" (* 100 (car value)))
+                 :font-size fontsize
+                 :fill "white"
+                 :font-weight "bold"
+                 :font-family "sans-serif"
+                 :x (+ pos 5)
+                 :y (+ fontsize (floor (- height fontsize) 2))))
       (setq pos (+ pos (* width (car value)))))
     (svg-image svg)))
 
@@ -1667,14 +1676,13 @@ Pauses the review, unnarrows the buffer and activates
                          (:all . "All")))
           (when-let (stat (plist-get reviews-stats (car scope)))
             (when (> (plist-get stat :total) 0)
-              (insert (propertize (format "    %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
               (insert "    ")
               (if (and (display-graphic-p)
                        (memq 'svg (and (boundp 'image-types) image-types)))
                   (insert-image (org-fc-dashboard-bar-chart stat))
                 (insert (org-fc-dashboard-text-bar-chart stat)))
-              (insert (org-fc-dashboard-percent-right stat))
-              (insert "\n\n"))))
+              (insert (propertize (format " %s (%d)\n\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
+              )))
         (insert "\n"))
       (insert
        (propertize "  [r] Review\n" 'face 'org-level-1))
