@@ -1611,15 +1611,6 @@ Pauses the review, unnarrows the buffer and activates
        (colored-bar good "green")
        (colored-bar easy "blue")))))
 
-(defun org-fc-dashboard-percent-right (stats)
-  "Format review percentages in STATS."
-  (let ((total (float (plist-get stats :total))))
-    (format "  %5.2f | %5.2f | %5.2f | %5.2f"
-            (or (* 100 (/ (plist-get stats :again) total)) 0.0)
-            (or (* 100 (/ (plist-get stats :hard) total)) 0.0)
-            (or (* 100 (/ (plist-get stats :good) total)) 0.0)
-            (or (* 100 (/ (plist-get stats :easy) total)) 0.0))))
-
 ;;;; Main View
 
 ;; Based on `mu4e-main-view-real'
