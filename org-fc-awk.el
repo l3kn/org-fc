@@ -38,7 +38,7 @@ With the '-L' option, 'find' follows symlinks."
   `(("fc_tag" . ,org-fc-flashcard-tag)
     ("suspended_tag" . ,org-fc-suspended-tag)
     ("type_property" . ,org-fc-type-property)
-    ("cloze_type_property" . ,org-fc-cloze-type-property)
+    ("cloze_type_property" . ,org-fc-type-cloze-type-property)
     ("created_property" . ,org-fc-created-property)
     ("review_data_drawer" . ,org-fc-review-data-drawer)))
 
