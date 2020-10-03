@@ -33,15 +33,14 @@ BEGINFILE {
     parent_tags[0] = "";
     state = state_file;
 
-    # Track if we've printed the file "header"
-    file_needs_opening = 1;
-    file_needs_closing = 0;
+    print "  (" \
+        ":path " escape_string(FILENAME) \
+        " :title " (file_title ? escape_string(file_title) : "nil") \
+        " :cards (";
 }
 
 ENDFILE {
-    if (file_needs_closing) {
-        print "  ))";
-    }
+    print "  ))";
 }
 
 ## File Tags
@@ -112,15 +111,6 @@ $0 ~ review_data_drawer {
     if (state == state_properties) {
         state = state_properties_done;
     } else if (state == state_review_data) {
-        if (file_needs_opening) {
-            print "  (" \
-                ":path " escape_string(FILENAME) \
-                " :title " (file_title ? escape_string(file_title) : "nil") \
-                " :cards (";
-            file_needs_opening = 0;
-            file_needs_closing = 1;
-        }
-
         state = state_review_data_done;
         # Card header
         inherited_tags = "";
