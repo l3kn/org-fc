@@ -35,12 +35,11 @@ BEGINFILE {
 
     print "  (" \
         ":path " escape_string(FILENAME) \
-        " :title " (file_title ? escape_string(file_title) : "nil") \
         " :cards (";
 }
 
 ENDFILE {
-    print "  ))";
+    print ")  :title " (file_title ? escape_string(file_title) : "nil") ")";
 }
 
 ## File Tags
