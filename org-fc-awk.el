@@ -31,7 +31,7 @@ a '.' to exclude temporary / backup files.
 With the '-L' option, 'find' follows symlinks."
   (format
    "find -L %s -name \"*.org\" -not -name \".*\" -print0"
-   (mapconcat 'identity paths " ")))
+   (mapconcat 'shell-quote-argument paths " ")))
 
 (defun org-fc-awk--indexer-variables ()
   "Variables to pass to indexer scripts."

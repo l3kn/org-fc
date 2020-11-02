@@ -1,0 +1,12 @@
+* Test Front                                                             :fc:
+:PROPERTIES:
+:FC_CREATED: 2020-11-02T13:07:39Z
+:FC_TYPE:  normal
+:ID:       33645f3a-384d-44ed-aed2-a2d56b973800
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-11-02T13:07:39Z |
+:END:
+Test Back

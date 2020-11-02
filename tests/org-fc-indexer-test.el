@@ -14,6 +14,14 @@
   (should (null (org-fc-awk-index-paths
                  (list (org-fc-test-fixture "malformed/unclosed_drawer2.org"))))))
 
+(ert-deftest org-fc-test-escaping ()
+  (let ((index (org-fc-awk-index-paths
+                (list (org-fc-test-fixture "escaping/spaces in filename.org")))))
+    (should (eq (length index) 1))
+    (should
+     (equal (plist-get (car index) :id)
+            "33645f3a-384d-44ed-aed2-a2d56b973800"))))
+
 (ert-deftest org-fc-test-index ()
   (let ((index (org-fc-awk-index-paths
                 (list
