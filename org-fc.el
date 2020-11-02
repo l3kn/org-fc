@@ -764,6 +764,12 @@ Other useful values are:
   (org-fc-map-cards 'org-fc-suspend-card))
 
 ;;;###autoload
+(defun org-fc-suspend-region ()
+  "Suspend all cards in the current region."
+  (interactive)
+  (org-fc-map-cards 'org-fc-suspend-card 'region))
+
+;;;###autoload
 (defun org-fc-unsuspend-card ()
   "Unsuspend the headline at point.
 Checks if the headline is a suspended card first."
@@ -781,6 +787,12 @@ Checks if the headline is a suspended card first."
   "Un-suspend all cards in the current buffer."
   (interactive)
   (org-fc-map-cards 'org-fc-unsuspend-card))
+
+;;;###autoload
+(defun org-fc-unsuspend-region ()
+  "Un-suspend all cards in the current region."
+  (interactive)
+  (org-fc-map-cards 'org-fc-unsuspend-card 'region))
 
 ;;; Indexing Cards
 ;;;; Card Filters
