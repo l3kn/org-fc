@@ -69,7 +69,7 @@ match($0, /^(\*+)[ \t]+(.*)$/, a) {
     # this only guarantees that there is at least one tab/space
     # between the headline text and the tags.
     # TODO: Do this in a single match
-    if (match(title, /^(.*)[ \t]+(:([a-zA-Z0-9_@#%]+:)+)$/, b) != 0) {
+    if (match(title, /^(.*)[ \t]+(:([[:alnum:]_@#%]+:)+)$/, b) != 0) {
         title = b[1];
         # remove trailing tabs/spaces
         sub(/[ \t]*$/, "", title);
