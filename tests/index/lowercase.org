@@ -1,0 +1,14 @@
+#+title: File Title
+#+filetags: :tag1:tag2:
+
+* Card                                                                   :fc:
+:PROPERTIES:
+:FC_CREATED: 2020-11-08T02:31:47Z
+:FC_TYPE:  normal
+:ID:       1627d8d5-d778-4286-891a-09e8d6da1911
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-11-08T02:31:47Z |
+:END:
