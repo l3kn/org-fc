@@ -44,17 +44,17 @@ ENDFILE {
 
 ## File Tags
 
-match($0, /^#\+FILETAGS:[ \t]+(.*)/, a) {
+match($0, /^#\+(FILETAGS|filetags):[ \t]+(.*)/, a) {
     # Combine tags to handle multiple FILETAGS lines
-    parent_tags[0] = combine_tags(a[1], parent_tags[0]);
+    parent_tags[0] = combine_tags(a[2], parent_tags[0]);
     next;
 }
 
 ## File Title
 
-match($0, /^#\+TITLE:[ \t]+(.*)/, a) {
+match($0, /^#\+(TITLE|title):[ \t]+(.*)/, a) {
     # Combine tags to handle multiple FILETAGS lines
-    file_title = a[1]
+    file_title = a[2]
     next;
 }
 

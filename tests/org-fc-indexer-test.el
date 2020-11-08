@@ -22,6 +22,20 @@
      (equal (plist-get (car index) :id)
             "33645f3a-384d-44ed-aed2-a2d56b973800"))))
 
+(ert-deftest org-fc-test-index-keywords ()
+  (let ((index (org-fc-awk-index-paths
+                (list (org-fc-test-fixture "index/uppercase.org")))))
+    (should (eq (length index) 1))
+    (let ((card (car index)))
+      (should (equal (plist-get card :inherited-tags) ":tag1:tag2:"))
+      (should (equal (plist-get card :filetitle) "File Title"))))
+  (let ((index (org-fc-awk-index-paths
+                (list (org-fc-test-fixture "index/lowercase.org")))))
+    (should (eq (length index) 1))
+    (let ((card (car index)))
+      (should (equal (plist-get card :inherited-tags) ":tag1:tag2:"))
+      (should (equal (plist-get card :filetitle) "File Title")))))
+
 (ert-deftest org-fc-test-index ()
   (let ((index (org-fc-awk-index-paths
                 (list
