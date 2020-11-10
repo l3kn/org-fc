@@ -1168,7 +1168,7 @@ removed."
     ;; Make sure only one of the modes is active at a time
     (org-fc-review-rate-mode -1)
     ;; Make sure we're in org mode and there is an active review session
-    (unless (and (eq major-mode 'org-mode) org-fc--session)
+    (unless (and (derived-mode-p 'org-mode) org-fc--session)
       (org-fc-review-flip-mode -1))))
 
 ;;;;; Rate Mode
@@ -1197,7 +1197,7 @@ removed."
     ;; Make sure only one of the modes is active at a time
     (org-fc-review-flip-mode -1)
     ;; Make sure we're in org mode and there is an active review session
-    (unless (and (eq major-mode 'org-mode) org-fc--session)
+    (unless (and (derived-mode-p 'org-mode) org-fc--session)
       (org-fc-review-rate-mode -1))))
 
 (defvar org-fc-review-edit-mode-map
@@ -1219,7 +1219,7 @@ removed."
     (org-fc-review-flip-mode -1)
     (org-fc-review-rate-mode -1)
     ;; Make sure we're in org mode and there is an active review session
-    (unless (and (eq major-mode 'org-mode) org-fc--session)
+    (unless (and (derived-mode-p 'org-mode) org-fc--session)
       (org-fc-review-edit-mode -1))))
 
 ;;;; Main Loop
