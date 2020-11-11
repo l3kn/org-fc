@@ -1635,35 +1635,33 @@ Pauses the review, unnarrows the buffer and activates
          (reviews-stats (org-fc-awk-stats-reviews)))
     (with-current-buffer buf
       (erase-buffer)
-      (insert
-       (propertize "Flashcards\n\n" 'face 'org-level-1))
 
       (insert
-       (propertize "  Card Statistics\n\n" 'face 'org-level-1))
+       (propertize "Card Statistics\n\n" 'face 'org-level-1))
 
-      (insert (format "    New: %d (day) %d (week) %d (month) \n"
+      (insert (format "  New: %d (day) %d (week) %d (month) \n"
                       (plist-get stats :created-day)
                       (plist-get stats :created-week)
                       (plist-get stats :created-month)))
 
       (insert "\n")
       (insert (format
-               "    %6d Cards, %d suspended\n"
+               "  %6d Cards, %d suspended\n"
                (plist-get stats :total)
                (plist-get stats :suspended)))
       (dolist (pair (plist-get stats :by-type))
-        (insert (format "    %6d %s\n" (cdr pair) (car pair))))
+        (insert (format "  %6d %s\n" (cdr pair) (car pair))))
       (insert "\n")
       (insert
-       (propertize "  Position Statistics\n\n" 'face 'org-level-1))
+       (propertize "Position Statistics\n\n" 'face 'org-level-1))
 
-      (insert (format "    %6d Due Now\n\n" (plist-get stats :due)))
+      (insert (format "  %6d Due Now\n\n" (plist-get stats :due)))
 
       (dolist (position '((:avg-ease . "Avg. Ease")
                           (:avg-box . "Avg. Box")
                           (:avg-interval . "Avg. Interval (days)")))
         (insert
-         (format "    %6.2f %s\n"
+         (format "  %6.2f %s\n"
                  (plist-get stats (car position))
                  (cdr position))))
 
@@ -1671,7 +1669,7 @@ Pauses the review, unnarrows the buffer and activates
 
       (when reviews-stats
         (insert
-         (propertize "  Review Statistics (All Cards)\n\n" 'face 'org-level-1))
+         (propertize "Review Statistics (All Cards)\n\n" 'face 'org-level-1))
 
         (dolist (scope '((:day . "Day")
                          (:week . "Week")
@@ -1688,9 +1686,9 @@ Pauses the review, unnarrows the buffer and activates
               )))
         (insert "\n"))
       (insert
-       (propertize "  [r] Review\n" 'face 'org-level-1))
+       (propertize "[r] Review\n" 'face 'org-level-1))
       (insert
-       (propertize "  [q] Quit\n" 'face 'org-level-1)))))
+       (propertize "[q] Quit\n" 'face 'org-level-1)))))
 
 (defvar org-fc-dashboard-mode-map
   (let ((map (make-sparse-keymap)))
