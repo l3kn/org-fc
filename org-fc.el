@@ -1544,32 +1544,47 @@ Pauses the review, unnarrows the buffer and activates
          ;; NOTE: This has to use `list' so incf + getf works as
          ;; expected
          (created (list :day 0 :week 0 :month 0))
+         (due (list :now 0 :day 0 :week 0 :month 0))
          (now (current-time))
-         (time-day (time-subtract now (* 24 60 60)))
-         (time-week (time-subtract now (* 7 24 60 60)))
-         (time-month (time-subtract now (* 30 24 60 60))))
+         (minus-day (time-subtract now (* 24 60 60)))
+         (minus-week (time-subtract now (* 7 24 60 60)))
+         (minus-month (time-subtract now (* 30 24 60 60)))
+         (plus-day (time-add now (* 24 60 60)))
+         (plus-week (time-add now (* 7 24 60 60)))
+         (plus-month (time-add now (* 30 24 60 60))))
     (dolist (card index)
       (cl-incf total 1)
       (if (plist-get card :suspended)
           (cl-incf suspended 1)
         (let ((card-created (plist-get card :created)))
-          (if (time-less-p time-day card-created)
+
+          (if (time-less-p minus-day card-created)
               (cl-incf (cl-getf created :day) 1))
-          (if (time-less-p time-week card-created)
+          (if (time-less-p minus-week card-created)
               (cl-incf (cl-getf created :week) 1))
-          (if (time-less-p time-month card-created)
+          (if (time-less-p minus-month card-created)
               (cl-incf (cl-getf created :month) 1))
+
           (dolist (pos (plist-get card :positions))
             (cl-incf n-pos 1)
-            (if (time-less-p (plist-get pos :due) now)
-                (cl-incf n-due 1))
+
+            (let ((pos-due (plist-get pos :due)))
+              (if (time-less-p pos-due now)
+                  (cl-incf (cl-getf due :now) 1))
+              (if (time-less-p pos-due plus-day)
+                  (cl-incf (cl-getf due :day) 1))
+              (if (time-less-p pos-due plus-week)
+                  (cl-incf (cl-getf due :week) 1))
+              (if (time-less-p pos-due plus-month)
+                  (cl-incf (cl-getf due :month) 1)))
+
             (cl-incf avg-ease (plist-get pos :ease))
             (cl-incf avg-box (plist-get pos :box))
             (cl-incf avg-interval (plist-get pos :interval)))))
       (cl-incf (gethash (plist-get card :type) by-type 0) 1))
     (list :total total
           :suspended suspended
-          :due n-due
+          :due due
           :by-type (org-fc--hashtable-to-alist by-type)
           :created created
           :avg-ease (/ avg-ease n-pos)
@@ -1633,6 +1648,7 @@ Pauses the review, unnarrows the buffer and activates
          (index (org-fc-index context))
          (stats (org-fc-stats index))
          (created-stats (plist-get stats :created))
+         (due-stats (plist-get stats :due))
          (reviews-stats (org-fc-awk-stats-reviews)))
     (with-current-buffer buf
       (erase-buffer)
@@ -1656,7 +1672,11 @@ Pauses the review, unnarrows the buffer and activates
       (insert
        (propertize "Position Statistics\n\n" 'face 'org-level-1))
 
-      (insert (format "  %6d Due Now\n\n" (plist-get stats :due)))
+      (insert (format "  Due: %d (now) %d (day) %d (week) %d (month)\n\n"
+                      (plist-get due-stats :now)
+                      (plist-get due-stats :day)
+                      (plist-get due-stats :week)
+                      (plist-get due-stats :month)))
 
       (dolist (position '((:avg-ease . "Avg. Ease")
                           (:avg-box . "Avg. Box")
