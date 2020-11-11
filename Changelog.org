@@ -6,8 +6,15 @@ In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
 ** [2020-11-11 Wed]
+*** Added
 The dashboard now includes a forecast of how many cards will be due
 during the next day, week (+7 days) or month (+30 days).
+*** Changed
+- All dashboard functions were extracted to a separate file
+- ~org-fc-stats~ was renamed to ~org-fc-dashboard-stats~
+- ~org-fc--hashtable-to-alist~ was renamed to ~org-fc-dashboard--hashtable-to-alist~
+- ~org-fc-context-dashboard~ was renamed to ~org-fc-dashboard-context~
+- ~org-fc-review-dashboard-context~ was renamed to ~org-fc-dashboard-review~
 ** [2020-09-09 Wed]
 Org-fc now supports nested flashcards.
 

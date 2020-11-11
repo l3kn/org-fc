@@ -121,30 +121,6 @@ types."
   :type 'integer
   :group 'org-fc)
 
-;;;; Dashboard
-
-(defcustom org-fc-dashboard-bar-chart-width 400
-  "Width of the svg generated to display review statistics."
-  :type 'integer
-  :group 'org-fc)
-
-(defcustom org-fc-dashboard-bar-chart-height 20
-  "Height of the svg generated to display review statistics."
-  :type 'integer
-  :group 'org-fc)
-
-(defcustom org-fc-dashboard-text-bar-chart-width 40
-  "Width of the text-bar chart used to display review statistics.
-This is only used org-fc is run in a non-graphic display
-environment without svg support."
-  :type 'integer
-  :group 'org-fc)
-
-(defcustom org-fc-dashboard-buffer-name "*org-fc Main*"
-  "Name of the buffer to use for displaying the dashboard view."
-  :type 'string
-  :group 'org-fc)
-
 ;;;; Spacing Parameters
 
 (defcustom org-fc-algorithm 'sm2-v1
@@ -1240,8 +1216,6 @@ removed."
   "Default context for all cards.")
 (defvar org-fc-context-buffer '(:paths buffer)
   "Default context for the current buffer.")
-(defvar org-fc-context-dashboard org-fc-context-all
-  "Context of the current dashboard view.")
 
 (defun org-fc-contexts ()
   "List of all contexts."
@@ -1304,11 +1278,6 @@ Valid contexts:
   "Review all due cards."
   (interactive)
   (org-fc-review org-fc-context-all))
-
-(defun org-fc-review-dashboard-context ()
-  "Review the context of the current dashboard."
-  (interactive)
-  (org-fc-review org-fc-context-dashboard))
 
 (defun org-fc-review-next-card (&optional resuming)
   "Review the next card of the current session.
@@ -1528,210 +1497,7 @@ Pauses the review, unnarrows the buffer and activates
 
 ;;; Dashboard
 
-(defun org-fc--hashtable-to-alist (ht)
-  "Convert a hash-table HT to an alist."
-  (let (res)
-    (dolist (key (hash-table-keys ht))
-      (push (cons key (gethash key ht)) res))
-    res))
-
-(defun org-fc-stats (index)
-  "Compute statistics for an INDEX of cards and positions."
-  (let* ((total 0) (suspended 0)
-         (by-type (make-hash-table))
-         (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0)
-         (n-pos 0) (n-due 0)
-         ;; NOTE: This has to use `list' so incf + getf works as
-         ;; expected
-         (created (list :day 0 :week 0 :month 0))
-         (due (list :now 0 :day 0 :week 0 :month 0))
-         (now (current-time))
-         (minus-day (time-subtract now (* 24 60 60)))
-         (minus-week (time-subtract now (* 7 24 60 60)))
-         (minus-month (time-subtract now (* 30 24 60 60)))
-         (plus-day (time-add now (* 24 60 60)))
-         (plus-week (time-add now (* 7 24 60 60)))
-         (plus-month (time-add now (* 30 24 60 60))))
-    (dolist (card index)
-      (cl-incf total 1)
-      (if (plist-get card :suspended)
-          (cl-incf suspended 1)
-        (let ((card-created (plist-get card :created)))
-
-          (if (time-less-p minus-day card-created)
-              (cl-incf (cl-getf created :day) 1))
-          (if (time-less-p minus-week card-created)
-              (cl-incf (cl-getf created :week) 1))
-          (if (time-less-p minus-month card-created)
-              (cl-incf (cl-getf created :month) 1))
-
-          (dolist (pos (plist-get card :positions))
-            (cl-incf n-pos 1)
-
-            (let ((pos-due (plist-get pos :due)))
-              (if (time-less-p pos-due now)
-                  (cl-incf (cl-getf due :now) 1))
-              (if (time-less-p pos-due plus-day)
-                  (cl-incf (cl-getf due :day) 1))
-              (if (time-less-p pos-due plus-week)
-                  (cl-incf (cl-getf due :week) 1))
-              (if (time-less-p pos-due plus-month)
-                  (cl-incf (cl-getf due :month) 1)))
-
-            (cl-incf avg-ease (plist-get pos :ease))
-            (cl-incf avg-box (plist-get pos :box))
-            (cl-incf avg-interval (plist-get pos :interval)))))
-      (cl-incf (gethash (plist-get card :type) by-type 0) 1))
-    (list :total total
-          :suspended suspended
-          :due due
-          :by-type (org-fc--hashtable-to-alist by-type)
-          :created created
-          :avg-ease (/ avg-ease n-pos)
-          :avg-box (/ avg-box n-pos)
-          :avg-interval (/ avg-interval n-pos))))
-
-;;;; Bar Chart Generation
-
-(defun org-fc-dashboard-bar-chart (stat)
-  "Generate a svg bar-chart for the plist STAT."
-  (let* ((width org-fc-dashboard-bar-chart-width)
-         (height org-fc-dashboard-bar-chart-height)
-         (fontsize (floor (* height 0.6)))
-         (total (float (plist-get stat :total)))
-         (pos 0)
-         (values
-          `((,(/ (plist-get stat :again) total) . "red")
-            (,(/ (plist-get stat :hard) total) . "yellow")
-            (,(/ (plist-get stat :good) total) . "green")
-            (,(/ (plist-get stat :easy) total) . "darkgreen")))
-         (svg (svg-create width height)))
-    (dolist (value values)
-      (svg-rectangle svg pos 0 (* width (car value)) height :fill (cdr value))
-      (if (> (* width (car value)) (* 2 fontsize))
-       (svg-text svg (format "%.1f" (* 100 (car value)))
-                 :font-size fontsize
-                 :fill "white"
-                 :font-weight "bold"
-                 :font-family "sans-serif"
-                 :x (+ pos 5)
-                 :y (+ fontsize (floor (- height fontsize) 2))))
-      (setq pos (+ pos (* width (car value)))))
-    (svg-image svg)))
-
-(defun org-fc-dashboard-text-bar-chart (stat)
-  "Generate a text bar-chart for the plist STAT."
-  (cl-flet ((colored-bar (length color)
-                         (propertize
-                          (make-string length ?\s)
-                          'font-lock-face `(:background ,color))))
-    (let* ((width org-fc-dashboard-text-bar-chart-width)
-           (total (float (plist-get stat :total)))
-           (again (floor (* width (/ (plist-get stat :again) total))))
-           (hard (floor (* width (/ (plist-get stat :hard) total))))
-           (good (floor (* width (/ (plist-get stat :good) total))))
-           ;; Make sure to use the total width
-           (easy (- width again hard good)))
-      (concat
-       (colored-bar again "red")
-       (colored-bar hard "yellow")
-       (colored-bar good "green")
-       (colored-bar easy "blue")))))
-
-;;;; Main View
-
-;; Based on `mu4e-main-view-real'
-(defun org-fc-dashboard-view (context)
-  "Show the dashboard view for CONTEXT in the current buffer."
-  (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
-         (inhibit-read-only t)
-         (index (org-fc-index context))
-         (stats (org-fc-stats index))
-         (created-stats (plist-get stats :created))
-         (due-stats (plist-get stats :due))
-         (reviews-stats (org-fc-awk-stats-reviews)))
-    (with-current-buffer buf
-      (erase-buffer)
-
-      (insert
-       (propertize "Card Statistics\n\n" 'face 'org-level-1))
-
-      (insert (format "  New: %d (day) %d (week) %d (month) \n"
-                      (plist-get created-stats :day)
-                      (plist-get created-stats :week)
-                      (plist-get created-stats :month)))
-
-      (insert "\n")
-      (insert (format
-               "  %6d Cards, %d suspended\n"
-               (plist-get stats :total)
-               (plist-get stats :suspended)))
-      (dolist (pair (plist-get stats :by-type))
-        (insert (format "  %6d %s\n" (cdr pair) (car pair))))
-      (insert "\n")
-      (insert
-       (propertize "Position Statistics\n\n" 'face 'org-level-1))
-
-      (insert (format "  Due: %d (now) %d (day) %d (week) %d (month)\n\n"
-                      (plist-get due-stats :now)
-                      (plist-get due-stats :day)
-                      (plist-get due-stats :week)
-                      (plist-get due-stats :month)))
-
-      (dolist (position '((:avg-ease . "Avg. Ease")
-                          (:avg-box . "Avg. Box")
-                          (:avg-interval . "Avg. Interval (days)")))
-        (insert
-         (format "  %6.2f %s\n"
-                 (plist-get stats (car position))
-                 (cdr position))))
-
-      (insert "\n")
-
-      (when reviews-stats
-        (insert
-         (propertize "Review Statistics (All Cards)\n\n" 'face 'org-level-1))
-
-        (dolist (scope '((:day . "Day")
-                         (:week . "Week")
-                         (:month . "Month")
-                         (:all . "All")))
-          (when-let (stat (plist-get reviews-stats (car scope)))
-            (when (> (plist-get stat :total) 0)
-              (insert "    ")
-              (if (and (display-graphic-p)
-                       (memq 'svg (and (boundp 'image-types) image-types)))
-                  (insert-image (org-fc-dashboard-bar-chart stat))
-                (insert (org-fc-dashboard-text-bar-chart stat)))
-              (insert (propertize (format " %s (%d)\n\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
-              )))
-        (insert "\n"))
-      (insert
-       (propertize "[r] Review\n" 'face 'org-level-1))
-      (insert
-       (propertize "[q] Quit\n" 'face 'org-level-1)))))
-
-(defvar org-fc-dashboard-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "r") 'org-fc-review-dashboard-context)
-    (define-key map (kbd "q") 'quit-window)
-    (define-key map (kbd "G") 'org-fc-dashboard-view)
-    map))
-
-(define-derived-mode org-fc-dashboard-mode special-mode "org-fc main"
-  "Major mode providing an overview of the flashcard system"
-  (set (make-local-variable 'revert-buffer-function) #'org-fc-dashboard-view)
-  (setq-local cursor-type nil))
-
-;;;###autoload
-(defun org-fc-dashboard (context)
-  "Open a buffer showing the dashboard view for CONTEXT."
-  (interactive (list (org-fc-select-context)))
-  (setq org-fc-context-dashboard context)
-  (org-fc-dashboard-view context)
-  (switch-to-buffer org-fc-dashboard-buffer-name)
-  (goto-char (point-min))
-  (org-fc-dashboard-mode))
+(require 'org-fc-dashboard)
 
 ;;; Footer
 
