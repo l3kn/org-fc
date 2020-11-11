@@ -5,6 +5,9 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** [2020-11-11 Wed]
+The dashboard now includes a forecast of how many cards will be due
+during the next day, week (+7 days) or month (+30 days).
 ** [2020-09-09 Wed]
 Org-fc now supports nested flashcards.
 
