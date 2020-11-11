@@ -31,6 +31,14 @@
   'org-fc-show-all
   'org-fc-remove-overlays "0.0.1")
 
+(define-obsolete-function-alias
+  'org-fc-stats
+  'org-fc-dashboard-stats "0.0.1")
+
+(define-obsolete-function-alias
+  'org-fc--hashtable-to-alist
+  'org-fc-dashboard--hashtable-to-alist "0.0.1")
+
 ;;; Footer
 
 (provide 'org-fc-compat)
