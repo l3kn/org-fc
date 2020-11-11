@@ -1541,7 +1541,9 @@ Pauses the review, unnarrows the buffer and activates
          (by-type (make-hash-table))
          (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0)
          (n-pos 0) (n-due 0)
-         (created-day 0) (created-week 0) (created-month 0)
+         ;; NOTE: This has to use `list' so incf + getf works as
+         ;; expected
+         (created (list :day 0 :week 0 :month 0))
          (now (current-time))
          (time-day (time-subtract now (* 24 60 60)))
          (time-week (time-subtract now (* 7 24 60 60)))
@@ -1550,13 +1552,13 @@ Pauses the review, unnarrows the buffer and activates
       (cl-incf total 1)
       (if (plist-get card :suspended)
           (cl-incf suspended 1)
-        (let ((created (plist-get card :created)))
-          (if (time-less-p time-day created)
-              (cl-incf created-day 1))
-          (if (time-less-p time-week created)
-              (cl-incf created-week 1))
-          (if (time-less-p time-month created)
-              (cl-incf created-month 1))
+        (let ((card-created (plist-get card :created)))
+          (if (time-less-p time-day card-created)
+              (cl-incf (cl-getf created :day) 1))
+          (if (time-less-p time-week card-created)
+              (cl-incf (cl-getf created :week) 1))
+          (if (time-less-p time-month card-created)
+              (cl-incf (cl-getf created :month) 1))
           (dolist (pos (plist-get card :positions))
             (cl-incf n-pos 1)
             (if (time-less-p (plist-get pos :due) now)
@@ -1569,9 +1571,7 @@ Pauses the review, unnarrows the buffer and activates
           :suspended suspended
           :due n-due
           :by-type (org-fc--hashtable-to-alist by-type)
-          :created-day created-day
-          :created-week created-week
-          :created-month created-month
+          :created created
           :avg-ease (/ avg-ease n-pos)
           :avg-box (/ avg-box n-pos)
           :avg-interval (/ avg-interval n-pos))))
@@ -1632,6 +1632,7 @@ Pauses the review, unnarrows the buffer and activates
          (inhibit-read-only t)
          (index (org-fc-index context))
          (stats (org-fc-stats index))
+         (created-stats (plist-get stats :created))
          (reviews-stats (org-fc-awk-stats-reviews)))
     (with-current-buffer buf
       (erase-buffer)
@@ -1640,9 +1641,9 @@ Pauses the review, unnarrows the buffer and activates
        (propertize "Card Statistics\n\n" 'face 'org-level-1))
 
       (insert (format "  New: %d (day) %d (week) %d (month) \n"
-                      (plist-get stats :created-day)
-                      (plist-get stats :created-week)
-                      (plist-get stats :created-month)))
+                      (plist-get created-stats :day)
+                      (plist-get created-stats :week)
+                      (plist-get created-stats :month)))
 
       (insert "\n")
       (insert (format
