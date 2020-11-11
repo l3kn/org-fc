@@ -265,7 +265,7 @@ environment without svg support."
 (defun org-fc-dashboard (context)
   "Open a buffer showing the dashboard view for CONTEXT."
   (interactive (list (org-fc-select-context)))
-  (setq org-fc-context-dashboard context)
+  (setq org-fc-dashboard-context context)
   (org-fc-dashboard-view context)
   (switch-to-buffer org-fc-dashboard-buffer-name)
   (goto-char (point-min))
