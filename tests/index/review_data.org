@@ -1,0 +1,25 @@
+* SM2                                                                    :fc:
+:PROPERTIES:
+:FC_CREATED: 2020-11-06T10:40:17Z
+:FC_TYPE:  double
+:ID:       f8cc05c7-aa3a-4a21-aa71-38178477e619
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-11-06T10:40:17Z |
+| back     |  2.8 |   2 |    123.4 | 2020-11-06T10:40:20Z |
+:END:
+Back
+* Alternative                                                            :fc:
+:PROPERTIES:
+:FC_CREATED: 2020-11-06T11:31:05Z
+:FC_TYPE:  double
+:ID:       404557e5-ec07-4ee1-a000-3f0e8a94eaa0
+:END:
+:REVIEW_DATA:
+| position | custom1 | custom2 | due                  |
+|----------+---------+---------+----------------------|
+| front    |     1.0 |       3 | 2020-11-06T11:31:05Z |
+| back     |     2.0 |       4 | 2020-11-06T11:31:10Z |
+:END:

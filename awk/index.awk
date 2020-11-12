@@ -1,7 +1,35 @@
+### Commentary
+#
+# This file implements a parser that reads org files, extracts data
+# relevant to org-fc and prints it as an S-expression so it can be
+# parsed with EmacsLisp's read function.
+#
+# The org format is mostly line based.
+# A small state machine is used to keep track of where we are in a file,
+# (e.g. inside a card, reading heading properties, reading review data).
+#
+# Some parsing of review data columns is done.
+#
+# The position is escaped as a string and the due date is converted
+# into Emacs's date format because it's a bit faster in AWK than in
+# EmacsLisp.
+#
+# All other columns of the review data table are assumed to be numeric
+# values and included in the output S-expression without any escaping.
+#
+# Because of the complicated rules used by org-mode to determine a
+# heading's tags, inherited (file / parent heading) and local tags are
+# tracked separately and later combined using an org-mode function.
+#
+### Code
+
 BEGIN {
     # The only time we're interested in multiple fields is when
     # parsing the review data drawer.
-    FS="|";
+    #
+    # Treating whitespace as part of the field separator instead of
+    # stripping it from the fields afterwards is a bit faster.
+    FS="[ \t]*|[ \t]*";
 
     now = strftime("%FT%TZ", systime(), 1);
 
@@ -19,7 +47,8 @@ BEGIN {
     state_properties = 2;
     state_properties_done = 3;
     state_review_data = 4;
-    state_review_data_done = 5;
+    state_review_data_body = 5;
+    state_review_data_done = 6;
 
     print "(";
 }
@@ -39,7 +68,9 @@ BEGINFILE {
 }
 
 ENDFILE {
-    print ")  :title " (file_title ? escape_string(file_title) : "nil") ")";
+    # On `BEGINFILE` we don't know the file's title yet so we output
+    # it once done processing the rest of the file.
+    print "  )  :title " (file_title ? escape_string(file_title) : "nil") ")";
 }
 
 ## File Tags
@@ -99,8 +130,12 @@ match($0, /^(\*+)[ \t]+(.*)$/, a) {
 $0 ~ review_data_drawer {
     # Make sure the review data comes after the property drawer
     if (state == state_properties_done) {
+        delete review_data_columns;
+        review_data_ncolumns = 0;
+
         delete review_data;
         review_index = 1;
+
         state = state_review_data;
     }
     next;
@@ -109,7 +144,7 @@ $0 ~ review_data_drawer {
 /:END:/ {
     if (state == state_properties) {
         state = state_properties_done;
-    } else if (state == state_review_data) {
+    } else if (state == state_review_data_body) {
         state = state_review_data_done;
         # Card header
         inherited_tags = "";
@@ -135,13 +170,21 @@ $0 ~ review_data_drawer {
 
         # Card positions
         for (i = 1; i < review_index; i++) {
-            print "      ("               \
-                ":position " escape_string(review_data[i]["position"])  \
-                " :ease " review_data[i]["ease"]                \
-                " :box " review_data[i]["box"]                  \
-                " :interval " review_data[i]["interval"]        \
-                " :due " parse_time(review_data[i]["due"])      \
-                ")"
+            print "      (";
+            for (j = 1; j <= review_data_ncolumns; j++) {
+                col = review_data_columns[j];
+                val = review_data[i][col];
+
+                # TODO: extract values as strings, parse in Emacs when
+                # necessary.
+                if (col == "due") {
+                    val = parse_time(val);
+                } else if (col == "position") {
+                    val = escape_string(val);
+                }
+                print "        :" col " " val;
+            }
+            print "      )";
         }
         print "    ))";
     }
@@ -157,19 +200,32 @@ $0 ~ review_data_drawer {
 
 ## Review data parsing
 
-# TODO: Explicit match, to check for broken drawers
-#
+# Table separator
+(state == state_review_data) && /^\|[-+]+\|$/ {
+    state = state_review_data_body;
+    next;
+}
+
+# Column Names
+# NOTE: This line comes before the table separator in the file but to
+# keep the regex simple, we match it later.
+(state == state_review_data) && /^\|.*\|$/ {
+    # Skip the first and last empty fields
+    for (i = 2; i <= (NF - 1); i++) {
+        review_data_columns[i - 1] = $i;
+    }
+    review_data_ncolumns = NF - 2;
+    next;
+}
+
 # Positions are collected in an array first,
 # in case the review drawer is broken.
-(state == state_review_data) && /^\|.*\|$/ {
-    # check NF to skip the |--+--| table separator
-    # match on $2 to skip the table header
-    if (NF == 7 && $2 !~ "position") {
-        review_data[review_index]["position"] = trim($2);
-        review_data[review_index]["ease"] = trim($3);
-        review_data[review_index]["box"] = trim($4);
-        review_data[review_index]["interval"] = trim($5);
-        review_data[review_index]["due"] = trim_surrounding($6);
+(state == state_review_data_body) && /^\|.*\|$/ {
+    if (NF == (review_data_ncolumns + 2)) {
+        for (i = 2; i <= (NF - 1); i++) {
+            column = review_data_columns[i - 1];
+            review_data[review_index][column] = $i;
+        }
         review_index += 1;
     }
     next;
