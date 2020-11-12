@@ -71,6 +71,11 @@ Used to generate absolute paths to the awk scripts.")
   :type 'boolean
   :group 'org-fc)
 
+(defcustom org-fc-index-function #'org-fc-awk-index
+  "Function used to index cards in a list of paths."
+  :type 'function
+  :group 'org-fc)
+
 ;;;; Org Tags / Properties
 
 (defcustom org-fc-type-property "FC_TYPE"
@@ -812,12 +817,6 @@ use `(and (type double) (tag \"math\"))'."
       `(lambda (,card-var)
          ,(compile-inner filter)))))
 
-(defun org-fc-filter-index (index filter)
-  "Apply FILTER to cards in INDEX."
-  (if filter
-      (cl-remove-if-not (org-fc--compile-filter filter) index)
-    index))
-
 (defun org-fc-index (context)
   "Create an index for review CONTEXT."
   (let ((paths (plist-get context :paths))
@@ -827,7 +826,10 @@ use `(and (type double) (tag \"math\"))'."
      ((or (null paths) (eq paths 'all)) (setq paths org-fc-directories))
      ((eq paths 'buffer) (setq paths (list (buffer-file-name))))
      ((stringp paths) (setq paths (list paths))))
-    (org-fc-filter-index (org-fc-awk-index-paths paths) filter)))
+
+    (if filter (setq filter (org-fc--compile-filter filter)))
+
+    (funcall org-fc-index-function paths filter)))
 
 (defun org-fc-index-flatten-card (card)
   "Flatten CARD into a list of positions.

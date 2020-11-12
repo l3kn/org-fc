@@ -20,6 +20,11 @@
     (equal (sort ids1 #'string-lessp)
            (sort ids2 #'string-lessp))))
 
+(defun org-fc-test-filter-index (index filter)
+  (cl-remove-if-not
+   (org-fc--compile-filter filter)
+   index))
+
 (ert-deftest org-fc-filter-test ()
   (let* ((index (org-fc-awk-index-paths (list (org-fc-test-fixture "filter/")))))
     ;; Index of all cards
@@ -30,31 +35,31 @@
     ;; Filter by type
     (should
      (org-fc-test-compare-ids
-      (org-fc-filter-index index '(type double))
+      (org-fc-test-filter-index index '(type double))
       '(a-double c-double)))
 
     ;; Filter by type, or
     (should
      (org-fc-test-compare-ids
-      (org-fc-filter-index index '(or (type cloze) (type double)))
+      (org-fc-test-filter-index index '(or (type cloze) (type double)))
       '(a-double c-double c-cloze)))
 
     ;; Filter by tag, direct
     (should
      (org-fc-test-compare-ids
-      (org-fc-filter-index index '(tag "tag1"))
+      (org-fc-test-filter-index index '(tag "tag1"))
       '(a-normal a-double)))
 
     ;; Filter by tag, inherited
     (should
      (org-fc-test-compare-ids
-      (org-fc-filter-index index '(tag "tag2"))
+      (org-fc-test-filter-index index '(tag "tag2"))
       '(a-double b-normal1)))
 
     ;; Filter by tag, filetag
     (should
      (org-fc-test-compare-ids
-      (org-fc-filter-index index '(and (tag "file1")
+      (org-fc-test-filter-index index '(and (tag "file1")
                                        (tag "file2")
                                        (tag "file3")))
       '(c-double c-cloze)))
@@ -62,12 +67,12 @@
     ;; Negation
     (should
      (org-fc-test-compare-ids
-      (org-fc-filter-index index '(not (type normal)))
+      (org-fc-test-filter-index index '(not (type normal)))
       '(a-double c-double c-cloze)))
 
     ;; Combined
     (should
      (org-fc-test-compare-ids
-      (org-fc-filter-index index '(and (not (type normal))
+      (org-fc-test-filter-index index '(and (not (type normal))
                                        (tag "file1")))
       '(c-double c-cloze)))))

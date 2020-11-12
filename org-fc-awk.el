@@ -91,6 +91,15 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
       (plist-get file :cards)))
    index))
 
+(defun org-fc-awk-index (paths &optional filter)
+  "Find cards in PATHS matching an optional FILTER predicate.
+FILTER can be either nil or a function taking a single card as
+  its input."
+  (let ((index (org-fc-awk-index-paths paths)))
+   (if filter
+       (cl-remove-if-not filter index)
+     index)))
+
 (defun org-fc-awk-index-paths (paths)
   "Generate a list of all cards and positions in PATHS."
   (let ((output (shell-command-to-string

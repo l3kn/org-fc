@@ -5,6 +5,15 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** [2020-11-12 Thu]
+- Removed ~(org-fc-filter-index index filter)~,
+  replacing it with indexer specific functions
+  ~(org-fc-awk-index paths &optional filter)~
+  and
+  ~(org-fc-cache-index paths &optional filter)~
+- Added a defcustom ~org-fc-index-function~
+  to support different indexers
+- Added a prototype caching indexer
 ** [2020-11-11 Wed]
 *** Added
 The dashboard now includes a forecast of how many cards will be due
