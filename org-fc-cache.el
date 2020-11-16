@@ -81,9 +81,16 @@ as its input."
          ;; the entries of the hash table.
          (if filter
              (dolist (card (cl-remove-if-not filter (plist-get file :cards)))
-               (push (plist-put card :path path) res))
+               (push (plist-put
+                      (plist-put card :path path)
+                      :filetitle
+                      (plist-get file :title)) res))
            (dolist (card (plist-get file :cards))
-             (push (plist-put card :path path) res)))))
+             (push
+              (plist-put
+               (plist-put card :path path)
+               :filetitle
+               (plist-get file :title)) res)))))
      org-fc-cache)
     res))
 
