@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(require 'org-fc)
-
 ;;; Queue / Processing of Files
 
 (defvar org-fc-cache
