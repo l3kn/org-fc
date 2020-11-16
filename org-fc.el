@@ -510,6 +510,7 @@ If it is shorter than EXPECTED-LENGTH, it is filled using
 ;;; Card Indexing (AWK)
 
 (require 'org-fc-awk)
+(require 'org-fc-cache)
 
 ;;; Card Initialization
 
