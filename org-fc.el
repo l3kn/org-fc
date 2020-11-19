@@ -510,7 +510,6 @@ If it is shorter than EXPECTED-LENGTH, it is filled using
 ;;; Card Indexing (AWK)
 
 (require 'org-fc-awk)
-(require 'org-fc-cache)
 
 ;;; Card Initialization
 
@@ -1501,6 +1500,10 @@ Pauses the review, unnarrows the buffer and activates
 ;;; Dashboard
 
 (require 'org-fc-dashboard)
+
+;;; Cache
+
+(require 'org-fc-cache)
 
 ;;; Footer
 
