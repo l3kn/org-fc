@@ -152,6 +152,8 @@ are renamed or deleted."
 
 ;; TODO: There already is a similar check in org-fc,
 ;; those should be combined.
+
+;;;###autoload
 (defun org-fc-cache-coherence-check ()
   "Check if the entry at point is coherent with its cache representation.
 This is especially relevant w.r.t a card's due date / suspension state before review."
