@@ -23,70 +23,125 @@
 ;;
 ;;; Code:
 
-;;;; Parameters
+(defmacro org-fc-property (symbol standard doc &rest args)
+  (let (defcustom-args property reader)
+    (while args
+      (let ((keyword (pop args)))
+        (unless (symbolp keyword)
+          (error "Junk in args %S" args))
+        (unless args
+          (error "Keyword %s is missing an argument" keyword))
+        (let ((value (pop args)))
+          (case keyword
+            (:property (setq property value))
+            (:reader (setq reader value))
+            (t
+             (push value defcustom-args)
+             (push keyword defcustom-args))))))
+    (unless property
+      (error "Missing keyword :property"))
+    (let ((property-symbol (intern (concat (symbol-name symbol) "-property"))))
+     `(progn
+        (defcustom
+          ,symbol
+          ,standard
+          ,doc
+          ,@defcustom-args)
+        (defcustom
+          ,property-symbol
+          ,property
+          ,(format "Headline property for `%s'" symbol)
+          :type 'string
+          :group ,(plist-get defcustom-args :group))
+        (defun ,symbol ()
+          ,(format "Getter for `%s'" symbol)
+          (if-let ((value (org-entry-get (point) ,property-symbol t)))
+              ;; TODO: Switch on possible types
+              (read value)
+            ;; ,(case (plist-get defcustom-args :type)
+            ;;    ('string 'value)
+            ;;    ('float '(string-to-number value))
+            ;;    ('list '(read value))
+            ;;    (t (error "Unsupported property type %s"
+            ;; (plist-get defcustom-args :type)
 
-(defcustom org-fc-algo-sm2-changes
-  '((again . -0.3)
-    (hard . -0.15)
-    (good . 0.0)
-    (easy . 0.15))
-  "Changes to a cards ease depending on its rating."
-  :type 'list
-  :group 'org-fc)
+            ,symbol))))))
 
-(defcustom org-fc-algo-sm2-fixed-intervals
-  '(0.0 0.01 1.0 6.0)
-  "Hard-coded intervals for the first few card boxes.
+;;;; Properties
+
+(org-fc-property org-fc-algo-sm2-ease-min 1.3
+                 "Lower bound for a cards ease."
+                 :type 'float
+                 :group 'org-fc
+                 :property "FC_SM2_EASE_MIN")
+
+(org-fc-property org-fc-algo-sm2-ease-max 5.0
+                 "Upper bound for a cards ease."
+                 :type 'float
+                 :group 'org-fc
+                 :property "FC_SM2_EASE_MAX")
+
+(org-fc-property org-fc-algo-sm2-ease-initial 2.5
+                 "Initial ease."
+                 :type 'float
+                 :group 'org-fc
+                 :property "FC_SM2_EASE_INITIAL")
+
+(org-fc-property org-fc-algo-sm2-fuzz-min 0.9
+                 "Lower bound for random interval fuzz factor."
+                 :type 'float
+                 :group 'org-fc
+                 :property "FC_SM2_FUZZ_MIN")
+
+(org-fc-property org-fc-algo-sm2-fuzz-max 1.1
+                 "Upper bound for random interval fuzz factor."
+                 :type 'float
+                 :group 'org-fc
+                 :property "FC_SM2_FUZZ_MAX")
+
+(org-fc-property org-fc-algo-sm2-changes
+                 '((again . -0.3)
+                   (hard . -0.15)
+                   (good . 0.0)
+                   (easy . 0.15))
+                 "Changes to a cards ease depending on its rating."
+                 :type 'list
+                 :group 'org-fc
+                 :property "FC_SM2_CHANGES")
+
+(org-fc-property org-fc-algo-sm2-intervals
+                 '(0.0 0.01 1.0 6.0)
+                 "Hard-coded intervals for the first few card boxes.
 Values are in days."
-  :type 'list
-  :group 'org-fc)
-
-(defcustom org-fc-algo-sm2-ease-min 1.3 "Lower bound for a cards ease."
-  :type 'float
-  :group 'org-fc)
-
-(defcustom org-fc-algo-sm2-ease-initial 2.5 "Initial ease."
-  :type 'float
-  :group 'org-fc)
-
-(defcustom org-fc-algo-sm2-ease-max 5.0 "Upper bound for a cards ease."
-  :type 'float
-  :group 'org-fc)
-
-(defcustom org-fc-algo-sm2-fuzz-min 0.9
-  "Lower bound for random interval fuzz factor."
-  :type 'float
-  :group 'org-fc)
-
-(defcustom org-fc-algo-sm2-fuzz-max 1.1
-  "Upper bound for random interval fuzz factor."
-  :type 'float
-  :group 'org-fc)
+                 :type 'list
+                 :group 'org-fc
+                 :property "FC_SM2_INTERVALS")
 
 ;;;; Helper Functions
 
 (defun org-fc-algo-sm2-fuzz (interval)
   "Apply fuzz to INTERVAL.
-INTERVAL is by a random factor between `org-fc-sm2-fuzz-min' and
-`org-fc-sm2-fuzz-max'"
-  (*
-   interval
-   (+ org-fc-sm2-fuzz-min
-      (cl-random (- org-fc-sm2-fuzz-max org-fc-sm2-fuzz-min)))))
+INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
+`org-fc-algo-sm2-fuzz-max'"
+  (let ((min (org-fc-algo-sm2-fuzz-min))
+        (max (org-fc-algo-sm2-fuzz-max)))
+   (* interval (+ min (cl-random (- max min))))))
 
 ;;;; Main Algorithm
 
 (defun org-fc-algo-sm2-next-parameters (ease box interval rating)
   "Calculate the next parameters of a card, based on the review RATING.
 EASE, BOX and INTERVAL are the current parameters of the card."
-  (let* ((next-ease
+  (let* ((intervals (org-fc-algo-sm2-intervals))
+         (changes (org-fc-algo-sm2-changes))
+         (next-ease
           (if (< box 2)
               ease
             (min
              (max
-              (+ ease (alist-get rating org-fc-sm2-changes))
-              org-fc-sm2-ease-min)
-             org-fc-sm2-ease-max)))
+              (+ ease (alist-get rating changes))
+              (org-fc-algo-sm2-ease-min))
+             (org-fc-algo-sm2-ease-max))))
          (next-box
           (cond
            ;; If a card is rated easy, skip the learning phase
@@ -96,15 +151,15 @@ EASE, BOX and INTERVAL are the current parameters of the card."
            ;; Otherwise, move forward one box
            (t (1+ box))))
          (next-interval
-          (cond ((< next-box (length org-fc-sm2-fixed-intervals))
-                 (nth next-box org-fc-sm2-fixed-intervals))
+          (cond ((< next-box (length intervals))
+                 (nth next-box intervals))
                 ((and (eq org-fc-algorithm 'sm2-v2) (eq rating 'hard)) (* 1.2 interval))
-                (t (org-fc-sm2-fuzz (* next-ease interval))))))
+                (t (org-fc-algo-sm2-fuzz (* next-ease interval))))))
     (list next-ease next-box next-interval)))
 
 (defun org-fc-algo-sm2-initial-review-data (position)
   "Initial SM2 review data for POSITION."
-  (list position org-fc-sm2-ease-initial 0 0
+  (list position (org-fc-algo-sm2-ease-initial) 0 0
         (org-fc-timestamp-now)))
 
 ;;; Footer
