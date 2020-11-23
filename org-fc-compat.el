@@ -39,6 +39,42 @@
   'org-fc--hashtable-to-alist
   'org-fc-dashboard--hashtable-to-alist "0.0.1")
 
+(define-obsolete-function-alias
+  'org-fc-sm2-fuzz
+  'org-fc-algo-sm2-fuzz)
+
+(define-obsolete-function-alias
+  'org-fc-sm2-next-parameters
+  'org-fc-algo-sm2-next-parameters)
+
+(define-obsolete-variable-alias
+  'org-fc-sm2-changes
+  'org-fc-algo-sm2-changes)
+
+(define-obsolete-variable-alias
+  'org-fc-sm2-fixed-intervals
+  'org-fc-algo-sm2-fixed-intervals)
+
+(define-obsolete-variable-alias
+  'org-fc-sm2-ease-min
+  'org-fc-algo-sm2-ease-min)
+
+(define-obsolete-variable-alias
+  'org-fc-sm2-ease-max
+  'org-fc-algo-sm2-ease-max)
+
+(define-obsolete-variable-alias
+  'org-fc-sm2-ease-initial
+  'org-fc-algo-sm2-ease-initial)
+
+(define-obsolete-variable-alias
+  'org-fc-sm2-fuzz-min
+  'org-fc-algo-sm2-fuzz-min)
+
+(define-obsolete-variable-alias
+  'org-fc-sm2-fuzz-max
+  'org-fc-algo-sm2-fuzz-max)
+
 ;;; Footer
 
 (provide 'org-fc-compat)
