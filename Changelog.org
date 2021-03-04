@@ -5,7 +5,18 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
-** [2020-11-12 Thu]
+** 0.1.0
+*** Added
+- A ~org-fc-after-flip-hook~ that is run after a card is flipped
+- Support for setting audio files to play after flipping a card via
+  ~org-fc-audio-set-after-flip~
+*** Renamed / Deprecated
+- ~org-fc-audio-set-after~ -> ~org-fc-audio-set-after-setup~
+- ~org-fc-audio-set-before~ -> ~org-fc-audio-set-before-setup~
+- ~org-fc-audio-property-before~ -> ~org-fc-audio-before-setup-property~
+- ~org-fc-audio-property-after~ -> ~org-fc-audio-after-setup-property~
+** 0.0.1
+*** [2020-11-12 Thu]
 - Removed ~(org-fc-filter-index index filter)~,
   replacing it with indexer specific functions
   ~(org-fc-awk-index paths &optional filter)~
@@ -14,106 +25,106 @@ entry with updating instructions.
 - Added a defcustom ~org-fc-index-function~
   to support different indexers
 - Added a prototype caching indexer
-** [2020-11-11 Wed]
-*** Added
+*** [2020-11-11 Wed]
+**** Added
 The dashboard now includes a forecast of how many cards will be due
 during the next day, week (+7 days) or month (+30 days).
-*** Changed
+**** Changed
 - All dashboard functions were extracted to a separate file
 - ~org-fc-stats~ was renamed to ~org-fc-dashboard-stats~
 - ~org-fc--hashtable-to-alist~ was renamed to ~org-fc-dashboard--hashtable-to-alist~
 - ~org-fc-context-dashboard~ was renamed to ~org-fc-dashboard-context~
 - ~org-fc-review-dashboard-context~ was renamed to ~org-fc-dashboard-review~
-** [2020-09-09 Wed]
+*** [2020-09-09 Wed]
 Org-fc now supports nested flashcards.
 
-*** Changed
+**** Changed
 - It's now possible to mark child headings of flashcards as a flashcards
 - When flipping a card, child headings (except the "Back" heading)
   remain collapsed
 - Subheadings are ignored when searching for holes of cloze cards
-** [2020-07-16 Thu]
-*** Changed
+*** [2020-07-16 Thu]
+**** Changed
 - Suspending a card during review now removes all other positions of
   it from the current session, to avoid reviewing suspended cards
-** [2020-07-08 Wed]
-*** Changed
+*** [2020-07-08 Wed]
+**** Changed
 The awk index now also includes the headline text of each card.
 
 This will be useful for building a ~tabulated-list-mode~ based card
 overview.
-** [2020-07-06 Mon]
-*** Added
+*** [2020-07-06 Mon]
+**** Added
 - ~org-fc-suspend-tree~ for suspending all cards in a subtree
-*** Changed
+**** Changed
 - unsuspending overdue cards doesn't reset their review data anymore
-** [2020-07-04 Sat]
-*** Added
+*** [2020-07-04 Sat]
+**** Added
 - ~org-fc-review-edit~ (bound to ~p~) pauses the review for editing
   the current card. A new mode ~org-fc-review-edit-mode~ adds
   keybindings for resuming & quitting the review.
-** [2020-07-03 Fri]
-*** Changed
+*** [2020-07-03 Fri]
+**** Changed
 - By default, failed cards are appended to the end of the review session.
   This can be configured via ~org-fc-append-failed-cards~
 - ~org-fc-map-cards~ takes an optional ~scope~ argument,
   similar to ~org-map-entries~.
-*** Added
+**** Added
 - ~org-fc-unsuspend-tree~ unsuspends all cards in the subtree at point
-** [2020-07-02 Thu]
-*** Changed
+*** [2020-07-02 Thu]
+**** Changed
 - ~org-fc-review-rate-card~ was renamed to ~org-fc-review-rate~
-** [2020-07-01 Wed]
-*** Changed
+*** [2020-07-01 Wed]
+**** Changed
 - The review history file is only written once per review,
   as a first step towards implementing a "undo-rating" command
-** [2020-06-29 Mon]
-*** Added
+*** [2020-06-29 Mon]
+**** Added
 - Shuffling of positions for the review can be disabled
   by setting ~org-fc-shuffle-positions~ to ~nil~
-*** Changed
+**** Changed
 - Error messages from shell commands are promoted
-** [2020-06-28 Sun]
-*** Added
+*** [2020-06-28 Sun]
+**** Added
 - ~org-fc-before-review-hook~ that runs when a review session is started
-** [2020-06-26 Fri]
-*** Changed
+*** [2020-06-26 Fri]
+**** Changed
 - Messages are not inhibited during review
 - Whitelisted drawers are expanded during review
-*** Added
+**** Added
 - A ~org-fc-after-review-hook~ that runs when the review ends / is quit
 - ~org-fc-keymap-hint~ extension
 - ~org-fc-audio~ extension
-** [2020-06-25 Thu]
-*** Added
+*** [2020-06-25 Thu]
+**** Added
 - ~SCHEDULED: ...~, ~DEADLINE: ...~ timestamps are hidden during
   review
 - Drawers in ~org-fc-drawer-whitelist~ are not hidden during review
-*** Changed
+**** Changed
 - During the review process, two minor modes are used instead of two
   hydras
-** [2020-05-24 Sun]
-*** Changed
+*** [2020-05-24 Sun]
+**** Changed
 - Include file information in card index
 - Maintain order of positions in a card when shuffling
-** [2020-05-22 Fri]
-*** Changed
+*** [2020-05-22 Fri]
+**** Changed
 - Exit hydra when review is started
-** [2020-05-08 Fri]
-*** Changed
+*** [2020-05-08 Fri]
+**** Changed
 - Per-context dashboard
 - Improve org-indent of cards
 - Use special "fc-demo" tag for demo cards
 - Move opening of flip/rating hydras to main review loop
-** [2020-05-01 Fri]
-*** Internal
+*** [2020-05-01 Fri]
+**** Internal
 The AWK scripts now generate S-expressions instead of CSV tables, this
 way ~read~ can be used to parse the data instead of relying on a set
 of custom parsing functions.
 
 This also allows passing more complex data structures from AWK to
 org-fc.
-** [2020-04-29 Wed]
+*** [2020-04-29 Wed]
 Implemented a new version of the spacing algorithm (SM2) that's used
 by org-fc.
 
@@ -132,16 +143,16 @@ algorithm should be used, defaulting to ~'sm2-v1~.
 
 Once I have evaluated the performance of the new algorithm,
 the default version will change to ~'sm2-v2~.
-** [2020-04-12 Sun]
-*** Added
+*** [2020-04-12 Sun]
+**** Added
 - =text-input= card type
-** [2020-02-08 Sat]
-*** Changed
+*** [2020-02-08 Sat]
+**** Changed
 - Add a "Z" suffix to all ISO8601 timestamps
-*** Added
+**** Added
 - A function to estimate the number of reviews in the next n days
-** [2020-02-03 Mon]
-*** Internal
+*** [2020-02-03 Mon]
+**** Internal
 - ~org-fc-due-positions-for-paths~ now shuffles the lists of positions
   using an Emacs Lisp function instead of depending on =shuf=
 - All awk-indexer functions now use ~gawk~ instead of ~awk~
