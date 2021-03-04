@@ -81,11 +81,11 @@
 
 (define-obsolete-variable-alias
   'org-fc-audio-property-after
-  'org-fc-audio-property-after-setup "0.0.2")
+  'org-fc-audio-after-setup-property "0.0.2")
 
 (define-obsolete-variable-alias
   'org-fc-audio-property-before
-  'org-fc-audio-property-before-setup "0.0.2")
+  'org-fc-audio-before-setup-property "0.0.2")
 
 (define-obsolete-function-alias
   'org-fc-audio-set-before

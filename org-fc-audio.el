@@ -37,17 +37,17 @@
 
 (require 'org-fc)
 
-(defcustom org-fc-audio-property-before-setup "FC_AUDIO_BEFORE_SETUP"
+(defcustom org-fc-audio-before-setup-property "FC_AUDIO_BEFORE_SETUP"
   "Name of the property to use for storing before-setup audio files."
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-audio-property-after-setup "FC_AUDIO_AFTER_SETUP"
+(defcustom org-fc-audio-after-setup-property "FC_AUDIO_AFTER_SETUP"
   "Name of the property to use for storing after-setup audio files."
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-audio-property-after-flip "FC_AUDIO_AFTER_FLIP"
+(defcustom org-fc-audio-after-flip-property "FC_AUDIO_AFTER_FLIP"
   "Name of the property to use for storing after-flip audio files."
   :type 'string
   :group 'org-fc)
@@ -56,19 +56,19 @@
   "Set the befor-setup audio property of the current card to FILE."
   (interactive "f")
   (if (org-fc-entry-p)
-      (org-set-property org-fc-audio-property-before file)))
+      (org-set-property org-fc-audio-before-setup-property file)))
 
 (defun org-fc-audio-set-after-setup (file)
   "Set the after-setup audio of the current card to FILE."
   (interactive "f")
   (if (org-fc-entry-p)
-      (org-set-property org-fc-audio-property-after file)))
+      (org-set-property org-fc-audio-after-setup-property file)))
 
 (defun org-fc-audio-set-after-flip (file)
   "Set the after-setup audio of the current card to FILE."
   (interactive "f")
   (if (org-fc-entry-p)
-      (org-set-property org-fc-audio-property-after-flip file)))
+      (org-set-property org-fc-audio-after-flip-property file)))
 
 (defun org-fc-audio-play (property &optional speed)
   "Play the audio of the current card.
@@ -86,15 +86,15 @@ the file at the given speed."
 
 (add-hook
  'org-fc-before-setup-hook
- (lambda () (org-fc-audio-play org-fc-audio-property-before-setup)))
+ (lambda () (org-fc-audio-play org-fc-audio-before-setup-property)))
 
 (add-hook
  'org-fc-after-setup-hook
- (lambda () (org-fc-audio-play org-fc-audio-property-after-setup)))
+ (lambda () (org-fc-audio-play org-fc-audio-after-setup-property)))
 
 (add-hook
  'org-fc-after-flip-hook
- (lambda () (org-fc-audio-play org-fc-audio-property-after-flip)))
+ (lambda () (org-fc-audio-play org-fc-audio-after-flip-property)))
 
 ;;; Footer
 
