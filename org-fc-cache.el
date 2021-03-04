@@ -1,6 +1,6 @@
 ;;; org-fc-cache.el --- Cache for org-fc -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020  Leon Rische
+;; Copyright (C) 2020-2021  Leon Rische
 
 ;; Author: Leon Rische <emacs@leonrische.me>
 ;; Url: https://www.leonrische.me/pages/org_flashcards.html
