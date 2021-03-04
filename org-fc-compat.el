@@ -81,19 +81,19 @@
 
 (define-obsolete-variable-alias
   'org-fc-audio-property-after
-  'org-fc-audio-after-setup-property "0.0.2")
+  'org-fc-audio-after-setup-property "0.1.0")
 
 (define-obsolete-variable-alias
   'org-fc-audio-property-before
-  'org-fc-audio-before-setup-property "0.0.2")
+  'org-fc-audio-before-setup-property "0.1.0")
 
 (define-obsolete-function-alias
   'org-fc-audio-set-before
-  'org-fc-audio-set-before-setup "0.0.2")
+  'org-fc-audio-set-before-setup "0.1.0")
 
 (define-obsolete-function-alias
   'org-fc-audio-set-after
-  'org-fc-audio-set-after-setup "0.0.2")
+  'org-fc-audio-set-after-setup "0.1.0")
 
 ;;; Footer
 
