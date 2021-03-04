@@ -79,6 +79,22 @@
   'org-fc-sm2-fuzz-max
   'org-fc-algo-sm2-fuzz-max "0.0.1")
 
+(define-obsolete-variable-alias
+  'org-fc-audio-property-after
+  'org-fc-audio-property-after-setup "0.0.2")
+
+(define-obsolete-variable-alias
+  'org-fc-audio-property-before
+  'org-fc-audio-property-before-setup "0.0.2")
+
+(define-obsolete-function-alias
+  'org-fc-audio-set-before
+  'org-fc-audio-set-before-setup "0.0.2")
+
+(define-obsolete-function-alias
+  'org-fc-audio-set-after
+  'org-fc-audio-set-after-setup "0.0.2")
+
 ;;; Footer
 
 (provide 'org-fc-compat)
