@@ -28,6 +28,10 @@
 ;;;; Obsolete Aliases
 
 (define-obsolete-function-alias
+  'org-fc-review-rate-card
+  'org-fc-review-rate "0.0.1")
+
+(define-obsolete-function-alias
   'org-fc-show-all
   'org-fc-remove-overlays "0.0.1")
 
@@ -41,39 +45,39 @@
 
 (define-obsolete-function-alias
   'org-fc-sm2-fuzz
-  'org-fc-algo-sm2-fuzz)
+  'org-fc-algo-sm2-fuzz "0.0.1")
 
 (define-obsolete-function-alias
   'org-fc-sm2-next-parameters
-  'org-fc-algo-sm2-next-parameters)
+  'org-fc-algo-sm2-next-parameters "0.0.1")
 
 (define-obsolete-variable-alias
   'org-fc-sm2-changes
-  'org-fc-algo-sm2-changes)
+  'org-fc-algo-sm2-changes "0.0.1")
 
 (define-obsolete-variable-alias
   'org-fc-sm2-fixed-intervals
-  'org-fc-algo-sm2-fixed-intervals)
+  'org-fc-algo-sm2-intervals "0.0.1")
 
 (define-obsolete-variable-alias
   'org-fc-sm2-ease-min
-  'org-fc-algo-sm2-ease-min)
+  'org-fc-algo-sm2-ease-min "0.0.1")
 
 (define-obsolete-variable-alias
   'org-fc-sm2-ease-max
-  'org-fc-algo-sm2-ease-max)
+  'org-fc-algo-sm2-ease-max "0.0.1")
 
 (define-obsolete-variable-alias
   'org-fc-sm2-ease-initial
-  'org-fc-algo-sm2-ease-initial)
+  'org-fc-algo-sm2-ease-initial "0.0.1")
 
 (define-obsolete-variable-alias
   'org-fc-sm2-fuzz-min
-  'org-fc-algo-sm2-fuzz-min)
+  'org-fc-algo-sm2-fuzz-min "0.0.1")
 
 (define-obsolete-variable-alias
   'org-fc-sm2-fuzz-max
-  'org-fc-algo-sm2-fuzz-max)
+  'org-fc-algo-sm2-fuzz-max "0.0.1")
 
 ;;; Footer
 

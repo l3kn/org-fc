@@ -1313,8 +1313,6 @@ same ID as the current card in the session."
      (org-fc-review-quit)
      (signal (car err) (cdr err)))))
 
-(define-obsolete-function-alias 'org-fc-review-rate-card 'org-fc-review-rate)
-
 (defun org-fc-review-rate-again ()
   "Rate the card at point with 'again'."
   (interactive)
