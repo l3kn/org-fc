@@ -77,7 +77,7 @@ environment without svg support."
   (let* ((total 0) (suspended 0)
          (by-type (make-hash-table))
          (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0)
-         (n-pos 0) (n-due 0)
+         (n-pos 0)
          ;; NOTE: This has to use `list' so incf + getf works as
          ;; expected
          (created (list :day 0 :week 0 :month 0))
