@@ -35,6 +35,52 @@
 ;;
 ;;; Code:
 
+(require 'eieio)
+
+(require 'org-fc-core)
+
+;;; Hooks
+
+(defcustom org-fc-before-setup-hook '()
+  "Functions run before a card is set up for review."
+  :type 'hook
+  :group 'org-fc)
+
+(defcustom org-fc-after-setup-hook '()
+  "Functions run after a card is set up for review."
+  :type 'hook
+  :group 'org-fc)
+
+(defcustom org-fc-after-flip-hook '()
+  "Functions run after a card is flipped during review."
+  :type 'hook
+  :group 'org-fc)
+
+(defcustom org-fc-before-review-hook '()
+  "Functions run when a review session is started."
+  :type 'hook
+  :group 'org-fc)
+
+(defcustom org-fc-after-review-hook '()
+  "Functions run when a review session ends / is quit."
+  :type 'hook
+  :group 'org-fc)
+
+;;; Variables
+
+(defvar org-fc-review--session nil
+  "Current review session.")
+
+(defvar org-fc-review--timestamp nil
+  "Time the last card was flipped.
+Used to calculate the time needed for reviewing a card.")
+
+(defvar org-fc-reviewing-existing-buffer nil
+  "Track if the current buffer was open before the review.")
+(make-variable-buffer-local 'org-fc-reviewing-existing-buffer)
+
+;;; Main Review Functions
+
 ;;;###autoload
 (defun org-fc-review (context)
   "Start a review session for all cards in CONTEXT.
@@ -113,7 +159,7 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
                 (org-display-inline-images)
                 (run-hooks 'org-fc-before-setup-hook)
 
-                (setq org-fc-timestamp (time-to-seconds (current-time)))
+                (setq org-fc-review--timestamp (time-to-seconds (current-time)))
                 (let ((step (funcall (org-fc-type-setup-fn type) position)))
                   (run-hooks 'org-fc-after-setup-hook)
 
@@ -166,7 +212,7 @@ same ID as the current card in the session."
                (id (plist-get card :id))
                (position (plist-get card :position))
                (now (time-to-seconds (current-time)))
-               (delta (- now org-fc-timestamp)))
+               (delta (- now org-fc-review--timestamp)))
           (org-fc-review-add-rating org-fc-review--session rating)
           (org-fc-review-update-data path id position rating delta)
           (org-fc-review-reset)
@@ -423,9 +469,6 @@ removed."
       ('good (cl-incf (cl-getf ratings :good) 1))
       ('easy (cl-incf (cl-getf ratings :easy) 1)))
     (cl-incf (cl-getf ratings :total 1))))
-
-(defvar org-fc-review--session nil
-  "Current review session.")
 
 ;;; Modes
 

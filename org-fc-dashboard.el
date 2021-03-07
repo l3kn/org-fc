@@ -26,6 +26,12 @@
 ;; the current context.
 ;;
 ;;; Code:
+
+(require 'svg)
+
+(require 'org-fc-core)
+(require 'org-fc-awk)
+
 ;;; Customization
 
 (defcustom org-fc-dashboard-bar-chart-width 400

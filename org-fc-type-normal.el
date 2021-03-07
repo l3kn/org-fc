@@ -24,6 +24,8 @@
 ;;
 ;;; Code:
 
+(require 'org-fc-core)
+
 (defun org-fc-type-normal-init ()
   "Mark headline as card of the normal type."
   (interactive)

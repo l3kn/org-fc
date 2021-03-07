@@ -25,6 +25,9 @@
 ;;
 ;;
 ;;; Code:
+
+(require 'org-fc-core)
+
 ;;;; Shell wrappers
 
 (defun org-fc-awk--find (paths)

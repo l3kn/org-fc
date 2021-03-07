@@ -30,6 +30,7 @@
 ;;
 ;;; Code:
 
+(require 'org-fc-core)
 (require 'org-fc-diff)
 (require 'org-fc-audio)
 

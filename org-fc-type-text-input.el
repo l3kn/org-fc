@@ -24,6 +24,7 @@
 ;;
 ;;; Code:
 
+(require 'org-fc-core)
 (require 'org-fc-diff)
 
 (defun org-fc-text-input-content ()

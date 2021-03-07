@@ -24,6 +24,8 @@
 ;;
 ;;; Code:
 
+(require 'org-fc-core)
+
 (defcustom org-fc-type-cloze-type-property "FC_CLOZE_TYPE"
   "Property used to store the card's subtype for cloze cards."
   :type 'string

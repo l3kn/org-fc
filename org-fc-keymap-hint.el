@@ -27,8 +27,9 @@
 ;;
 ;;; Code:
 
-(require 'org-fc)
 (require 'edmacro)
+
+(require 'org-fc)
 
 (defun org-fc-keymap-hint--symbol-name (name)
   "Remove org-fc- prefixes from symbol NAME."

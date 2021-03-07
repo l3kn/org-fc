@@ -35,7 +35,7 @@
 ;;
 ;;; Code:
 
-(require 'org-fc)
+(require 'org-fc-core)
 
 (defcustom org-fc-audio-before-setup-property "FC_AUDIO_BEFORE_SETUP"
   "Name of the property to use for storing before-setup audio files."

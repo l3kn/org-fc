@@ -31,6 +31,8 @@
 
 (require 'cl-lib)
 
+(require 'org-fc-core)
+
 (defcustom org-fc-diff-filler ?-
   "Character for filling diffs when the input was too short."
   :type 'character

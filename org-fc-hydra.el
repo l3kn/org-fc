@@ -27,8 +27,9 @@
 ;;
 ;;; Code:
 
-(require 'org-fc)
 (require 'hydra)
+
+(require 'org-fc)
 
 (defhydra org-fc-hydra ()
   ("m" org-fc-dashboard "Dashboard" :exit t)

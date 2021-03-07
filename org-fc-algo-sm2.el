@@ -28,6 +28,8 @@
 
 (require 'cl-lib)
 
+(require 'org-fc-core)
+
 (defmacro org-fc-property (symbol standard doc &rest args)
   (let (defcustom-args property reader)
     (while args
