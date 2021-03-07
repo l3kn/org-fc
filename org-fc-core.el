@@ -26,6 +26,7 @@
 
 (require 'outline)
 
+(require 'org-id)
 (require 'org-indent)
 (require 'org-element)
 
@@ -649,31 +650,6 @@ Positions are shuffled in a way that preserves the order of the
   (let ((path (expand-file-name "demo.org" org-fc-source-path)))
     (with-current-buffer (find-file path)
       (org-fc-review-buffer))))
-
-;;; Header Line
-
-(defvar org-fc-original-header-line-format nil
-  "`header-line-format' before it was set by org-fc.")
-
-(defun org-fc-set-header-line ()
-  "Set the header-line for review."
-  (let* ((remaining (1+ (length (oref org-fc--session cards))))
-         (current (oref org-fc--session current-item))
-         (title
-          (unless (member "notitle" (plist-get current :tags))
-            (plist-get current :filetitle))))
-    (setq org-fc-original-header-line-format header-line-format)
-    (setq-local
-     header-line-format
-     `((org-fc-review-flip-mode "Flip")
-       (org-fc-review-rate-mode "Rate")
-       (org-fc-review-edit-mode "Edit")
-       ,(format " (%d) " remaining)
-       ,title))))
-
-(defun org-fc-reset-header-line ()
-  "Reset the header-line to its original value."
-  (setq-local header-line-format org-fc-original-header-line-format))
 
 ;;; Contexts
 

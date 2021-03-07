@@ -103,9 +103,9 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
 FILTER can be either nil or a function taking a single card as
   its input."
   (let ((index (org-fc-awk-index-paths paths)))
-   (if filter
-       (cl-remove-if-not filter index)
-     index)))
+    (if filter
+        (cl-remove-if-not filter index)
+      index)))
 
 (defun org-fc-awk-index-paths (paths)
   "Generate a list of all cards and positions in PATHS."

@@ -26,20 +26,15 @@
 ;;
 ;;; Code:
 
-(require 'cl-lib)
-(require 'org-id)
-(require 'parse-time)
-(require 'subr-x)
-
 (require 'org-fc-core)
 (require 'org-fc-compat)
 
 (require 'org-fc-awk)
-(require 'org-fc-cache)
 (require 'org-fc-algo-sm2)
 
-(require 'org-fc-dashboard)
 (require 'org-fc-review)
+(require 'org-fc-dashboard)
+(require 'org-fc-cache)
 
 (require 'org-fc-type-normal)
 (require 'org-fc-type-double)

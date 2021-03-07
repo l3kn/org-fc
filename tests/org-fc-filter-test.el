@@ -60,8 +60,8 @@
     (should
      (org-fc-test-compare-ids
       (org-fc-test-filter-index index '(and (tag "file1")
-                                       (tag "file2")
-                                       (tag "file3")))
+                                            (tag "file2")
+                                            (tag "file3")))
       '(c-double c-cloze)))
 
     ;; Negation
@@ -74,5 +74,5 @@
     (should
      (org-fc-test-compare-ids
       (org-fc-test-filter-index index '(and (not (type normal))
-                                       (tag "file1")))
+                                            (tag "file1")))
       '(c-double c-cloze)))))

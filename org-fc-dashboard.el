@@ -147,13 +147,13 @@ environment without svg support."
     (dolist (value values)
       (svg-rectangle svg pos 0 (* width (car value)) height :fill (cdr value))
       (if (> (* width (car value)) (* 2 fontsize))
-       (svg-text svg (format "%.1f" (* 100 (car value)))
-                 :font-size fontsize
-                 :fill "white"
-                 :font-weight "bold"
-                 :font-family "sans-serif"
-                 :x (+ pos 5)
-                 :y (+ fontsize (floor (- height fontsize) 2))))
+          (svg-text svg (format "%.1f" (* 100 (car value)))
+                    :font-size fontsize
+                    :fill "white"
+                    :font-weight "bold"
+                    :font-family "sans-serif"
+                    :x (+ pos 5)
+                    :y (+ fontsize (floor (- height fontsize) 2))))
       (setq pos (+ pos (* width (car value)))))
     (svg-image svg)))
 

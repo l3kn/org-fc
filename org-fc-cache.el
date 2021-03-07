@@ -32,7 +32,11 @@
 
 ;;; Code:
 
+(require 'parse-time)
+
 (require 'org-fc-core)
+(require 'org-fc-awk)
+(require 'org-fc-review)
 
 ;;; Queue / Processing of Files
 
@@ -163,7 +167,7 @@ This is especially relevant w.r.t a card's due date / suspension state before re
     (if (org-fc-suspended-entry-p)
         (error "Trying to review a suspended card"))
     (let* ((position (plist-get cur :position))
-           (review-data (org-fc-get-review-data))
+           (review-data (org-fc-review-data-get))
            (row (assoc position review-data #'string=))
            (due (parse-iso8601-time-string (nth 4 row))))
       (unless (time-less-p due (current-time))

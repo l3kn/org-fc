@@ -31,7 +31,7 @@
 (require 'org-fc-core)
 
 (defmacro org-fc-property (symbol standard doc &rest args)
-  (let (defcustom-args property reader)
+  (let (defcustom-args property)
     (while args
       (let ((keyword (pop args)))
         (unless (symbolp keyword)
@@ -41,38 +41,37 @@
         (let ((value (pop args)))
           (cl-case keyword
             (:property (setq property value))
-            (:reader (setq reader value))
             (t
              (push value defcustom-args)
              (push keyword defcustom-args))))))
     (unless property
       (error "Missing keyword :property"))
     (let ((property-symbol (intern (concat (symbol-name symbol) "-property"))))
-     `(progn
-        (defcustom
-          ,symbol
-          ,standard
-          ,doc
-          ,@defcustom-args)
-        (defcustom
-          ,property-symbol
-          ,property
-          ,(format "Headline property for `%s'" symbol)
-          :type 'string
-          :group ,(plist-get defcustom-args :group))
-        (defun ,symbol ()
-          ,(format "Getter for `%s'" symbol)
-          (if-let ((value (org-entry-get (point) ,property-symbol t)))
-              ;; TODO: Switch on possible types
-              (read value)
-            ;; ,(case (plist-get defcustom-args :type)
-            ;;    ('string 'value)
-            ;;    ('float '(string-to-number value))
-            ;;    ('list '(read value))
-            ;;    (t (error "Unsupported property type %s"
-            ;; (plist-get defcustom-args :type)
+      `(progn
+         (defcustom
+           ,symbol
+           ,standard
+           ,doc
+           ,@defcustom-args)
+         (defcustom
+           ,property-symbol
+           ,property
+           ,(format "Headline property for `%s'" symbol)
+           :type 'string
+           :group ,(plist-get defcustom-args :group))
+         (defun ,symbol ()
+           ,(format "Getter for `%s'" symbol)
+           (if-let ((value (org-entry-get (point) ,property-symbol t)))
+               ;; TODO: Switch on possible types
+               (read value)
+             ;; ,(case (plist-get defcustom-args :type)
+             ;;    ('string 'value)
+             ;;    ('float '(string-to-number value))
+             ;;    ('list '(read value))
+             ;;    (t (error "Unsupported property type %s"
+             ;; (plist-get defcustom-args :type)
 
-            ,symbol))))))
+             ,symbol))))))
 
 ;;;; Properties
 
@@ -132,7 +131,7 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
 `org-fc-algo-sm2-fuzz-max'"
   (let ((min (org-fc-algo-sm2-fuzz-min))
         (max (org-fc-algo-sm2-fuzz-max)))
-   (* interval (+ min (cl-random (- max min))))))
+    (* interval (+ min (cl-random (- max min))))))
 
 ;;;; Main Algorithm
 
@@ -167,7 +166,7 @@ EASE, BOX and INTERVAL are the current parameters of the card."
 (defun org-fc-algo-sm2-initial-review-data (position)
   "Initial SM2 review data for POSITION."
   (list position (org-fc-algo-sm2-ease-initial) 0 0
-        (org-fc-timestamp-now)))
+        (org-fc-timestamp-in 0)))
 
 ;;; Footer
 
