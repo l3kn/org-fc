@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'org-fc-core)
+(require 'org-fc-type-cloze)
 
 ;;;; Shell wrappers
 

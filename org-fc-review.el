@@ -289,7 +289,7 @@ rating the card."
              (interval (string-to-number (cl-fourth current))))
          (org-fc-review-history-add
           (list
-           (org-fc-timestamp-now)
+           (org-fc-timestamp-in 0)
            path
            id
            position

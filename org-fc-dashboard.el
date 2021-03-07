@@ -31,6 +31,7 @@
 
 (require 'org-fc-core)
 (require 'org-fc-awk)
+(require 'org-fc-review)
 
 ;;; Customization
 
