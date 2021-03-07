@@ -148,7 +148,6 @@ Does not apply to cloze single and cloze enumeration cards."
   (let ((seconds (* interval 60 60 24))
         (now (time-to-seconds)))
     (format-time-string
-     org-fc-timestamp-format
      "%FT%TZ"
      (seconds-to-time (+ now seconds))
      "UTC0")))
