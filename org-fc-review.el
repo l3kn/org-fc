@@ -300,7 +300,7 @@ rating the card."
            (format "%.2f" delta)
            (symbol-name org-fc-algorithm)))
          (cl-destructuring-bind (next-ease next-box next-interval)
-             (org-fc-sm2-next-parameters ease box interval rating)
+             (org-fc-algo-sm2-next-parameters ease box interval rating)
            (setcdr
             current
             (list (format "%.2f" next-ease)
