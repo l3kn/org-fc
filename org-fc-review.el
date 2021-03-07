@@ -90,7 +90,7 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
                  (id (plist-get card :id))
                  (type (plist-get card :type))
                  (position (plist-get card :position)))
-            (setf (oref session current-item) card)
+            (setf (oref org-fc-review--session current-item) card)
             (let ((buffer (find-buffer-visiting path)))
               (with-current-buffer (find-file path)
                 (unless resuming
@@ -395,7 +395,7 @@ removed."
   "Add ELEMENTS to review history."
   (push
    elements
-   (slot-value org-fc-review--session 'history)))
+   (oref org-fc-review--session history)))
 
 (defun org-fc-review-history-save ()
   "Save all history entries in the current session."
