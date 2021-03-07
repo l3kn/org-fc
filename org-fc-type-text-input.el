@@ -24,6 +24,8 @@
 ;;
 ;;; Code:
 
+(require 'org-fc-diff)
+
 (defun org-fc-text-input-content ()
   "Return the first line of a cards (back) contents.
 Returns a pair (pos . string).  If the card has a 'Back' heading,
