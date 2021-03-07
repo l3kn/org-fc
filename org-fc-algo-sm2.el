@@ -23,6 +23,8 @@
 ;;
 ;;; Code:
 
+(require 'cl-lib)
+
 (defmacro org-fc-property (symbol standard doc &rest args)
   (let (defcustom-args property reader)
     (while args
@@ -32,7 +34,7 @@
         (unless args
           (error "Keyword %s is missing an argument" keyword))
         (let ((value (pop args)))
-          (case keyword
+          (cl-case keyword
             (:property (setq property value))
             (:reader (setq reader value))
             (t

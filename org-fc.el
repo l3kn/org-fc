@@ -1013,7 +1013,7 @@ END is the start of the line with :END: on it."
 
 (defun org-fc-review-data-default (position)
   "Default review data for position POSITION."
-  (case org-fc-algorithm
+  (cl-case org-fc-algorithm
     ('sm2-v1 (org-fc-algo-sm2-initial-review-data position))
     ('sm2-v2 (org-fc-algo-sm2-initial-review-data position))))
 
