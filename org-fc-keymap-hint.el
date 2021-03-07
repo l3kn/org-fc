@@ -1,11 +1,11 @@
 ;;; org-fc-keymap-hint.el --- Key-binding hints for org-fc -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020  Leon Rische
+;; Copyright (C) 2020-2021  Leon Rische
 
 ;; Author: Leon Rische <emacs@leonrische.me>
 ;; Url: https://www.leonrische.me/pages/org_flashcards.html
 ;; Package-requires: ((emacs "26.3") (org "9.3"))
-;; Version: 0.0.1
+;; Version: 0.1.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
