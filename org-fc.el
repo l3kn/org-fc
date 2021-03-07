@@ -151,6 +151,11 @@ Does not apply to cloze single and cloze enumeration cards."
   :type 'hook
   :group 'org-fc)
 
+(defcustom org-fc-after-flip-hook '()
+  "Functions run after a card is flipped during review."
+  :type 'hook
+  :group 'org-fc)
+
 (defcustom org-fc-before-review-hook '()
   "Functions run when a review session is started."
   :type 'hook
@@ -1282,6 +1287,7 @@ same ID as the current card in the session."
       (org-fc-review-with-current-item card
         (let ((type (plist-get card :type)))
           (funcall (org-fc-type-flip-fn type))
+          (run-hooks 'org-fc-after-flip-hook)
           (org-fc-review-rate-mode)))
     (error
      (org-fc-review-quit)
