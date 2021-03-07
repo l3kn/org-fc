@@ -256,16 +256,20 @@ environment without svg support."
   (interactive)
   (org-fc-review org-fc-dashboard-context))
 
+(defun org-fc-dashboard-revert (_ignore-auto _noconfirm)
+  "Reload the current dashboard."
+  (interactive)
+  (org-fc-dashboard-view org-fc-dashboard-context))
+
 (defvar org-fc-dashboard-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") 'org-fc-dashboard-review)
     (define-key map (kbd "q") 'quit-window)
-    (define-key map (kbd "G") 'org-fc-dashboard-view)
     map))
 
 (define-derived-mode org-fc-dashboard-mode special-mode "org-fc main"
   "Major mode providing an overview of the flashcard system"
-  (set (make-local-variable 'revert-buffer-function) #'org-fc-dashboard-view)
+  (set (make-local-variable 'revert-buffer-function) #'org-fc-dashboard-revert)
   (setq-local cursor-type nil))
 
 ;;;###autoload
