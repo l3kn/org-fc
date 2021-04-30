@@ -32,6 +32,11 @@
   (org-fc--init-card "normal")
   (org-fc-review-data-update '("front")))
 
+(defun org-fc-type-normal-reset ()
+  "Reset review metadata for this card"
+  (interactive)
+  (org-fc-review-data-update '("front") 't))
+
 (defun org-fc-type-normal-setup (_position)
   "Prepare a normal card for review."
   (interactive)
@@ -58,7 +63,8 @@
  'normal
  'org-fc-type-normal-setup
  'org-fc-type-normal-flip
- 'org-fc-noop)
+ 'org-fc-noop
+ 'org-fc-type-normal-reset)
 
 ;;; Footer
 

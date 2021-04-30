@@ -200,11 +200,18 @@ Processes all holes in the card text."
      (format "%s" (1- hole-id)))
     (org-fc-review-data-update (reverse ids))))
 
+(defun org-fc-type-cloze-reset ()
+  "Reset review data for a cloze card."
+  (interactive)
+  (let* ((hole-id (1+ (org-fc-type-cloze-max-hole-id))) ids)
+    (org-fc-review-data-update (reverse ids) 't)))
+
 (org-fc-register-type
  'cloze
  'org-fc-type-cloze-setup
  'org-fc-type-cloze-flip
- 'org-fc-type-cloze-update)
+ 'org-fc-type-cloze-update
+ 'org-fc-type-cloze-reset)
 
 ;;; Footer
 
