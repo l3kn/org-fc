@@ -30,6 +30,8 @@
 (require 'org-indent)
 (require 'org-element)
 
+(require 'subr-x)
+
 ;;; Customization
 
 (defgroup org-fc nil
