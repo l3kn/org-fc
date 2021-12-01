@@ -32,7 +32,7 @@ considered as the back side.
 * Cloze Deletion                                                         :fc:
 :PROPERTIES:
 :ID:       2ffc8b34-b2b5-4472-9295-714b5422679d
-:FC_CREATED: 2000-01-01T00:00:00Z
+:FC_CREATED: 2021-11-30T01:46:02Z
 :FC_TYPE:  cloze
 :FC_CLOZE_MAX: 1
 :FC_CLOZE_TYPE: deletion
@@ -40,10 +40,12 @@ considered as the back side.
 :REVIEW_DATA:
 | position | ease | box | interval | due                  |
 |----------+------+-----+----------+----------------------|
-|        0 | 2.50 |   6 |    89.34 | 2000-01-01T00:00:00Z |
-|        1 | 2.50 |   7 |   216.60 | 2000-01-01T00:00:00Z |
+|        0 |  2.5 |   0 |        0 | 2021-11-30T01:46:02Z |
+|        1 |  2.5 |   0 |        0 | 2021-11-30T01:46:02Z |
+|        2 |  2.5 |   0 |        0 | 2021-11-30T01:46:02Z |
 :END:
-A {{cloze deletion}@0} can have multiple {{holes}@1}.
+A {{cloze deletion}@0} can have multiple {{holes}@1}. And each hole can
+have {{hints}{Synonym for suggestion}@2} too.
 * Cloze Enumeration                                                      :fc:
 :PROPERTIES:
 :FC_CREATED: 2000-01-01T00:00:00Z
