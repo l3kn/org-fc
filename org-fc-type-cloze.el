@@ -213,6 +213,11 @@ HINT is what the user specifies in the prompt, will naturally be omitted
 if the user specifies an empty string for the prompt.
 and N will be the prefix argument the user gives in ARG."
   (interactive "P\nsHint (optional): ")
+  (save-excursion
+    (setq arg (or arg
+                  (how-many org-fc-type-cloze-hole-re
+                            (org-back-to-heading-or-point-min)
+                            (org-fc-type-cloze--end)))))
   (cond
    ((region-active-p)
     (org-fc--region-to-cloze (region-beginning) (region-end) arg hint))
