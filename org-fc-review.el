@@ -91,7 +91,8 @@ Valid contexts:
 - a list of paths"
   (interactive (list (org-fc-select-context)))
   (if org-fc-review--session
-      (message "Flashcards are already being reviewed")
+      (when (yes-or-no-p "Flashcards are already being reviewed. Resume? ")
+        (org-fc-review-resume))
     (let* ((index (org-fc-index context))
            (cards (org-fc-index-filter-due index)))
       (if org-fc-shuffle-positions
