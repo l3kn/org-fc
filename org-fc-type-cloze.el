@@ -213,11 +213,6 @@ HINT is what the user specifies in the prompt, will naturally be omitted
 if the user specifies an empty string for the prompt.
 and N will be the prefix argument the user gives in ARG."
   (interactive "P\nsHint (optional): ")
-  (save-excursion
-    (setq arg (or arg
-                  (how-many org-fc-type-cloze-hole-re
-                            (org-back-to-heading-or-point-min)
-                            (org-fc-type-cloze--end)))))
   (cond
    ((region-active-p)
     (org-fc--region-to-cloze (region-beginning) (region-end) arg hint))
@@ -231,11 +226,14 @@ and N will be the prefix argument the user gives in ARG."
   (let ((region (buffer-substring begin end)))
     (save-excursion
       (delete-region begin end)
-      (insert (format "{{%s}%s@%d}" region
-                            (if (not (string-blank-p hint))
-                                (format "{%s}" hint)
-                              "")
-                            (or arg 0))))))
+      (insert (format "{{%s}%s%s}"
+                      region
+                      (if (not (string-blank-p hint))
+                          (format "{%s}" hint)
+                        "")
+                      (if arg
+                          (concat "@" (number-to-string arg))
+                        ""))))))
 
 (org-fc-register-type
  'cloze
