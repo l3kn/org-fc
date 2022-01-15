@@ -213,10 +213,11 @@ HINT is what the user specifies in the prompt, will naturally be omitted
 if the user specifies an empty string for the prompt.
 and N will be the prefix argument the user gives in ARG."
   (interactive "P\nsHint (optional): ")
+  (declare-function bounds-of-thing-at-point "thingatpt")
   (cond
    ((region-active-p)
     (org-fc--region-to-cloze (region-beginning) (region-end) arg hint))
-   ((thing-at-point 'word)
+   ((bounds-of-thing-at-point 'word)
     (let ((bounds (bounds-of-thing-at-point 'word)))
       (org-fc--region-to-cloze (car bounds) (cdr bounds) arg hint)))
    (t (error "Nothing to create cloze from"))))
