@@ -213,6 +213,7 @@ HINT is what the user specifies in the prompt, will naturally be omitted
 if the user specifies an empty string for the prompt.
 and N will be the prefix argument the user gives in ARG."
   (interactive "P\nsHint (optional): ")
+  (require 'thingatpt)
   (declare-function bounds-of-thing-at-point "thingatpt")
   (when (and (org-fc-entry-p)
              (not (string= "cloze" (org-entry-get nil org-fc-type-property))))
