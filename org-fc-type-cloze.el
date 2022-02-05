@@ -235,6 +235,7 @@ and N will be the prefix argument the user gives in ARG."
   (let ((region (buffer-substring begin end)))
     (save-excursion
       (delete-region begin end)
+      (goto-char begin)
       (insert (format "{{%s}%s%s}"
                       region
                       (if (not (string-blank-p hint))
