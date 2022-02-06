@@ -200,7 +200,7 @@ Processes all holes in the card text."
      (format "%s" (1- hole-id)))
     (org-fc-review-data-update (reverse ids))))
 
-(defun org-fc-type-cloze-dwim (&optional arg hint)
+(defun org-fc-cloze-dwim (&optional arg hint)
   "Convert current active region or word under cursor to Cloze
 syntax.
 
