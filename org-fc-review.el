@@ -97,8 +97,10 @@ Valid contexts:
            (active-cards (org-fc-cards--remove-suspended
                           (org-fc-index--to-cards index)))
            (due-positions (org-fc-positions--maybe-shuffle
-                           (org-fc-positions--remove-not-due
-                            (org-fc-cards--to-positions active-cards)))))
+                           (org-fc-positions--maybe-remove-siblings
+                            (org-fc-positions--maybe-limit-new
+                             (org-fc-positions--remove-not-due
+                              (org-fc-cards--to-positions active-cards)))))))
       (if (null due-positions)
           (message "Nothing due right now.")
         (progn
@@ -221,13 +223,19 @@ same ID as the current card in the session."
         (let* ((path (oref (oref current-item card) path))
                (id (oref (oref current-item card) id))
                (pos (oref current-item pos))
+               (is-new (position-is-new current-item))
                (now (time-to-seconds (current-time)))
                (delta (- now org-fc-review--timestamp)))
           (org-fc-review-add-rating org-fc-review--session rating)
           (org-fc-review-update-data path id pos rating delta)
+          (if (and org-fc-daily-new-limit
+                   is-new)
+              (setq org-fc-daily-new-limit--new-seen-today
+                    (1+ org-fc-daily-new-limit--new-seen-today)))
           (org-fc-review-reset)
 
-          (if (and (eq rating 'again) org-fc-append-failed-cards)
+          (if (and (eq rating 'again)
+                   org-fc-append-failed-cards)
               (with-slots (cards) org-fc-review--session
                 (setf cards (append cards (list card)))))
 
@@ -533,11 +541,11 @@ removed."
   "Store RATING in the review history of SESSION."
   (with-slots (ratings) session
     (cl-case rating
-      ('again (cl-incf (cl-getf ratings :again) 1))
-      ('hard (cl-incf (cl-getf ratings :hard) 1))
-      ('good (cl-incf (cl-getf ratings :good) 1))
-      ('easy (cl-incf (cl-getf ratings :easy) 1)))
-    (cl-incf (cl-getf ratings :total 1))))
+      ('again (cl-incf (oref ratings again) 1))
+      ('hard (cl-incf (oref ratings hard) 1))
+      ('good (cl-incf (oref ratings good) 1))
+      ('easy (cl-incf (oref ratings easy) 1)))
+    (cl-incf (oref ratings total) 1)))
 
 ;;; Header Line
 

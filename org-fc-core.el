@@ -134,6 +134,23 @@ Does not apply to cloze single and cloze enumeration cards."
   :type 'boolean
   :group 'org-fc)
 
+(defcustom org-fc-daily-new-limit -1
+  "Limits the number of new positions shown per day. Resets at midnight.
+
+-1 for unlimited."
+  :type 'integer
+  :group 'org-fc)
+
+;;; Variables
+
+(defvar org-fc-daily-new-limit--new-seen-today -1
+  "Remaining new cards for today's reviews.
+
+Don't access directly! Use `org-fc-daily-new-limit--get-remaining'.")
+
+(defvar org-fc-daily-new-limit--reset-day nil
+  "The day number on which we should reset `org-fc-daily-new-limit--new-seen-today'.")
+
 ;;; Types/Classes
 
 (defclass org-fc-card ()
@@ -197,6 +214,7 @@ Does not apply to cloze single and cloze enumeration cards."
 ;;; Helper Functions
 
 ;;;; org-fc-card
+
 (defun org-fc-cards--remove-suspended (cards)
   "Return list of non-suspended `org-fc-card's."
   (--filter
@@ -223,6 +241,10 @@ Does not apply to cloze single and cloze enumeration cards."
 
 ;;;; org-fc-position
 
+(cl-defmethod position-is-new ((pos org-fc-position))
+  "Return t if POS is new; nil otherwise."
+  (= 0 (oref pos interval)))
+
 (defun org-fc-position--is-due (pos)
   "Return t if POS is due; else nil."
   (time-less-p (oref pos due)
@@ -231,15 +253,15 @@ Does not apply to cloze single and cloze enumeration cards."
 (defun org-fc-positions--remove-not-due (positions)
   "Remove not-due POSITIONS and return the rest."
   (--filter
-   (not (org-fc-position--is-due it))
+   (org-fc-position--is-due it)
    positions))
 
 (defun org-fc-positions--maybe-remove-siblings (positions)
   "Conditionally remove siblings from POSITIONS and return the rest."
   (if org-fc-bury-siblings
       (let ((-compare-fn (lambda (a b)
-                           (equal (oref a id)
-                                  (oref b id)))))
+                           (equal (oref (oref a card) id)
+                                  (oref (oref b card) id)))))
         (-uniq
          positions))
     positions))
@@ -249,6 +271,35 @@ Does not apply to cloze single and cloze enumeration cards."
   (if org-fc-shuffle-positions
       (org-fc-shuffle positions)
     positions))
+
+(defun org-fc-positions--maybe-limit-new (positions)
+  "Conditionally return a POSITIONS with limited new."
+  (if org-fc-daily-new-limit
+      (if-let ((remaining-new (org-fc-daily-new-limit--get-remaining)))
+          (--filter
+           (or (not (position-is-new it))
+               (>= (setq remaining-new (1- remaining-new)) 0))
+           positions)
+        positions)))
+
+;;;; Daily limit
+
+(defun org-fc-daily-new-limit--get-remaining ()
+  "Return the remaining new cards for the day."
+  (org-fc-daily-new-limit--update-remaining)
+  (- org-fc-daily-new-limit
+     org-fc-daily-new-limit--new-seen-today))
+
+(defun org-fc-daily-new-limit--update-remaining ()
+  "Update `org-fc-daily-new-limit--new-seen-today' based on current day."
+  (when (and org-fc-daily-new-limit
+             (> org-fc-daily-new-limit 0))
+    (let ((current-day (time-to-days
+                        (current-time))))
+      (when (or (not org-fc-daily-new-limit--reset-day)
+                (= org-fc-daily-new-limit--reset-day current-day))
+        (setq org-fc-daily-new-limit--reset-day (1+ current-day)
+              org-fc-daily-new-limit--new-seen-today 0)))))
 
 ;;;; General
 
