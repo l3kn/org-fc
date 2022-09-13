@@ -161,12 +161,23 @@ EASE, BOX and INTERVAL are the current parameters of the card."
                  (nth next-box intervals))
                 ((and (eq org-fc-algorithm 'sm2-v2) (eq rating 'hard)) (* 1.2 interval))
                 (t (org-fc-algo-sm2-fuzz (* next-ease interval))))))
-    (list next-ease next-box next-interval)))
+    (list
+     next-ease
+     next-box
+     next-interval)))
 
 (defun org-fc-algo-sm2-initial-review-data (position)
   "Initial SM2 review data for POSITION."
-  (list position (org-fc-algo-sm2-ease-initial) 0 0
-        (org-fc-timestamp-in 0)))
+  (let* ((box 0)
+         (ease (org-fc-algo-sm2-ease-initial))
+         (interval 0)
+         (due (org-fc-timestamp-in interval)))
+    (list
+     position
+     ease
+     box
+     interval
+     due)))
 
 ;;; Footer
 
