@@ -228,6 +228,7 @@ same ID as the current card in the session."
                (delta (- now org-fc-review--timestamp)))
           (org-fc-review-add-rating org-fc-review--session rating)
           (org-fc-review-update-data path id pos rating delta)
+          (message (prin1-to-string `(,is-new current-item)))
           (if (and org-fc-daily-new-limit
                    is-new)
               (setq org-fc-daily-new-limit--new-seen-today

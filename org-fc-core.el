@@ -243,12 +243,13 @@ Don't access directly! Use `org-fc-daily-new-limit--get-remaining'.")
 
 (cl-defmethod position-is-new ((pos org-fc-position))
   "Return t if POS is new; nil otherwise."
-  (= 0 (oref pos interval)))
+  (let ((interval (oref pos interval)))
+    (message (prin1-to-string interval))
+    (= 0 interval)))
 
 (defun org-fc-position--is-due (pos)
   "Return t if POS is due; else nil."
-  (time-less-p (oref pos due)
-               (current-time)))
+  (time-less-p (oref pos due) (current-time)))
 
 (defun org-fc-positions--remove-not-due (positions)
   "Remove not-due POSITIONS and return the rest."
@@ -277,8 +278,14 @@ Don't access directly! Use `org-fc-daily-new-limit--get-remaining'.")
   (if org-fc-daily-new-limit
       (if-let ((remaining-new (org-fc-daily-new-limit--get-remaining)))
           (--filter
-           (or (not (position-is-new it))
-               (>= (setq remaining-new (1- remaining-new)) 0))
+           (cond
+            ((not (position-is-new it))
+             t)
+            ((>= remaining-new 0)
+             (setq remaining-new (1- remaining-new))
+             t)
+            (t
+             nil))
            positions)
         positions)))
 
