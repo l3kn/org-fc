@@ -151,16 +151,23 @@ EASE, BOX and INTERVAL are the current parameters of the card."
          (next-box
           (cond
            ;; If a card is rated easy, skip the learning phase
-           ((and (eq box 0) (eq rating 'easy)) 2)
+           ((and (eq box 0)
+                 (eq rating 'easy))
+            2)
            ;; If the review failed, go back to box 0
-           ((eq rating 'again) 0)
+           ((eq rating 'again)
+            0)
            ;; Otherwise, move forward one box
-           (t (1+ box))))
+           (t
+            (1+ box))))
          (next-interval
           (cond ((< next-box (length intervals))
                  (nth next-box intervals))
-                ((and (eq org-fc-algorithm 'sm2-v2) (eq rating 'hard)) (* 1.2 interval))
-                (t (org-fc-algo-sm2-fuzz (* next-ease interval))))))
+                ((and (eq org-fc-algorithm 'sm2-v2)
+                      (eq rating 'hard))
+                 (* 1.2 interval))
+                (t
+                 (org-fc-algo-sm2-fuzz (* next-ease interval))))))
     (list
      next-ease
      next-box

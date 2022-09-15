@@ -243,9 +243,11 @@ Don't access directly! Use `org-fc-daily-new-limit--get-remaining'.")
 
 (cl-defmethod position-is-new ((pos org-fc-position))
   "Return t if POS is new; nil otherwise."
-  (let ((interval (oref pos interval)))
-    (message (prin1-to-string interval))
-    (= 0 interval)))
+  (let* ((card (oref pos card))
+         (card-created (oref card created))
+         (position-due (oref pos due)))
+    (time-equal-p card-created
+                  position-due)))
 
 (defun org-fc-position--is-due (pos)
   "Return t if POS is due; else nil."
@@ -280,8 +282,9 @@ Don't access directly! Use `org-fc-daily-new-limit--get-remaining'.")
           (--filter
            (cond
             ((not (position-is-new it))
-             t)
-            ((>= remaining-new 0)
+             t
+             )
+            ((> remaining-new 0)
              (setq remaining-new (1- remaining-new))
              t)
             (t
