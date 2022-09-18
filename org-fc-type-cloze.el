@@ -41,6 +41,11 @@
   "Face for org-fc cloze card holes."
   :group 'org-fc)
 
+(defcustom org-fc-type-cloze-hint-prefix
+  "..."
+  "Prefix for cloze hints."
+  :group 'org-fc)
+
 (defvar org-fc-type-cloze-types
   '(deletion enumeration context single)
   "List of valid cloze card subtypes.")
@@ -129,7 +134,9 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
           (setq org-fc-type-cloze--hint
                 (org-fc-overlay-surround
                  (org-fc-make-overlay hint-beg hint-end)
-                 "[..." "]" 'org-fc-type-cloze-hole-face))
+                 (concat "[" org-fc-type-cloze-hint-prefix)
+                 "]"
+                 'org-fc-type-cloze-hole-face))
           (org-fc-hide-region hint-end hole-end "")
           (org-fc-make-overlay
            hole-beg hole-end
