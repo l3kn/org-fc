@@ -121,6 +121,7 @@ environment without svg support."
             (cl-incf avg-interval (plist-get pos :interval)))))
       (cl-incf (gethash (plist-get card :type) by-type 0) 1))
     (list :total total
+          :total-positions n-pos
           :suspended suspended
           :due due
           :by-type (org-fc-dashboard--hashtable-to-alist by-type)
@@ -210,6 +211,8 @@ environment without svg support."
       (insert
        (propertize "Position Statistics\n\n" 'face 'org-level-1))
 
+      (insert (format "  Total: %d\n\n"
+                      (plist-get stats :total-positions)))
       (insert (format "  Due: %d (now) %d (day) %d (week) %d (month)\n\n"
                       (plist-get due-stats :now)
                       (plist-get due-stats :day)
