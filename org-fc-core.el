@@ -294,6 +294,31 @@ Should only be used by the init functions of card TYPEs."
   (org-id-get-create)
   (org-fc--add-tag org-fc-flashcard-tag))
 
+(defun org-fc-init ()
+  (interactive)
+  (let* ((card-types `(("normal" . #'org-fc-type-normal-init)
+                       ("double" . #'org-fc-type-normal-init)
+                       ("text-input" . #'org-fc-type-text-input-init)
+                       ("cloze: context" . ,(lambda () (interactive)
+                                              (org-fc-type-cloze-init 'context)))
+                       ("cloze: deletion" . ,(lambda () (interactive)
+                                               (org-fc-type-cloze-init 'deletion)))
+                       ("cloze: enumeration" . ,(lambda () (interactive)
+                                                  (org-fc-type-cloze-init 'enumeration)))
+                       ("cloze: single" . ,(lambda () (interactive)
+                                             (org-fc-type-cloze-init 'single)))))
+         (selection (completing-read
+                     "Select card type:"
+                     card-types
+                     ;; predicate
+                     nil
+                     ;; require-match
+                     t))
+         (init-fn (cdr
+                   (assoc selection
+                          card-types))))
+    (call-interactively init-fn)))
+
 ;;; Card Types
 ;;;; Type Management
 
