@@ -66,6 +66,13 @@
   :type 'hook
   :group 'org-fc)
 
+(defcustom org-fc-review-hide-title-in-header-line nil
+  "Whether or not to hide the file title in review header line.
+
+Hide title for individual cards by adding the :notitle: tag."
+  :type 'boolean
+  :group 'org-fc)
+
 ;;; Variables
 
 (defvar org-fc-review--session nil
@@ -481,7 +488,8 @@ removed."
   (let* ((remaining (1+ (length (oref org-fc-review--session cards))))
          (current (oref org-fc-review--session current-item))
          (title
-          (unless (member "notitle" (plist-get current :tags))
+          (unless (or org-fc-review-hide-title-in-header-line
+                      (member "notitle" (plist-get current :tags)))
             (plist-get current :filetitle))))
     (setq org-fc-original-header-line-format header-line-format)
     (setq-local
