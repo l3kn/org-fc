@@ -94,15 +94,15 @@ Valid contexts:
       (when (yes-or-no-p "Flashcards are already being reviewed. Resume? ")
         (org-fc-review-resume))
     (let* ((index (org-fc-index context))
-           (cards (org-fc-index-filter-due index)))
-      (if org-fc-shuffle-positions
-          (setq cards (org-fc-index-shuffled-positions cards))
-        (setq cards (org-fc-index-positions cards)))
-      (if (null cards)
-          (message "No cards due right now")
+           (cards (org-fc-index-filter-due index))
+           (positions (if org-fc-shuffle-positions
+                          (org-fc-index-shuffled-positions cards)
+                        (org-fc-index-positions cards))))
+      (if (null positions)
+          (message "No positions due right now")
         (progn
           (setq org-fc-review--session
-                (org-fc-make-review-session cards))
+                (org-fc-make-review-session positions))
           (run-hooks 'org-fc-before-review-hook)
           (org-fc-review-next-card))))))
 
