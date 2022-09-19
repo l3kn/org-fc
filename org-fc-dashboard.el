@@ -75,9 +75,13 @@ environment without svg support."
 
 (defun org-fc-dashboard-stats (index)
   "Compute statistics for an INDEX of cards and positions."
-  (let* ((total 0) (suspended 0)
+  (let* ((total 0)
+         (suspended 0)
          (by-type (make-hash-table))
-         (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0)
+         (ease-sum 0.0)
+         (box-sum 0.0)
+         (interval-sum 0.0)
+         (new 0)
          (n-pos 0)
          ;; NOTE: This has to use `list' so incf + getf works as
          ;; expected
@@ -116,19 +120,22 @@ environment without svg support."
               (if (time-less-p pos-due plus-month)
                   (cl-incf (cl-getf due :month) 1)))
 
-            (cl-incf avg-ease (plist-get pos :ease))
-            (cl-incf avg-box (plist-get pos :box))
-            (cl-incf avg-interval (plist-get pos :interval)))))
+            (cl-incf ease-sum (plist-get pos :ease))
+            (cl-incf box-sum (plist-get pos :box))
+            (cl-incf interval-sum (plist-get pos :interval))
+
+            (if (eq (plist-get pos :box) -1)
+                (cl-incf new 1)))))
       (cl-incf (gethash (plist-get card :type) by-type 0) 1))
     (list :total total
-          :total-positions n-pos
           :suspended suspended
           :due due
           :by-type (org-fc-dashboard--hashtable-to-alist by-type)
           :created created
-          :avg-ease (/ avg-ease n-pos)
-          :avg-box (/ avg-box n-pos)
-          :avg-interval (/ avg-interval n-pos))))
+          :new new
+          :avg-ease (/ ease-sum n-pos)
+          :avg-box (/ box-sum n-pos)
+          :avg-interval (/ interval-sum n-pos))))
 
 ;;; Bar Chart Generation
 
@@ -195,11 +202,13 @@ environment without svg support."
       (insert
        (propertize "Card Statistics\n\n" 'face 'org-level-1))
 
-      (insert (format "  New: %d (day) %d (week) %d (month) \n"
+      (insert (format "  New: %d \n"
+                      (plist-get stats :new)))
+      (insert "\n")
+      (insert (format "  Created: %d (day) %d (week) %d (month) \n"
                       (plist-get created-stats :day)
                       (plist-get created-stats :week)
                       (plist-get created-stats :month)))
-
       (insert "\n")
       (insert (format
                "  %6d Cards, %d suspended\n"
@@ -211,8 +220,6 @@ environment without svg support."
       (insert
        (propertize "Position Statistics\n\n" 'face 'org-level-1))
 
-      (insert (format "  Total: %d\n\n"
-                      (plist-get stats :total-positions)))
       (insert (format "  Due: %d (now) %d (day) %d (week) %d (month)\n\n"
                       (plist-get due-stats :now)
                       (plist-get due-stats :day)
