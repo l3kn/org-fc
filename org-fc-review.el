@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'eieio)
+(require 'dash)
 
 (require 'org-fc-awk)
 (require 'org-fc-core)
@@ -88,6 +89,34 @@ Used to calculate the time needed for reviewing a card.")
   "Track if the current buffer was open before the review.")
 (make-variable-buffer-local 'org-fc-reviewing-existing-buffer)
 
+(defcustom org-fc-review-new-limit -1
+  "Limits the number of new positions shown per `org-fc-review-new-limit-schedule'.
+
+-1 for unlimited."
+  :type 'integer
+  :group 'org-fc)
+
+(defcustom org-fc-review-new-limit-schedule 'session
+  "The schedule at which to limit the inclusion of new positions.
+
+- `session': Each review session will include, at most, `org-fc-review-new-limit' new cards.
+- `day': New cards will be limited to `org-fc-review-new-limit' across review sessions; resets at midnight."
+  :type '(choice (const session)
+                 (const day))
+  :group 'org-fc)
+
+(defvar org-fc-review-new-limit--new-seen-today -1
+  "Remaining new cards for today's reviews.
+
+Don't access directly! Use `org-fc-review-new-limit--get-remaining'.
+
+Not persisted; resets when reloading Emacs!")
+
+(defvar org-fc-review-new-limit--reset-day nil
+  "The day number on which we should reset `org-fc-review-new-limit--new-seen-today'.
+
+Not persisted; resets when reloading Emacs!")
+
 ;;; Main Review Functions
 
 ;;;###autoload
@@ -108,9 +137,22 @@ Valid contexts:
                        (org-fc-cards--to-positions cards)))
            (positions (if org-fc-shuffle-positions
                           (org-fc-shuffle positions)
+                        positions))
+           (positions (if (> org-fc-review-new-limit 0)
+                          (let ((remaining-new (org-fc-review-new-limit--get-remaining)))
+                            (cl-remove-if
+                             (lambda (pos)
+                               (cond
+                                ((org-fc-position-new-p pos)
+                                 (when (>= remaining-new 0)
+                                   (cl-decf remaining-new))
+                                 (< remaining-new 0))
+                                (t
+                                 nil)))
+                             positions))
                         positions)))
-      (if (null cards)
-          (message "No cards due right now")
+      (if (null positions)
+          (message "No positions due right now")
         (progn
           (setq org-fc-review--session
                 (org-fc-review-session--create positions))
@@ -226,6 +268,8 @@ same ID as the current card in the session."
                (id (oref card id))
                (now (time-to-seconds (current-time)))
                (delta (- now org-fc-review--timestamp)))
+          (when (org-fc-position-new-p pos)
+            (cl-incf org-fc-review-new-limit--new-seen-today))
           (org-fc-review-add-rating org-fc-review--session rating)
           (org-fc-review-update-data path id pos rating delta)
           (org-fc-review-reset)
@@ -647,6 +691,27 @@ removed."
     ;; Make sure we're in org mode and there is an active review session
     (unless (and (derived-mode-p 'org-mode) org-fc-review--session)
       (org-fc-review-edit-mode -1))))
+
+
+;;;; Daily limit
+
+(defun org-fc-review-new-limit--get-remaining ()
+  "Return the remaining new cards for the `org-fc-review-new-card-schedule'."
+  (when (and org-fc-review-new-limit
+             (> org-fc-review-new-limit 0))
+    (cond
+     ((eq 'session
+          org-fc-review-new-limit-schedule)
+      org-fc-review-new-limit)
+     ((eq 'day
+          org-fc-review-new-limit-schedule)
+      (let ((current-day (time-to-days (current-time))))
+        (when (or (not org-fc-review-new-limit--reset-day)
+                  (= org-fc-review-new-limit--reset-day current-day))
+          (setq org-fc-review-new-limit--reset-day (1+ current-day)
+                org-fc-review-new-limit--new-seen-today 0))
+        (- org-fc-review-new-limit
+           org-fc-review-new-limit--new-seen-today))))))
 
 ;;; Footer
 

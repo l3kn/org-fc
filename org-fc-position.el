@@ -59,6 +59,10 @@
   "Return t if POS is due; else nil."
   (time-less-p (oref pos due) (current-time)))
 
+(cl-defmethod org-fc-position-new-p ((pos org-fc-position))
+  "Return t if the provided POS ition is new; nil otherwise."
+  (eq -1 (oref pos box)))
+
 (defun org-fc-positions--filter-due (positions)
   "Filter POSITIONS to include only enabled and due positions."
   (let ((due-enabled-positions (cl-loop for pos in positions
@@ -75,6 +79,7 @@
                        (equal (oref (oref a card) id)
                               (oref (oref b card) id)))))
     (-distinct positions)))
+
 
 (provide 'org-fc-position)
 ;;; org-fc-position.el ends here
