@@ -596,6 +596,7 @@ element."
       :id (plist-get card :id)
       :type (plist-get card :type)
       :due (plist-get pos :due)
+      :box (plist-get pos :box)
       :position (plist-get pos :position)))
    (plist-get card :positions)))
 
@@ -642,6 +643,10 @@ Positions are shuffled in a way that preserves the order of the
     (mapcar
      #'cdr
      (sort positions (lambda (a b) (> (car a) (car b)))))))
+
+(defun org-fc-position-new-p (pos)
+  "Return t if the provided POS ition is new; nil otherwise."
+  (eq -1 (plist-get pos :box)))
 
 ;;; Demo Mode
 
