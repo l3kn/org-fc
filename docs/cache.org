@@ -1,0 +1,84 @@
+#+TITLE: Cache
+#+DATE: [2020-07-29 Wed 11:58]
+#+KEYWORDS: fc
+
+* Motivation
+Even with the AWK based indexer, indexing cards before each review
+gets slow if there are a lot of files / cards.
+
+To work around this, the indexer can be run only one time,
+caching the results in a hash table.
+
+Advises are added to `delete-file' and `rename-file'
+remove / update keys from the hash table.
+
+Changes to existing files & new files are detected with a
+~before-save-hook~ on org-mode files.
+
+During a review many files are changed and saved.  To keep this as
+fast as possible, instead of re-processing files after each save,
+changed files are collected in `org-fc-cache-queue' and reprocessed in
+bulk the next time the cache is accessed.
+
+Assuming only a small subset of the flashcard files is changed between
+reviews, this is much faster than building the full index ch time.
+
+* Activation
+Caching can be activated/deactivated with ~M-x org-fc-cache-mode~.
+
+To activate this mode when Emacs starts,
+activate it in your configuration:
+
+#+begin_src emacs-lisp
+(org-fc-cache-mode)
+#+end_src
+* Performance
+** Setup
+#+begin_src fish :exports results
+echo (org-files | xargs grep ":fc:" | wc -l) " cards"
+echo (org-files | wc -l) " files"
+org-files | xargs wc -l | tail -n 1 | sed "s/total/lines/g"
+#+end_src
+
+#+RESULTS:
+|  18348 | cards |
+|   2478 | files |
+| 475860 | lines |
+** Benchmarks                                                     :noexport:
+#+begin_src emacs-lisp
+  (defun my-org-fc-cache-benchmarks ()
+    (list
+     (list "Dashboard" (benchmark 1 '(org-fc-dashboard 'all)))
+     (list "Index Cards in Subdirectory" (benchmark 1 '(length (org-fc-index '(:paths "~/org/deft/")))))
+     (list "Index Cards with Tag" (benchmark 1 '(length (org-fc-index '(:filter (tag "spanish"))))))))
+#+end_src
+
+#+RESULTS:
+: my-org-fc-cache-benchmarks
+
+** AWK
+#+begin_src emacs-lisp :exports results
+(let ((org-fc-index-function #'org-fc-awk-filter-index))
+  (my-org-fc-cache-benchmarks))
+#+end_src
+
+#+RESULTS:
+| Dashboard                   | Elapsed time: 3.642393s                      |
+| Index Cards in Subdirectory | Elapsed time: 0.502262s                      |
+| Index Cards with Tag        | Elapsed time: 3.266725s (0.244461s in 1 GCs) |
+** Cache
+#+begin_src emacs-lisp :exports results
+  (let ((org-fc-index-function #'org-fc-cache-filter-index))
+    (cons
+      (list "Initial Cache Build" (benchmark 1 '(org-fc-cache-build)))
+      (my-org-fc-cache-benchmarks)))
+#+end_src
+
+#+RESULTS:
+| Initial Cache Build         | Elapsed time: 2.982310s |
+| Dashboard                   | Elapsed time: 0.673869s |
+| Index Cards in Subdirectory | Elapsed time: 0.026792s |
+| Index Cards with Tag        | Elapsed time: 0.040647s |
+
+Dashboard performance will be improved once a card's review history is
+cached, too.

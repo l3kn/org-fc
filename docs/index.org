@@ -1,0 +1,66 @@
+#+TITLE: Org Flashcards
+#+DATE: [2020-07-17 Fri 00:16]
+#+KEYWORDS: fc
+
+- [[https://git.sr.ht/~l3kn/org-fc][Git]]
+- [[https://lists.sr.ht/~l3kn/org-fc][Mailing List]]
+- [[https://todo.sr.ht/~l3kn/org-fc][Issue Tracker]]
+
+[[file:images/review.png]]
+
+* Introduction
+Org-fc is a spaced-repetition system for Emacs' org-mode.
+
+It allows you to mark headlines in a file as "flashcards", turning
+pieces of knowledge you want to learn into a question-answer test.
+
+These cards are reviewed at regular interval. After each review, a
+[[file:repetition_spacing_algorithm.org][Repetition Spacing Algorithm]] is used to calculate the next interval
+based on how well you remembered the contents of the card.
+* Getting Started
+Start by [[file:installation.org][installing org-fc]] using the package manager of your choice.
+
+A file demonstrating all [[file:card_types.org][Card Types]] is included. ~M-x org-fc-demo~
+starts a review of this file.
+
+To create your own flashcards, create a heading in an org-mode file
+and [[file:marking_headings_as_cards.org][mark it as a flashcard]], using either one of the
+~org-fc-type-...-init~ commands (e.g. ~org-fc-type-normal-init~)
+or the [[file:hydra.org][org-fc Hydra]] (e.g. =C-c f= to open it, =t= to initialize a
+new card, =n= to select the normal card type).
+
+Once you've created a bunch of cards, you can start a [[file:review.org][Review Session]]
+with ~M-x org-fc-review~ (=C-c f r= in the hydra).
+
+~M-x org-fc-dashboard~ (=C-c f m= in the hydra) opens a [[file:dashboard.org][Dashboard]]
+with statistics on the flashcards in the system.
+
+Before reviews and when opening the dashboard, you're asked to select
+a [[file:review_contexts.org][Review Context]]. These can be used to group cards to review them
+separately from each other, e.g. when learning multiple languages.
+
+Note 1: The [[file:hydra.org][Hydra]] is not enabled by default, add ~(require
+'org-fc-hydra)~ to your configuration to load it.
+
+Note 2: Make sure to check out [[file:use_with_evil-mode.org][Use with Evil-Mode]] if you're using
+evil-mode.
+
+Note 3: Before starting the review, make sure to add the directory of
+your org files to ~org-fc-directories~, e.g. via ~(setq
+org-fc-directories '("/my-org-files/"))~
+* Design Goals / Choices
+- [[file:differences_from_other_flashcard_systems.org][Differences from Other Flashcard Systems]]
+- Good [[file:performance.org][Performance]]
+  - =awk= is used for quickly finding cards due for review,
+    instead of relying on the slow org-element parser
+- Support for multiple *positions* in a card / heading
+- All relevant data kept in org files for easy version control
+- Review directly on the source org file for easy editing of cards
+  during review
+* Advanced Topics
+- [[file:components.org][Components]]
+- [[file:alternative_applications.org][Alternative Applications]]
+- [[file:extensions.org][Extensions]]
+- [[file:customizing_org-fc.org][Customizing Org-Fc]]
+* License
+Copyright © Leon Rische and contributors. Distributed under the GNU General Public License, Version 3

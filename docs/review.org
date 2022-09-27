@@ -1,0 +1,102 @@
+#+TITLE: Review
+#+DATE: [2020-08-05 Wed 15:29]
+#+KEYWORDS: fc
+
+A review session can be started with ~M-x org-fc-review~.  Due cards
+are reviewed in random order.
+
+If a card was rated "again", it will be reviewed again at the end of
+the current review session.  This can be disabled by setting
+~org-fc-append-failed-cards~ to ~nil~.
+
+[[file:review_contexts.org][Review Contexts]] can be used to only review cards of a set tag or type,
+e.g. when using org-fc to learn different foreign languages where
+mixing them in one review session would lead to confusion.
+
+Each time a card is rated, an entry is added to the [[file:review_histord.org][Review History]].
+
+Cards can be excluded from review without deleting them
+by [[file:suspending_cards.org][suspending them]].
+
+* Review Process
+1. Open file of card
+2. Narrow to heading
+3. Set up card for review
+4. Activate ~org-fc-flip-mode~
+5. Flip the card (user)
+6. Switch to ~org-fc-rate-mode~
+7. Rate the card (user)
+8. Repeat process with next due card
+
+#+begin_src plantuml :file images/review_loop.png
+"Review next Card" -> if "Another card due?" then
+  -->[true] "Open file of card\nNarrow\nSet up\nflip-mode"
+  --> if "Action" then
+    -->[flip] "Flip Card\nrate-mode"
+    --> if "Action" then
+      -->[again] "Append Card"
+      --> "Update Review Data"
+    else
+      -->[hard / good / easy] "Update Review Data"
+      --> "Review next Card"
+    else
+      -->[suspend] "Suspend Card"
+      --> "Review next Card"
+    else
+      ->[edit] "Edit Card"
+      --> "Open file of card\nNarrow\nSet up\nflip-mode"
+    else
+      -->[quit] "Quit Review"
+    endif
+  else
+    -->[quit] "Quit Review"
+  endif
+else
+  -->[false] "Quit Review"
+endif
+#+end_src
+
+#+RESULTS:
+[[file:images/review_loop.png]]
+
+#+begin_src plantuml :file images/review_sequence.png
+actor User
+collections Card
+database Index
+
+User -> Index: Start Review
+Index -> Card: Jump to next due card
+Card -> Card: Narrow to card heading
+Card -> Card: Set up card
+User -> Card: Flip card
+User -> Card: Rate card
+Card -> Index: Update review data
+Index -> Card: Jump to next due card
+... Repeat ...
+#+end_src
+
+By default failed cards (rated again) are appended to the current
+review session. This can be disabled with ~(setq
+org-fc-append-failed-cards nil)~.
+
+#+RESULTS:
+[[file:images/review_sequence.png]]
+
+* Flip Mode
+| Key | Binding                  |
+|-----+--------------------------|
+| RET | flip card                |
+| n   | flip card                |
+| s   | suspend card             |
+| p   | pause review for editing |
+| q   | quit review              |
+* Rate Mode
+| Key | Binding                  |
+|-----+--------------------------|
+| a   | rate again               |
+| h   | rate hard                |
+| g   | rate good                |
+| e   | rate easy                |
+| s   | suspend card             |
+| p   | pause review for editing |
+| q   | quit review              |

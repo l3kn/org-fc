@@ -1,0 +1,14 @@
+#+TITLE: Performance
+#+DATE: [2020-07-19 Sun 16:01]
+#+KEYWORDS: fc
+
+All user-facing commands (especially during review) should be as fast
+as possible (<300ms).
+
+Using the =awk= indexer, searching 2500 org files (~200k lines in
+total) for due flashcards takes around ~500ms on my laptop (Thinkpad
+L470, SSD).
+
+Using a lisp indexer based on ~org-map-entries~,
+searching a single 6500 line file with 333 flashcards takes ~1000ms,
+indexing the same file with =awk= takes around ~50ms.

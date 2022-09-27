@@ -1,0 +1,47 @@
+#+TITLE: Marking Headings As Cards
+#+DATE: [2020-08-07 Fri 14:34]
+#+KEYWORDS: fc
+
+A *card* is an org-mode headline with a =:fc:= tag attached to it.
+Each card can have multiple *positions* reviewed independently from
+each other, e.g. one for each hole of a cloze card.
+
+Review data (ease, interval in days, box, due date) is stored in a table
+in a drawer inside the card.
+
+#+BEGIN_EXAMPLE
+  :REVIEW_DATA:
+  | position | ease | box | interval | due                    |
+  |----------+------+-----+----------+------------------------|
+  |        2 | 2.65 |   6 |   107.13 |    2020-04-07T01:01:00 |
+  |        1 | 2.65 |   6 |   128.19 |    2020-04-29T06:44:00 |
+  |        0 | 2.95 |   6 |   131.57 |    2020-04-30T18:03:00 |
+  :END:
+#+END_EXAMPLE
+
+The [[file:review_history.org][Review History]] is stored in a TSV file to avoid cluttering the org
+files.
+
+Each card needs at least two properties, an *unique* ~:ID:~ and a
+~:FC_TYPE:~. In addition to that, the date a card was created
+(i.e. the headline was marked as a flashcard) is stored to allow
+creating statistics for how many cards were created in the last day /
+week / month.
+
+#+BEGIN_EXAMPLE
+  :PROPERTIES:
+  :ID:       4ffe66a7-7b5c-4811-bd3e-02b5c0862f55
+  :FC_TYPE:  normal
+  :FC_CREATED: 2019-10-11T14:08:32
+  :END:
+#+END_EXAMPLE
+
+Card types (should) implement a ~org-fc-type-...-init~ command that
+initializes these properties and sets up the review data drawer
+
+All timestamps created and used by org-flashcards use ISO8601 format
+with second precision and without a timezone (timezone UTC0).
+
+This prevents flashcard due dates from showing up in the org-agenda
+and allows filtering for due cards by string-comparing a timestamp
+with one of the current time.

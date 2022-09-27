@@ -1,0 +1,115 @@
+#+TITLE: Card Types
+#+DATE: [2020-08-01 Sat 10:49]
+#+KEYWORDS: fc
+
+* Normal Cards
+During review, the heading is shown with its "Back" subheading
+collapsed, when flipping the card, the back heading is shown,
+then the user is asked to rate the review performance.
+
+Positions: =front=
+* Text-Input Cards
+If the card has a "Back" heading, the first line of its contents is
+considered as the expected answer.
+
+If the card is compact (has no back heading), the first line of its
+main content is used instead.
+
+This allows adding an e.g. explanation to the card.
+
+Answers can be emphasized (e.g. ~foo~).  In that case, only the text
+between the emphasis markers is compared to the user input.
+
+On reviewing the card, the users are prompted to enter their answer,
+which is then compared to the expected answer.
+
+The expected answer is overlayed with "<got> (expected: <expected>)",
+coloring correct parts in green and incorrect parts in red.
+
+If the provided answer is shorter than the expected one, a sequence of
+=-= (colored in red) is prepended / appended to it.
+
+This filler character can be customized via ~org-fc-diff-missing-char~.
+
+Positions: =front=
+* Double Cards
+Similar to normal cards, but reviewed both in the "Front -> Back"
+direction and in the "Back -> Front" direction.
+
+Positions: =front=, =back=
+* Cloze Cards
+The cards text contains one or more *holes*.  During review, one hole
+is hidden while the text of (some) remaining ones is shown.
+
+Flipping the card reveals the text of the hidden hole,
+using ~org-fc-type-cloze-hole-face~ to highlight it.
+
+Card titles can contain holes, too.
+
+Positions: =0=, =1=, ...
+
+Cloze cards can have a number of sub-types.
+
+** Deletion ~'deletion~
+Only one hole is hidden.
+** Enumerations ~'enumeration~
+All holes *behind* the currently review one are hidden, too.
+
+Useful for memorizing lists where the order of items is important.
+** Single ~'single~
+All holes besides the current one are hidden.
+
+Useful for learning syntax or function names of a programming language
+by using a =src= block in the card and marking parts of the code as
+holes.
+** Context ~'context~
+Holes ~org-fc-type-cloze-context~ (default 1) around the currently
+reviewed one are shown.
+
+Useful for memorizing longer lists where the order of items is important.
+** Hole Syntax
+Deletions can have the following forms
+
+- ~{{text}}~
+- ~{{text}@id}~
+- ~{{text}{hint}}~
+- ~{{text}{hint}@id}~
+
+~text~ should not contain any "}",
+unless it is part of a ~$latex$~ block.
+In this case, ~latex~ should not contain any "$".
+
+Holes *inside* latex blocks are not handled correctly at the moment.
+As a workaround, create multiple smaller latex blocks and wrap each in
+a hole.
+** Image Deletions
+Due to an issue with invisible overlays, images inside cloze-holes are
+not shown correctly during review if the image link directly follows
+the opening ~{{~.
+
+Adding spaces around the image link fixes this problem,
+e.g. ~{{ [[file:my_image.png]] }}~.
+** LaTeX in Cloze Deletions
+LaTeX code in cloze delections can't contain a ~}}~,
+to work around this limitation, insert a space between the braces.
+
+Example: ~\frac{1}{\sqrt{2} }~
+* Compact Cards
+For cards without a "Back" heading, the headline text is considered as
+the front, the main text as the back.
+
+This is useful for cards with a short front text, e.g. when learning
+definitions of words.
+* Defining Own Card Types
+To define a custom card type,
+you need to implement three functions:
+
+- ~(...-init)~ to initialize a heading as a flashcard of this type,
+  setting up the cards properties & review data.
+  Should be marked as ~(interactive)~.
+- ~(...-setup position)~ to setup ~position~ of the card for review
+- ~(...-flip)~ to flip the card
+- ~(...-update)~ to update the review data of the card, e.g. if a new
+  hole is added to a cloze card
+
+All of these are called with ~(point)~ on the cards heading.

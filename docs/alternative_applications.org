@@ -1,0 +1,16 @@
+#+TITLE: Alternative Applications
+#+DATE: [2020-07-17 Fri 00:25]
+#+KEYWORDS: fc
+
+In the most abstract sense, this package deals with
+
+1. Attaching timestamped review information to headlines
+2. Querying all headings where reviews are due
+3. Reviewing due *positions* of headings
+
+While the primary application is learning information using spaced
+repetition, at the end, the API should be flexible enough to implement
+other kinds of repeating tasks where it is necessary to store data in
+addition to the next date.
+
+Some ideas are collected in the [[file:incubator.org][Incubator]].

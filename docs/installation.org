@@ -1,0 +1,123 @@
+#+TITLE: Installation
+#+DATE: [2020-08-05 Wed 15:31]
+#+KEYWORDS: fc
+
+Before using this package, ~org-fc-directories~ should be set to the
+directory to search for org files containing flashcards.
+
+The file used to store the review history can be customized with
+~org-fc-review-history-file~ and defaults to ~/path/to/config/org-fc-reviews.tsv~.
+
+This package is not (yet) available on MELPA / ELPA,
+to install it, clone the repository (e.g. to ~src/org-fc/~)
+and follow the setup instructions.
+
+* Dependencies
+Org-fc has been tested with org-mode version 9.3.6 and gawk version
+5.1.0. You can check your versions with ~M-x org-version~
+and ~gawk -V~.
+
+- The =gawk= extension of =awk= for extracting review data from =.org= files
+- =find= for finding all org files in the ~org-fc-directories~
+- =xargs= for processing files in parallel
+** Linux / UNIX
+=find= and =xargs= should be included in most distributions, =gawk=
+can be installed from source or using your package manager of choice.
+
+Examples:
+- =pacman -S gawk= (Arch Linux)
+- =apt-get install gawk= (Ubuntu, Debian, ...)
+- =yum install gawk= (CentOS)
+
+For more information, see [[https://www.gnu.org/software/gawk/manual/html_node/Installation.html][gawk manual - Installation]].
+** MacOS
+On MacOS all dependencies can be installed using [[https://www.macports.org/][macports]] or [[https://brew.sh/][homebrew]].
+=find= and =xargs= are part of the =findutils= package.
+
+- =port install gawk findutils=
+- =brew install gawk findutils=
+
+You might have to adjust your =$PATH= to make sure Emacs can find all
+relevant binaries.
+
+#+BEGIN_SRC
+  export PATH="/opt/local/libexec/gnubin:/opt/local/bin:$PATH"
+#+END_SRC
+
+For more information, refer to the documentation of macports /
+homebrew.
+* Manual Installation
+#+begin_src bash
+  cd ~/src/
+  git clone https://git.sr.ht/~l3kn/org-fc
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'load-path "~/src/org-fc/")
+
+  (require 'org-fc)
+  (require 'org-fc-hydra)
+
+  (setq org-fc-directories '("~/org/"))
+#+END_SRC
+* Setup with [[https://github.com/jwiegley/use-package/][use-package]]
+Assuming you've manually cloned the repository.
+
+#+BEGIN_SRC emacs-lisp :eval no-export
+  (use-package hydra)
+  (use-package org-fc
+    :load-path "~/src/org-fc"
+    :custom (org-fc-directories '("~/org/"))
+    :config
+    (require 'org-fc-hydra))
+#+END_SRC
+
+Or, using [[https://github.com/raxod502/straight.el/][straight.el]]:
+
+#+BEGIN_SRC emacs-lisp :eval no-export
+  (use-package hydra)
+  (use-package org-fc
+    :straight
+    (org-fc
+     :type git :repo "https://git.sr.ht/~l3kn/org-fc"
+     :files (:defaults "awk" "demo.org"))
+    :custom
+    (org-fc-directories '("~/org/"))
+    :config
+    (require 'org-fc-hydra))
+#+END_SRC
+
+Note that in this case, you don't have to clone the repository.
+* Setup with [[https://github.com/raxod502/straight.el/][straight.el]]
+#+BEGIN_SRC emacs-lisp :eval no-export
+  (straight-use-package 'hydra)
+  (straight-use-package
+   '(org-fc
+     :type git :repo "https://git.sr.ht/~l3kn/org-fc"
+     :files (:defaults "awk" "demo.org")
+     :custom (org-fc-directories '("~/org/"))
+     :config
+     (require 'org-fc-hydra)))
+#+END_SRC
+
+* Setup with [[https://github.com/syl20bnr/spacemacs/][spacemacs]]
+You don't need to manually clone the repository,
+just put this in your =.spacemacs=:
+
+#+BEGIN_SRC emacs-lisp :eval no-export
+  ;; ...
+  dotspacemacs-additional-packages
+  '((org-fc
+     :location (recipe :fetcher git
+                       :url "https://git.sr.ht/~l3kn/org-fc"
+                       :files (:defaults "awk" "demo.org"))))
+  ;; ...
+  (defun dotspacemacs/user-config ()
+    ;; ...
+    ;; Org-fc
+    (use-package hydra)
+    (require 'org-fc-hydra)
+    (setq org-fc-directories '("~/org/"))
+    ;; ...
+    )
+#+END_SRC

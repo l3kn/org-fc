@@ -1,0 +1,65 @@
+#+TITLE: Review Contexts
+#+DATE: [2020-08-01 Sat 10:41]
+#+KEYWORDS: fc
+
+By default, two contexts are defined:
+
+- all :: all cards in ~org-fc-directories~
+- buffer :: all cards in the current buffer
+
+New contexts can be defined by adding them to the alist
+~org-fc-custom-contexts~.
+
+Contexts have the form ~(:paths paths :filter filter)~.
+
+- ~:paths~ (optional)
+  either a list of paths, a single path
+  or ~'buffer~ for the current buffer.
+  Paths don't have to be included in the ~org-fc-directories~.
+  Defaults to ~org-fc-directories~.
+- ~:filter~ (optional), a card filter defaulting to a filter that
+  matches all cards.
+
+Filters can be combinations of the following expressions:
+
+- ~(and ex1 ex2 ...)~
+- ~(or ex1 ex2 ...)~
+- ~(not ex)~
+- ~(tag "tag")~
+- ~(type card-type) or (type "card-type")~
+
+* Examples
+All double cards with tag "math":
+#+begin_src emacs-lisp
+  (add-to-list 'org-fc-custom-contexts
+    '(double-math-cards . (:filter (and (type double) (tag "math")))))
+#+end_src
+
+All cards in that don't have one of the tags "foo" and "bar":
+#+begin_src emacs-lisp
+  (add-to-list 'org-fc-custom-contexts
+    '(no-foo-bar-cards . (:filter (not (or (tag "foo") (tag "bar"))))))
+#+end_src
+
+All cards in =~/combinatorics/= or =~/number_theory.org=:
+#+begin_src emacs-lisp
+  (add-to-list 'org-fc-custom-contexts
+    '(math-cards . (:paths ("~/combinatorics/" "~/number_theory.org"))))
+#+end_src
+
+All cards in =~/combinatorics/= with tag "theorem":
+#+begin_src emacs-lisp
+  (add-to-list 'org-fc-custom-contexts
+    '(combinatorics-theorems .
+      (:paths "~/combinatorics/" :filter (tag "theorem"))))
+#+end_src
+
+All double cards in the current buffer:
+#+begin_src emacs-lisp
+  (add-to-list 'org-fc-custom-contexts
+    '(current-double .
+      (:paths buffer :filter (type double))))
+#+end_src
+* Note
+Because parsing of tags is done in AWK, tag filters don't work for
+tags defined in the =#+FILETAGS:= of a =#+SETUP_FILE:=.
