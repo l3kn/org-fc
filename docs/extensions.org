@@ -16,6 +16,11 @@ Files are played using the ~mpv~ media player.
 Commands:
 - ~org-fc-audio-set-before~
 - ~org-fc-audio-set-after~
+
+Each time an audio file is played, it's path is stored in
+~org-fc-audio-last-file~ and can be replayed using
+~org-fc-audio-replay~ or ~org-fc-audio-replay-slow~.
+
 * ~org-fc-keymap-hint~
 Can be enabled with ~(require 'org-fc-keymap-hint)~.
 
