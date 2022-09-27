@@ -76,6 +76,13 @@
   "Play the audio of the current card.
 Look up the file from PROPERTY. If SPEED is non-nil, play back
 the file at the given speed."
+  (interactive
+   (list
+    (completing-read
+     "Type: "
+     `(,org-fc-audio-before-setup-property
+       ,org-fc-audio-after-setup-property
+       ,org-fc-audio-after-flip-property))))
   (if-let ((file (org-entry-get (point) property)))
       (org-fc-audio-play-file file (or speed 1.0))))
 
