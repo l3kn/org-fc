@@ -21,6 +21,9 @@ Each time an audio file is played, it's path is stored in
 ~org-fc-audio-last-file~ and can be replayed using
 ~org-fc-audio-replay~ or ~org-fc-audio-replay-slow~.
 
+When browsing cards outside of a review,
+their audio files can be played with ~org-fc-audio-play~.
+
 * ~org-fc-keymap-hint~
 Can be enabled with ~(require 'org-fc-keymap-hint)~.
 
