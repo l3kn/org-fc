@@ -1,0 +1,27 @@
+#+TITLE: Suspending Cards
+#+DATE: [2020-08-01 Sat 10:55]
+#+KEYWORDS: fc
+
+Cards can be suspended (excluded from review) by adding a =suspended=
+tag, either by hand or using the ~org-fc-suspend-card~ command.
+
+The =suspended= tag is inherited, so all cards in a subtree can be
+suspended by adding the tag to the parent heading, and all cards in a
+file can be suspended by adding ~#+FILETAGS: suspended~ at the start.
+
+Cards can be unsuspended using the ~org-fc-unsuspend-card~ command
+or by manually removing the =suspended= tag.
+
+It might be preferable to suspend multiple cards by adding the
+=suspended= tag to each one, so they remain suspended
+when moved to another headline or file.
+
+In this case, you can use the following commands:
+
+- ~org-fc-suspend-tree~, ~org-fc-unsuspend-tree~ for suspending all
+  cards in a subtree
+- ~org-fc-suspend-buffer~, ~org-fc-unsuspend-buffer~ for suspending all
+  cards in the current buffer
+
+Note that these commands don't affect filetags or tags of parent
+headlines.

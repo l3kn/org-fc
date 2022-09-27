@@ -1,0 +1,53 @@
+#+TITLE: Introduction
+#+DATE: [2020-07-17 Fri 01:07]
+#+FILETAGS: :fc-demo:
+#+KEYWORDS: fc
+
+* Welcome to org-fc                                            :suspended:fc:
+:PROPERTIES:
+:FC_CREATED: 2020-07-16T23:14:28Z
+:FC_TYPE:  normal
+:ID:       78877a24-22f3-4996-8fc1-544204cda0b0
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-07-16T23:14:28Z |
+:END:
+This is an interactive introduction into org-fc,
+using org-fc.
+
+You're currently (re)viewing the front of a flashcard.
+To "flip" it, revealing the contents of its "Back" heading,
+press the enter key.
+
+You can quit the review at any time by pressing "q".
+** Back
+This is the back side of the flashcard.
+
+You can now rate how well you remembered the information on the back
+side of the card.
+* The "normal" Card Type                                       :suspended:fc:
+:PROPERTIES:
+:FC_CREATED: 2020-07-16T23:20:50Z
+:FC_TYPE:  normal
+:ID:       8f01a1c9-c842-48b8-9952-ca1c38875703
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2020-07-16T23:20:50Z |
+:END:
+Let's try that again!
+
+What are the two sides of a "normal" flashcard
+like the one you have just seen?
+** Back
+- front (i.e. question)
+- back (i.e. answer)
+* WAITING Use inline-evaluation for key bindings                   :noexport:
+:PROPERTIES:
+:ID:       5f3f2a87-d7b9-409c-af97-691643f07b4d
+:END:
+- Requires inline-evaluation / insertion of lisp code
+- Similar to org (export) macros

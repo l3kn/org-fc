@@ -1,0 +1,18 @@
+#+SETUPFILE: ~/org/setup.org
+#+TITLE: Incubator
+#+DATE: [2020-07-17 Fri 00:33]
+#+KEYWORDS: fc
+
+* Presentations using org-mode
+- Cloze-like cards for revealing points of a list
+* Workout Tracker / Timer
+One example would be storing one exercise per heading, using the
+positions to store one or more sets and logging the number of
+repetitions done on each "review".
+
+- TTS for instructions
+- Exercise / Pause Timer
+* Mood Tracking
+- Store History in table instead of CSV file
+* Sharing Support, Merging of Changed Cards
+1. strip review data, creation date

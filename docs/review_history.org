@@ -1,0 +1,23 @@
+#+TITLE: Review History
+#+DATE: [2020-08-01 Sat 10:47]
+#+KEYWORDS: fc
+
+The review history is stored in a tsv file, to avoid cluttering org
+files. This makes it easy to calculate review statistics.
+
+Columns:
+1. Date in ISO8601 format, second precision
+2. Filename
+3. Card ID
+4. Position
+5. Ease (before review)
+6. Box (before review)
+7. Interval (before review)
+8. Rating
+9. Seconds spent reviewing the card
+10. [[file:repetition_spacing_algorithm.org][Repetition Spacing Algorithm]] used
+
+More advanced review algorithms might need to use the review history
+of a card. In this case, the card ID + position should be used to look
+up the review history, as the filename can change when moving cards
+from file to file.

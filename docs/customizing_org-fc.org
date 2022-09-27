@@ -1,0 +1,14 @@
+#+TITLE: Customizing Org-Fc
+#+DATE: [2020-08-05 Wed 15:28]
+#+KEYWORDS: fc
+
+For an overview of customization options,
+~M-x customize~ and search for ~org-fc~.
+
+* Hooks
+- ~org-fc-before-setup-hook~
+  Runs before a card is set up for review
+- ~org-fc-after-setup-hook~
+  Runs after a card is set up for review
+- ~org-fc-after-review-hook~
+  Runs when the review ends / is quit

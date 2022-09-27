@@ -1,0 +1,36 @@
+#+TITLE: Extensions
+#+DATE: [2020-07-19 Sun 16:06]
+#+KEYWORDS: fc
+
+Org-fc comes with a number of extensions that are not enabled by default.
+
+* ~org-fc-audio~
+Can be enabled with ~(require 'org-fc-audio)~.
+
+Adds audio attachments for cards that are played during review,
+either before or after a card is set up.
+(This distinction is relevant for text-input cards).
+
+Files are played using the ~mpv~ media player.
+
+Commands:
+- ~org-fc-audio-set-before~
+- ~org-fc-audio-set-after~
+* ~org-fc-keymap-hint~
+Can be enabled with ~(require 'org-fc-keymap-hint)~.
+
+Shows a list of available key bindings during the review,
+to recreate the look & feel of the previous hydra-based implementation.
+
+- ~[RET] flip [q] quit [s] suspend-card~
+- ~[a] rate-again [h] rate-hard [g] rate-good [e] rate-easy [s] suspend-card [q] quit~
+* ~org-fc-hydra~
+A hydra for accessing commonly used org-fc commands and for marking
+headlines as flashcards.
+
+It can be loaded and bound to a hotkey like this:
+
+#+begin_src emacs-lisp
+  (require 'org-fc-hydra)
+  (global-set-key (kbd "C-c f") 'org-fc-hydra/body)
+#+end_src

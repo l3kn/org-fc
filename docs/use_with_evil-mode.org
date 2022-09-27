@@ -1,0 +1,48 @@
+#+TITLE: Use with Evil-Mode
+#+DATE: [2020-07-19 Sun 16:03]
+#+KEYWORDS: fc
+
+The key bindings used by the review modes of org-fc conflict with
+some of the bindings used by evil mode.
+
+As a workaround, you can add minor mode keymaps for
+each of the evil-mode states you're using org-fc with.
+
+#+begin_src emacs-lisp
+(evil-define-minor-mode-key '(normal insert emacs) 'org-fc-review-flip-mode
+  (kbd "RET") 'org-fc-review-flip
+  (kbd "n") 'org-fc-review-flip
+  (kbd "s") 'org-fc-review-suspend-card
+  (kbd "q") 'org-fc-review-quit)
+
+(evil-define-minor-mode-key '(normal insert emacs) 'org-fc-review-rate-mode
+  (kbd "a") 'org-fc-review-rate-again
+  (kbd "h") 'org-fc-review-rate-hard
+  (kbd "g") 'org-fc-review-rate-good
+  (kbd "e") 'org-fc-review-rate-easy
+  (kbd "s") 'org-fc-review-suspend-card
+  (kbd "q") 'org-fc-review-quit)
+#+end_src
+
+* Using general.el for Keybindings
+#+begin_src emacs-lisp
+  (general-define-key
+   :definer 'minor-mode
+   :states 'normal
+   :keymaps 'org-fc-review-flip-mode
+   "RET" 'org-fc-review-flip
+   "n" 'org-fc-review-flip
+   "s" 'org-fc-review-suspend-card
+   "q" 'org-fc-review-quit)
+
+  (general-define-key
+   :definer 'minor-mode
+   :states 'normal
+   :keymaps 'org-fc-review-rate-mode
+   "a" 'org-fc-review-rate-again
+   "h" 'org-fc-review-rate-hard
+   "g" 'org-fc-review-rate-good
+   "e" 'org-fc-review-rate-easy
+   "s" 'org-fc-review-suspend-card
+   "q" 'org-fc-review-quit)
+#+end_src

@@ -1,0 +1,6 @@
+#+TITLE: Repetition Spacing Algorithm
+#+DATE: [2020-07-17 Fri 00:46]
+#+KEYWORDS: fc
+
+This package uses a modified version of the [[https://www.supermemo.com/en/archives1990-2015/english/ol/sm2][SuperMemo - SM2 Algorithm]]
+algorithm, based on the one used by [[https://apps.ankiweb.net/docs/manual.html#what-algorithm][Anki]].

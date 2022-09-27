@@ -1,0 +1,37 @@
+#+TITLE: Differences from Other Flashcard Systems
+#+DATE: [2020-07-17 Fri 00:42]
+#+KEYWORDS: fc
+
+There are a few other packages implementing a SRS (spaced repetition
+system) based on org-mode.
+
+Below, I've listed a the ones I've found so far that are actively
+maintained and implement a lot of useful functionality.
+
+Thanks to the maintainers and all contributors for their work on these
+projects!
+
+* Other (Open Source) SRS
+- [[https://apps.ankiweb.net/][Anki]]
+- [[https://mnemosyne-proj.org/][Mnemosyne Project]]
+
+The [[file:repetition_spacing_algorithm.org][Repetition Spacing Algorithm]] of org-fc is very similar to the one
+used in Anki.
+
+When working with a large collection of mostly text-based items,
+it's important to have powerful editing possibilities.
+
+org-fc is a SRS built into a (the) most powerful text editor.
+* Org-Mode
+- [[https://gitlab.com/phillord/org-drill/][phillord/org-drill]]
+- [[https://github.com/abo-abo/pamparam][abo-abo/pamparam]]
+
+Among the other org-mode based SRS I've found so far,
+org-fc is unique in that each headline can have multiple "positions"
+that are reviewed independently from each other.
+
+This is very useful for cloze deletions.
+* Memrise                                                          :noexport:
+What is does well:
+- presenting cards in different directions / contexts
+- repeating forgotten cards in different ways

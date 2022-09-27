@@ -1,0 +1,66 @@
+#+TITLE: Components
+#+DATE: [2020-08-27 Thu 11:55]
+#+KEYWORDS: fc
+
+Components of org-fc and the most important functions they expose.
+
+* Overview
+#+begin_src plantuml :file images/components.png
+[Index / Query] -* [Dashboard]
+[Index / Query] -* [Review]
+[Index / Query] -- [AWK]
+[Review] -- [Card Types]
+[Review] -- [SM2 Spacing Algorithm]
+[Card Types] -- [Normal]
+[Card Types] -- [Double]
+[Card Types] -- [Text Input]
+[Card Types] -- [Cloze]
+[Text Input] -- [Diff]
+#+end_src
+
+#+RESULTS:
+[[file:images/components.png]]
+
+* ~org-fc-core.el~
+Core functions.
+* ~org-fc-index.el~
+Takes care of indexing and filtering cards.
+
+- ~(org-fc-index context)~ (context is a [[file:review_contexts.org][Review Context]])
+- ~(org-fc-index-positions index)~
+- ~(org-fc-index-shuffled-positions index)~
+
+- ~(org-fc-index-compile-filter filter)~, turns ~filter~ into a lambda
+  function
+
+** ~org-fc-awk.el~
+AWK based indexer.
+* ~org-fc-sm2.el~
+Implementation of the SM2 [[file:repetition_spacing_algorithm.org][Repetition Spacing Algorithm]].
+
+- ~(org-fc-sm2-next-parameters ease box interval rating)~
+  returns a list ~(next-ease next-box next-interval)~
+
+* ~org-fc-review.el~
+Review functionality of org-fc.
+
+- ~(org-fc-review context)~ where ~context~ is a [[file:review_contexts.org][Review Context]]
+- ~(org-fc-demo)~ starts a review of the demo file
+* ~org-fc-diff.el~
+Diff functions for (single-line) strings.
+
+- ~(org-fc-diff got expected)~
+  returns a pair ~(got . expected)~ of colored strings.
+* ~org-fc-dashboard.el~
+Dashboard for org-fc.
+
+- ~(org-fc-dashboard context)~ where ~context~ is a [[file:review_contexts.org][Review Context]]
+* Card Types
+** ~org-fc-type-normal.el~
+Simple front -> back card type.
+** ~org-fc-type-double.el~
+Bidirectional card type (front <-> back).
+** ~org-fc-type-text-input.el~
+Text input cards.
+** ~org-fc-type-cloze.el~
+Card type for cloze deletions.

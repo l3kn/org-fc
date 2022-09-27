@@ -1,0 +1,15 @@
+#+TITLE: Dashboard
+#+DATE: [2020-08-05 Wed 15:29]
+#+KEYWORDS: fc
+
+~M-x org-fc-dashboard~ shows a buffer with statistics for review
+performance and cards / card types.
+
+[[file:images/dashboard.png]]
+
+Review performance statistics are calculated based on
+the [[file:review_history.org][Review History]]. Only cards with a box >=
+~org-fc-stats-review-min-box~ (default: 0) are included.
+
+Setting this to a higher value (e.g. 2) excludes the first few
+"learning" reviews of a card.
