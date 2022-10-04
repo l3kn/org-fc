@@ -49,6 +49,8 @@ With the '-L' option, 'find' follows symlinks."
     ("type_property" . ,org-fc-type-property)
     ("cloze_type_property" . ,org-fc-type-cloze-type-property)
     ("created_property" . ,org-fc-created-property)
+    ("blocked_by_property" . ,org-fc-blocked-by-property)
+    ("priority_property" . ,org-fc-priority-property)
     ("review_data_drawer" . ,org-fc-review-data-drawer)))
 
 (cl-defun org-fc-awk--command (file &optional &key variables input)
@@ -123,6 +125,9 @@ FILTER can be either nil or a function taking a single card as
             (plist-put file :cards
                        (mapcar
                         (lambda (card)
+                          (plist-put card :blocked-by (split-string
+                                                       (plist-get card :blocked-by)
+                                                       ","))
                           (plist-put
                            card :tags
                            (org-fc-awk-combine-tags

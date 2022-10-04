@@ -36,6 +36,17 @@
     :type list
     :custom (repeat integer)
     :documentation "The time at which this card was created.")
+   (blocked-by
+    :initform nil
+    :initarg :blocked-by
+    :type list
+    :custom (repeat string)
+    :documentation "The IDs of cards which block this card.")
+   (priority
+    :initform 0
+    :initarg :priority
+    :type number
+    :documentation "How important the card is; higher number is more important.")
    (filetitle
     :initform ""
     :initarg :filetitle
@@ -88,7 +99,7 @@
     :type symbol
     :documentation "The org-fc-* card type (e.g. double or cloze).")))
 
-(cl-defmethod org-fc-card--to-positions ((card org-fc-card card))
+(cl-defmethod org-fc-card--to-positions ((card org-fc-card))
   "Return list of `org-fc-position' extracted from CARD."
   (mapcar
    (lambda (pos)
@@ -110,6 +121,30 @@
   "Convert a list of CARDS (`org-fc-card's) to a list of `org-fc-positions's."
   (cl-loop for card in cards
            append (org-fc-card--to-positions card)))
+
+(cl-defmethod org-fc-card--is-blocked ((card org-fc-card))
+  "Return t if the CARD is blocked; nil otherwise.
+
+Blocking cards must be in the same file as the blocked card."
+  (when org-fc-cache-mode
+    (let ((blocking-ids (oref card blocked-by)))
+      (when (> (length blocking-ids) 0 )
+        (let* ((box-threshold (length org-fc-algo-sm2-intervals))
+               (path (oref card path))
+               (cached-index (plist-get (gethash path
+                                                 org-fc-cache)
+                                        :cards))
+               (cached-cards (org-fc-index--to-cards cached-index))
+               (blocking-cards (--filter
+                                (member (oref it id)
+                                        blocking-ids)
+                                cached-cards))
+               (blocking-positions (org-fc-cards--to-positions blocking-cards))
+               (blocking-positions-below-threshold (--filter
+                                                    (< (oref it box) box-threshold)
+                                                    blocking-positions)))
+          (not (= (length blocking-positions-below-threshold)
+                  0)))))))
 
 (provide 'org-fc-card)
 ;;; org-fc-card.el ends here
