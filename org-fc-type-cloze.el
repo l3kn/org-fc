@@ -31,8 +31,22 @@
   :type 'string
   :group 'org-fc)
 
+(defcustom org-fc-type-cloze-max-hole-property "FC_CLOZE_MAX"
+  "Name of the property to use for storing the max hole index."
+  :type 'string
+  :group 'org-fc)
+
+(defcustom org-fc-type-cloze-context-count-property "FC_CLOZE_CONTEXT_COUNT"
+  "Number of contextual clozes to show in a `'context'-type card.
+
+Takes prescedence over `org-fc-type-cloze-context'."
+  :type 'number
+  :group 'org-fc)
+
 (defcustom org-fc-type-cloze-context 1
-  "Number of surrounding cards to show for 'context' type cards."
+  "Number of surrounding cards to show for 'context' type cards.
+
+Use `org-fc-type-cloze-context-count-property' to set this value on a per-card basis."
   :type 'number
   :group 'org-fc)
 
@@ -88,14 +102,16 @@ the hole for the current position."
             (setq current-index (1- (length holes))))))
     (cons (reverse holes) current-index)))
 
-(defun org-fc-type-cloze--hole-visible-p (type i current-index)
+(defun org-fc-type-cloze--hole-visible-p (type i current-index context-count)
   "Determine whether hole I of card TYPE should be visible based.
-CURRENT-INDEX is the index of the current position in the list of all holes."
+
+- CURRENT-INDEX is the index of the current position in the list of all holes.
+- CONTEXT-COUNT is the number of contextual clozes to show."
   (cl-case type
     ('enumeration (< i current-index))
     ('deletion t)
     ('single nil)
-    ('context (<= (abs (- i current-index)) org-fc-type-cloze-context))
+    ('context (<= (abs (- i current-index)) context-count))
     (t (error "Org-fc: Unknown cloze card type %s" type))))
 
 (defun org-fc-type-cloze--end ()
@@ -112,7 +128,12 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
           (end (1+ (org-fc-type-cloze--end)))
           (holes-index (org-fc-type-cloze--parse-holes position end))
           (holes (car holes-index))
-          (current-index (cdr holes-index)))
+          (current-index (cdr holes-index))
+          (context-count (or (ignore-errors
+                               (string-to-number
+                                (org-entry-get (point)
+                                               org-fc-type-cloze-context-count-property)))
+                             org-fc-type-cloze-context)))
      (cl-loop
       for i below (length holes)
       for (hole-beg hole-end text-beg text-end hint-beg hint-end) in holes
@@ -143,7 +164,7 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
            'face 'org-fc-type-cloze-hole-face))
          ;; If the text of another hole should be visible,
          ;; hide the hole markup and the hint
-         ((org-fc-type-cloze--hole-visible-p type i current-index)
+         ((org-fc-type-cloze--hole-visible-p type i current-index context-count)
           (org-fc-hide-region hole-beg text-beg)
           (org-fc-hide-region text-end hole-end))
          ;; If the text of another hole should not be visible,
@@ -188,6 +209,8 @@ Processes all holes in the card text."
   "Update the review data & deletions of the current heading."
   (let* ((end (org-fc-type-cloze--end))
          (hole-id (1+ (org-fc-type-cloze-max-hole-id)))
+         (cloze-count (or (org-entry-get (point) org-fc-type-cloze-context-count-property)
+                          org-fc-type-cloze-context))
          ids)
     (save-excursion
       (while (re-search-forward org-fc-type-cloze-hole-re end t)
@@ -206,6 +229,12 @@ Processes all holes in the card text."
      org-fc-type-cloze-max-hole-property
      (format "%s" (1- hole-id)))
     (org-fc-review-data-update (reverse ids))))
+
+(defun org-fc-type-cloze-set-context (context-count)
+  "Sets `org-fc-type-cloze-context-count-property'."
+  (interactive "nCloze count: ")
+  (org-set-property org-fc-type-cloze-context-count-property
+                    (format "%s" context-count)))
 
 (org-fc-register-type
  'cloze

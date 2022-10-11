@@ -85,11 +85,6 @@ Used to generate absolute paths to the awk scripts.")
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-type-cloze-max-hole-property "FC_CLOZE_MAX"
-  "Name of the property to use for storing the max hole index."
-  :type 'string
-  :group 'org-fc)
-
 (defcustom org-fc-suspended-tag "suspended"
   "Tag for marking suspended cards."
   :type 'string
