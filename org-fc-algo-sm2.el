@@ -160,6 +160,9 @@ EASE, BOX and INTERVAL are the current parameters of the card."
            ;; If the review failed, go back to box 0
            ((eq rating 'again)
             0)
+           ;; If it's a new position, skip forward as if we were at box 0
+           ((eq box -1)
+            1)
            ;; Otherwise, move forward one box
            (t
             (1+ box))))
