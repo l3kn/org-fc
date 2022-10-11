@@ -36,7 +36,6 @@
 ;;; Code:
 
 (require 'eieio)
-(require 'dash)
 
 (require 'org-fc-awk)
 (require 'org-fc-core)
@@ -89,34 +88,6 @@ Used to calculate the time needed for reviewing a card.")
   "Track if the current buffer was open before the review.")
 (make-variable-buffer-local 'org-fc-reviewing-existing-buffer)
 
-(defcustom org-fc-review-new-limit -1
-  "Limits the number of new positions shown per `org-fc-review-new-limit-schedule'.
-
--1 for unlimited."
-  :type 'integer
-  :group 'org-fc)
-
-(defcustom org-fc-review-new-limit-schedule 'session
-  "The schedule at which to limit the inclusion of new positions.
-
-- `session': Each review session will include, at most, `org-fc-review-new-limit' new cards.
-- `day': New cards will be limited to `org-fc-review-new-limit' across review sessions; resets at midnight."
-  :type '(choice (const session)
-                 (const day))
-  :group 'org-fc)
-
-(defvar org-fc-review-new-limit--new-seen-today -1
-  "Remaining new cards for today's reviews.
-
-Don't access directly! Use `org-fc-review-new-limit--get-remaining'.
-
-Not persisted; resets when reloading Emacs!")
-
-(defvar org-fc-review-new-limit--reset-day nil
-  "The day number on which we should reset `org-fc-review-new-limit--new-seen-today'.
-
-Not persisted; resets when reloading Emacs!")
-
 ;;; Main Review Functions
 
 ;;;###autoload
@@ -133,36 +104,16 @@ Valid contexts:
         (org-fc-review-resume))
     (let* ((index (org-fc-index context))
            (cards (org-fc-index--to-cards index))
-           (cards (--filter
-                   (not (org-fc-card--is-blocked it))
-                   cards))
            (positions (org-fc-positions--filter-due
                        (org-fc-cards--to-positions cards)))
-           (positions (if (> org-fc-review-new-limit 0)
-                                      (let ((remaining-new (org-fc-review-new-limit--get-remaining)))
-                                        (cl-remove-if
-                                         (lambda (pos)
-                                           (cond
-                                            ((org-fc-position-new-p pos)
-                                             (when (>= remaining-new 0)
-                                               (cl-decf remaining-new))
-                                             (< remaining-new 0))
-                                            (t
-                                             nil)))
-                                         positions))
-                                    positions))
            (positions (if org-fc-shuffle-positions
                           (org-fc-shuffle positions)
-                        positions))
-           (positions (--sort
-                       (> (oref (oref it card) priority)
-                          (oref (oref other card) priority))
-                       positions)))
+                        positions)))
       (if (null cards)
           (message "No cards due right now")
         (progn
           (setq org-fc-review--session
-                (org-fc-make-review-session positions))
+                (org-fc-review-session--create positions))
           (run-hooks 'org-fc-before-review-hook)
           (org-fc-review-next-position))))))
 
@@ -213,7 +164,6 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
                 (org-fc-indent)
                 ;; Make sure the headline the card is in is expanded
                 (org-reveal)
-                (redisplay t)
                 (org-fc-narrow)
                 (org-fc-hide-keyword-times)
                 (org-fc-hide-drawers)
@@ -341,49 +291,41 @@ Also add a new entry in the review history file.  PATH, ID,
 POSITION identify the position that was reviewed, RATING is a
 review rating and DELTA the time in seconds between showing and
 rating the card."
-  (if (member "reading" (oref (oref position card) tags))
-      (let ((priority (string-to-number
-                       (or (org-entry-get (point)
-                                          org-fc-priority-property)
-                           "0"))))
-        (org-set-property org-fc-priority-property
-                          (number-to-string
-                           (1+ priority))))
-    (org-fc-with-point-at-entry
-     ;; If the card is marked as a demo card, don't log its reviews and
-     ;; don't update its review data
-     (unless (member org-fc-demo-tag (org-get-tags))
-       (let* ((data (org-fc-review-data-get))
-              (pos-pos (oref position pos))
-              (current (assoc pos-pos
-                              data
-                              #'string=)))
-         (unless current
-           (error "No review data found for this position"))
-         (let ((ease (oref position ease))
-               (box (oref position box))
-               (interval (oref position interval)))
-           (org-fc-review-history-add
-            (list
-             (org-fc-timestamp-in 0)
-             path
-             id
-             pos-pos
-             (format "%.2f" ease)
-             (format "%d" box)
-             (format "%.2f" interval)
-             (symbol-name rating)
-             (format "%.2f" delta)
-             (symbol-name org-fc-algorithm)))
-           (cl-destructuring-bind (next-ease next-box next-interval)
-               (org-fc-algo-sm2-next-parameters ease box interval rating)
-             (setcdr
-              current
-              (list (format "%.2f" next-ease)
-                    (number-to-string next-box)
-                    (format "%.2f" next-interval)
-                    (org-fc-timestamp-in next-interval)))
-             (org-fc-review-data-set data))))))))
+  (org-fc-with-point-at-entry
+   ;; If the card is marked as a demo card, don't log its reviews and
+   ;; don't update its review data
+   (unless (member org-fc-demo-tag (org-get-tags))
+     (let* ((data (org-fc-review-data-get))
+            (pos-pos (oref position pos))
+            (current (assoc pos-pos
+                            data
+                            #'string=)))
+       (unless current
+         (error "No review data found for this position"))
+       (let ((ease (oref position ease))
+             (box (oref position box))
+             (interval (oref position interval)))
+         (org-fc-review-history-add
+          (list
+           (org-fc-timestamp-in 0)
+           path
+           id
+           pos-pos
+           (format "%.2f" ease)
+           (format "%d" box)
+           (format "%.2f" interval)
+           (symbol-name rating)
+           (format "%.2f" delta)
+           (symbol-name org-fc-algorithm)))
+         (cl-destructuring-bind (next-ease next-box next-interval)
+             (org-fc-algo-sm2-next-parameters ease box interval rating)
+           (setcdr
+            current
+            (list (format "%.2f" next-ease)
+                  (number-to-string next-box)
+                  (format "%.2f" next-interval)
+                  (org-fc-timestamp-in next-interval)))
+           (org-fc-review-data-set data)))))))
 
 (defun org-fc-review-reset ()
   "Reset the buffer to its state before the review."
@@ -705,27 +647,6 @@ removed."
     ;; Make sure we're in org mode and there is an active review session
     (unless (and (derived-mode-p 'org-mode) org-fc-review--session)
       (org-fc-review-edit-mode -1))))
-
-
-;;;; Daily limit
-
-(defun org-fc-review-new-limit--get-remaining ()
-  "Return the remaining new cards for the `org-fc-review-new-card-schedule'."
-  (when (and org-fc-review-new-limit
-             (> org-fc-review-new-limit 0))
-    (cond
-     ((eq 'session
-          org-fc-review-new-limit-schedule)
-      org-fc-review-new-limit)
-     ((eq 'day
-          org-fc-review-new-limit-schedule)
-      (let ((current-day (time-to-days (current-time))))
-        (when (or (not org-fc-review-new-limit--reset-day)
-                  (= org-fc-review-new-limit--reset-day current-day))
-          (setq org-fc-review-new-limit--reset-day (1+ current-day)
-                org-fc-review-new-limit--new-seen-today 0))
-        (- org-fc-review-new-limit
-           org-fc-review-new-limit--new-seen-today))))))
 
 ;;; Footer
 

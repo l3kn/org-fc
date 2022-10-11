@@ -90,16 +90,6 @@ Used to generate absolute paths to the awk scripts.")
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-blocked-by-property "FC_BLOCKED_BY"
-  "Property used to store the cards creation time."
-  :type 'string
-  :group 'org-fc)
-
-(defcustom org-fc-priority-property "FC_PRIORITY"
-  "Property used to store the cards creation time."
-  :type 'string
-  :group 'org-fc)
-
 (defcustom org-fc-suspended-tag "suspended"
   "Tag for marking suspended cards."
   :type 'string
@@ -588,63 +578,14 @@ use `(and (type double) (tag \"math\"))'."
 
     (funcall org-fc-index-function paths filter)))
 
-(defun org-fc-index-flatten-card (card)
-  "Flatten CARD into a list of positions.
-Relevant data from the card is included in each position
-element."
-  (mapcar
-   (lambda (pos)
-     (list
-      :filetitle (plist-get card :filetitle)
-      :tags (plist-get card :tags)
-      :path (plist-get card :path)
-      :id (plist-get card :id)
-      :type (plist-get card :type)
-      :due (plist-get pos :due)
-      :box (plist-get pos :box)
-      :position (plist-get pos :position)))
-   (plist-get card :positions)))
-
-(defun org-fc-index-filter-due (index)
-  "Filter INDEX to include only unsuspended due positions.
-Cards with no positions are removed from the index."
-  (let (res (now (current-time)))
-    (dolist (card index)
-      (unless (plist-get card :suspended)
-        (let ((due
-               (cl-remove-if-not
-                (lambda (pos)
-                  (time-less-p (plist-get pos :due) now))
-                (plist-get card :positions))))
-          (unless (null due)
-            (plist-put
-             card :positions
-             (if (or (not org-fc-bury-siblings)
-                     (member (plist-get card :cloze-type) '(single enumeration)))
-                 due (list (car due))))
-            (push card res)))))
-    res))
-
-(defun org-fc-index-positions (index)
-  "Return all positions in INDEX."
-  (mapcan (lambda (card) (org-fc-index-flatten-card card)) index))
-
-(defun org-fc-index-shuffled-positions (index)
-  "Return all positions in INDEX in random order.
-Positions are shuffled in a way that preserves the order of the
-  positions for each card."
-  ;; 1. assign each position a random number
-  ;; 2. flatten the list
-  ;; 3. sort by the random number
-  ;; 4. remove the random numbers from the result
-  (let ((positions
-         (mapcan
-          (lambda (card)
-            (let ((pos (org-fc-index-flatten-card card)))
-              (org-fc-zip
-               (org-fc-sorted-random (length pos))
-               pos)))
-          index)))
+(defun org-fc-shuffle (items)
+  "Return a shuffled version of ITEMS."
+  (let* ((randoms (cl-loop for _ below (length items)
+                           collect (cl-random 1.0)))
+         (zipped (-zip randoms items))
+         (sorted-zipped (sort zipped
+                              (lambda (a b)
+                                (> (car a) (car b))))))
     (mapcar
      #'cdr
      sorted-zipped)))
@@ -655,25 +596,17 @@ Positions are shuffled in a way that preserves the order of the
    (lambda (card)
      (org-fc-card
       :created (plist-get card :created)
-      :filetitle (or (plist-get card :filetitle)
-                     "")
-      :blocked-by (plist-get card :blocked-by)
-      :priority (string-to-number (plist-get card :priority))
+      :filetitle (plist-get card :filetitle)
       :id (plist-get card :id)
       :inherited-tags (plist-get card :inherited-tags)
       :local-tags (plist-get card :local-tags)
-      :path (or (plist-get card :path)
-                "")
+      :path (plist-get card :path)
       :positions (plist-get card :positions)
       :suspended (plist-get card :suspended)
       :tags (plist-get card :tags)
       :title (plist-get card :title)
       :type (plist-get card :type)))
    index))
-
-(defun org-fc-position-new-p (pos)
-  "Return t if the provided POS ition is new; nil otherwise."
-  (eq -1 (plist-get pos :box)))
 
 ;;; Demo Mode
 

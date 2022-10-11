@@ -39,8 +39,6 @@ BEGIN {
     type_property = or_default(type_property, "FC_TYPE");
     cloze_type_property = or_default(cloze_type_property, "FC_CLOZE_TYPE");
     created_property = or_default(created_property, "FC_CREATED");
-    blocked_by_property = or_default(blocked_by_property, "FC_BLOCKED_BY");
-    priority_property = or_default(priority_property, "FC_PRIORITY");
 
     # Small state machine to make sure cards are in the correct format
     state = 0;
@@ -165,8 +163,6 @@ $0 ~ review_data_drawer {
             " :type " properties[type_property]     \
             cloze_type                                            \
             " :created " parse_time(properties[created_property]) \
-            " :blocked-by " escape_string(properties[blocked_by_property]) \
-            " :priority " escape_string(properties[priority_property]) \
             " :suspended " (suspended ? "t" : "nil")   \
             " :inherited-tags " escape_string(inherited_tags)  \
             " :local-tags " escape_string(local_tags)          \

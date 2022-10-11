@@ -109,9 +109,6 @@ the AWK command and directories are not supported."
      (plist-put file :cards
                 (mapcar
                  (lambda (card)
-                   (plist-put card :blocked-by (split-string
-                                                (plist-get card :blocked-by)
-                                                ","))
                    (plist-put
                     card :tags
                     (org-fc-awk-combine-tags
@@ -167,14 +164,12 @@ are renamed or deleted."
   "Check if the entry at point is coherent with its cache representation.
 This is especially relevant w.r.t a card's due date / suspension state before review."
   (org-fc-review-with-current-item cur
-    (message "org-fc-cache-coherence-check-1")
     (if (org-fc-suspended-entry-p)
         (error "Trying to review a suspended card"))
     (let* ((position (oref cur pos))
            (review-data (org-fc-review-data-get))
            (row (assoc position review-data #'string=))
            (due (parse-iso8601-time-string (nth 4 row))))
-      (message "org-fc-cache-coherence-check-3")
       (unless (time-less-p due (current-time))
         (error "Trying to review a non-due card")))))
 
