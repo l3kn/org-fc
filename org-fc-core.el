@@ -85,6 +85,21 @@ Used to generate absolute paths to the awk scripts.")
   :type 'string
   :group 'org-fc)
 
+(defcustom org-fc-type-cloze-max-hole-property "FC_CLOZE_MAX"
+  "Name of the property to use for storing the max hole index."
+  :type 'string
+  :group 'org-fc)
+
+(defcustom org-fc-blocked-by-property "FC_BLOCKED_BY"
+  "Property used to store the cards creation time."
+  :type 'string
+  :group 'org-fc)
+
+(defcustom org-fc-priority-property "FC_PRIORITY"
+  "Property used to store the cards creation time."
+  :type 'string
+  :group 'org-fc)
+
 (defcustom org-fc-suspended-tag "suspended"
   "Tag for marking suspended cards."
   :type 'string
@@ -640,11 +655,15 @@ Positions are shuffled in a way that preserves the order of the
    (lambda (card)
      (org-fc-card
       :created (plist-get card :created)
-      :filetitle (plist-get card :filetitle)
+      :filetitle (or (plist-get card :filetitle)
+                     "")
+      :blocked-by (plist-get card :blocked-by)
+      :priority (string-to-number (plist-get card :priority))
       :id (plist-get card :id)
       :inherited-tags (plist-get card :inherited-tags)
       :local-tags (plist-get card :local-tags)
-      :path (plist-get card :path)
+      :path (or (plist-get card :path)
+                "")
       :positions (plist-get card :positions)
       :suspended (plist-get card :suspended)
       :tags (plist-get card :tags)

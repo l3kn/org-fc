@@ -132,11 +132,13 @@ Valid contexts:
       (when (yes-or-no-p "Flashcards are already being reviewed. Resume? ")
         (org-fc-review-resume))
     (let* ((index (org-fc-index context))
-           (cards (org-fc-index-filter-due index))
-           (positions (if org-fc-shuffle-positions
-                          (org-fc-index-shuffled-positions cards)
-                        (org-fc-index-positions cards)))
-           (positions-limited-new (if (> org-fc-review-new-limit 0)
+           (cards (org-fc-index--to-cards index))
+           (cards (--filter
+                   (not (org-fc-card--is-blocked it))
+                   cards))
+           (positions (org-fc-positions--filter-due
+                       (org-fc-cards--to-positions cards)))
+           (positions (if (> org-fc-review-new-limit 0)
                                       (let ((remaining-new (org-fc-review-new-limit--get-remaining)))
                                         (cl-remove-if
                                          (lambda (pos)
@@ -148,12 +150,19 @@ Valid contexts:
                                             (t
                                              nil)))
                                          positions))
-                                    positions)))
-      (if (null positions-limited-new)
-          (message "No positions due right now")
+                                    positions))
+           (positions (if org-fc-shuffle-positions
+                          (org-fc-shuffle positions)
+                        positions))
+           (positions (--sort
+                       (> (oref (oref it card) priority)
+                          (oref (oref other card) priority))
+                       positions)))
+      (if (null cards)
+          (message "No cards due right now")
         (progn
           (setq org-fc-review--session
-                (org-fc-make-review-session positions-limited-new))
+                (org-fc-make-review-session positions))
           (run-hooks 'org-fc-before-review-hook)
           (org-fc-review-next-position))))))
 
@@ -204,6 +213,7 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
                 (org-fc-indent)
                 ;; Make sure the headline the card is in is expanded
                 (org-reveal)
+                (redisplay t)
                 (org-fc-narrow)
                 (org-fc-hide-keyword-times)
                 (org-fc-hide-drawers)
@@ -331,41 +341,49 @@ Also add a new entry in the review history file.  PATH, ID,
 POSITION identify the position that was reviewed, RATING is a
 review rating and DELTA the time in seconds between showing and
 rating the card."
-  (org-fc-with-point-at-entry
-   ;; If the card is marked as a demo card, don't log its reviews and
-   ;; don't update its review data
-   (unless (member org-fc-demo-tag (org-get-tags))
-     (let* ((data (org-fc-review-data-get))
-            (pos-pos (oref position pos))
-            (current (assoc pos-pos
-                            data
-                            #'string=)))
-       (unless current
-         (error "No review data found for this position"))
-       (let ((ease (oref position ease))
-             (box (oref position box))
-             (interval (oref position interval)))
-         (org-fc-review-history-add
-          (list
-           (org-fc-timestamp-in 0)
-           path
-           id
-           pos-pos
-           (format "%.2f" ease)
-           (format "%d" box)
-           (format "%.2f" interval)
-           (symbol-name rating)
-           (format "%.2f" delta)
-           (symbol-name org-fc-algorithm)))
-         (cl-destructuring-bind (next-ease next-box next-interval)
-             (org-fc-algo-sm2-next-parameters ease box interval rating)
-           (setcdr
-            current
-            (list (format "%.2f" next-ease)
-                  (number-to-string next-box)
-                  (format "%.2f" next-interval)
-                  (org-fc-timestamp-in next-interval)))
-           (org-fc-review-data-set data)))))))
+  (if (member "reading" (oref (oref position card) tags))
+      (let ((priority (string-to-number
+                       (or (org-entry-get (point)
+                                          org-fc-priority-property)
+                           "0"))))
+        (org-set-property org-fc-priority-property
+                          (number-to-string
+                           (1+ priority))))
+    (org-fc-with-point-at-entry
+     ;; If the card is marked as a demo card, don't log its reviews and
+     ;; don't update its review data
+     (unless (member org-fc-demo-tag (org-get-tags))
+       (let* ((data (org-fc-review-data-get))
+              (pos-pos (oref position pos))
+              (current (assoc pos-pos
+                              data
+                              #'string=)))
+         (unless current
+           (error "No review data found for this position"))
+         (let ((ease (oref position ease))
+               (box (oref position box))
+               (interval (oref position interval)))
+           (org-fc-review-history-add
+            (list
+             (org-fc-timestamp-in 0)
+             path
+             id
+             pos-pos
+             (format "%.2f" ease)
+             (format "%d" box)
+             (format "%.2f" interval)
+             (symbol-name rating)
+             (format "%.2f" delta)
+             (symbol-name org-fc-algorithm)))
+           (cl-destructuring-bind (next-ease next-box next-interval)
+               (org-fc-algo-sm2-next-parameters ease box interval rating)
+             (setcdr
+              current
+              (list (format "%.2f" next-ease)
+                    (number-to-string next-box)
+                    (format "%.2f" next-interval)
+                    (org-fc-timestamp-in next-interval)))
+             (org-fc-review-data-set data))))))))
 
 (defun org-fc-review-reset ()
   "Reset the buffer to its state before the review."
