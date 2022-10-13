@@ -140,6 +140,9 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
 EASE, BOX and INTERVAL are the current parameters of the card."
   (let* ((intervals (org-fc-algo-sm2-intervals))
          (changes (org-fc-algo-sm2-changes))
+         (box
+          ;; Treat a negative box value (i.e. a new position) as if it were 0.
+          (max box 0))
          (next-ease
           (if (< box 2)
               ease
@@ -151,21 +154,28 @@ EASE, BOX and INTERVAL are the current parameters of the card."
          (next-box
           (cond
            ;; If a card is rated easy, skip the learning phase
-           ((and (eq box 0) (eq rating 'easy)) 2)
+           ((and (eq box 0)
+                 (eq rating 'easy))
+            2)
            ;; If the review failed, go back to box 0
-           ((eq rating 'again) 0)
+           ((eq rating 'again)
+            0)
            ;; Otherwise, move forward one box
-           (t (1+ box))))
+           (t
+            (1+ box))))
          (next-interval
           (cond ((< next-box (length intervals))
                  (nth next-box intervals))
-                ((and (eq org-fc-algorithm 'sm2-v2) (eq rating 'hard)) (* 1.2 interval))
-                (t (org-fc-algo-sm2-fuzz (* next-ease interval))))))
+                ((and (eq org-fc-algorithm 'sm2-v2)
+                      (eq rating 'hard))
+                 (* 1.2 interval))
+                (t
+                 (org-fc-algo-sm2-fuzz (* next-ease interval))))))
     (list next-ease next-box next-interval)))
 
 (defun org-fc-algo-sm2-initial-review-data (position)
   "Initial SM2 review data for POSITION."
-  (let* ((box 0)
+  (let* ((box -1)
          (ease (org-fc-algo-sm2-ease-initial))
          (interval 0)
          (due (org-fc-timestamp-in interval)))
