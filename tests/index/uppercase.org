@@ -1,4 +1,4 @@
-#+TITLE: File Title
+#+TITLE: File Title Uppercase
 #+FILETAGS: :tag1:tag2:
 
 * Card                                                                   :fc:

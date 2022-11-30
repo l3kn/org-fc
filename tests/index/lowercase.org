@@ -1,5 +1,5 @@
-#+title: File Title
-#+filetags: :tag1:tag2:
+#+title: File Title Lowercase
+#+filetags: :tag3:tag4:
 
 * Card                                                                   :fc:
 :PROPERTIES:
