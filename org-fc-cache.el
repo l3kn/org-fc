@@ -55,7 +55,7 @@
               (gethash file hashes)))
            (hash-table-keys hashes))))
     ;; Update changed files
-    (dolist (new (org-fc-awk-index-files changed))
+    (dolist (new (org-fc-awk-index-paths changed))
       (let* ((path (plist-get new :path))
              (hash (gethash path hashes)))
         (puthash
@@ -83,44 +83,15 @@ as its input."
        (when (cl-some (lambda (p) (string-prefix-p p path)) paths)
          ;; Use push instead of `nconc' because `nconc' would break
          ;; the entries of the hash table.
-         (if filter
-             (dolist (card (cl-remove-if-not filter (plist-get file :cards)))
-               (push (plist-put
-                      (plist-put card :path path)
-                      :filetitle
-                      (plist-get file :title)) res))
-           (dolist (card (plist-get file :cards))
-             (push
-              (plist-put
-               (plist-put card :path path)
-               :filetitle
-               (plist-get file :title)) res)))))
+         (push
+          (list :path path
+                :cards
+                (if filter
+                    (cl-remove-if-not filter (plist-get file :cards))
+                  (plist-get file :cards)))
+          res)))
      org-fc-cache)
     res))
-
-;; TODO: Check for awk errors
-;; TODO: This should go into the awk file
-(defun org-fc-awk-index-files (files)
-  "Generate a list of all cards and positions in FILES.
-Unlike `org-fc-awk-index-paths', files are included directly in
-the AWK command and directories are not supported."
-  (mapcar
-   (lambda (file)
-     (plist-put file :cards
-                (mapcar
-                 (lambda (card)
-                   (plist-put
-                    card :tags
-                    (org-fc-awk-combine-tags
-                     (plist-get card :inherited-tags)
-                     (plist-get card :local-tags))))
-                 (plist-get file :cards))))
-   (read
-    (shell-command-to-string
-     (org-fc-awk--command
-      "awk/index.awk"
-      :variables (org-fc-awk--indexer-variables)
-      :input (mapconcat #'identity files " "))))))
 
 ;;; Cache Mode
 

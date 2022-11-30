@@ -581,7 +581,20 @@ use `(and (type double) (tag \"math\"))'."
 
     (if filter (setq filter (org-fc--compile-filter filter)))
 
-    (funcall org-fc-index-function paths filter)))
+    (org-fc-index-flatten-file
+     (funcall org-fc-index-function paths filter))))
+
+(defun org-fc-index-flatten-file (index)
+  "Flatten INDEX into a list of cards.
+Relevant data from the file is included in each card element."
+  (mapcan
+   (lambda (file)
+     (mapcar
+      (lambda (card)
+        (plist-put card :path (plist-get file :path))
+        (plist-put card :filetitle (plist-get file :title)))
+      (plist-get file :cards)))
+   index))
 
 (defun org-fc-index-flatten-card (card)
   "Flatten CARD into a list of positions.
