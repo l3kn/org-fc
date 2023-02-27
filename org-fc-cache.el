@@ -137,7 +137,7 @@ This is especially relevant w.r.t a card's due date / suspension state before re
   (org-fc-review-with-current-item cur
     (if (org-fc-suspended-entry-p)
         (error "Trying to review a suspended card"))
-    (let* ((position (plist-get cur :position))
+    (let* ((position (oref cur pos))
            (review-data (org-fc-review-data-get))
            (row (assoc position review-data #'string=))
            (due (parse-iso8601-time-string (nth 4 row))))
