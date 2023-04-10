@@ -54,33 +54,8 @@
          (raw-index (funcall org-fc-index-function
                              paths
                              filter))
-         (cards (mapcar
-                 (lambda (raw-card)
-                   "Return a `org-fc-card' constructed from RAW-CARD."
-                   (let ((card (org-fc-card
-                                :created (plist-get raw-card :created)
-                                :filetitle (plist-get raw-card :filetitle)
-                                :tags (plist-get raw-card :tags)
-                                :id (plist-get raw-card :id)
-                                :inherited-tags (plist-get raw-card :inherited-tags)
-                                :local-tags (plist-get raw-card :local-tags)
-                                :path (plist-get raw-card :path)
-                                :suspended (plist-get raw-card :suspended)
-                                :title (plist-get raw-card :title)
-                                :type (plist-get raw-card :type))))
-                     (oset card positions (mapcar
-                                           (lambda (raw-position)
-                                             "Return a `org-fc-position' constructed from RAW-POSITION."
-                                             (org-fc-position
-                                              :box (plist-get raw-position :box)
-                                              :card card
-                                              :due (plist-get raw-position :due)
-                                              :ease (plist-get raw-position :ease)
-                                              :interval (plist-get raw-position :interval)
-                                              :pos (plist-get raw-position :position)))
-                                           (plist-get raw-card :positions)))
-                     card))
-                 raw-index)))
+         (cards (mapcar #'org-fc-card--from-raw
+                        raw-index)))
     (org-fc-index
      :cards cards)))
 

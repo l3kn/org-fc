@@ -81,6 +81,30 @@
                               (oref (oref b card) id)))))
     (-distinct positions)))
 
+(cl-defmethod org-fc-position--is-blocked ((position org-fc-position))
+  "Return t if the CARD is blocked; nil otherwise.
+Blocking cards must be in the same file as the blocked card."
+  (when org-fc-cache-mode
+    (let* ((card (oref position card))
+           (blocking-ids (oref card blocked-by)))
+      (if (null blocking-ids)
+          nil
+        (let* ((box-threshold (length org-fc-algo-sm2-intervals))
+               (path (oref card path))
+               (cached-raw-cards (plist-get (gethash path org-fc-cache)
+                                            :cards))
+               (cached-cards (mapcar #'org-fc-card--from-raw
+                                     cached-raw-cards))
+               (blocking-cards (--filter
+                                (member (oref it id)
+                                        blocking-ids)
+                                cached-cards))
+               (blocking-positions (org-fc-cards--to-positions blocking-cards))
+               (blocking-positions-below-threshold (--filter
+                                                    (< (oref it box) box-threshold)
+                                                    blocking-positions)))
+          (not (null blocking-positions-below-threshold)))))))
+
 ;;; Footer
 
 (provide 'org-fc-position)

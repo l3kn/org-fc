@@ -36,6 +36,12 @@
     :type list
     :custom (repeat integer)
     :documentation "The time at which this card was created.")
+   (blocked-by
+    :initform nil
+    :initarg :blocked-by
+    :type list
+    :custom (repeat string)
+    :documentation "The IDs of cards which block this card.")
    (filetitle
     :initform ""
     :initarg :filetitle
@@ -86,6 +92,32 @@
     :initarg :type
     :type symbol
     :documentation "The org-fc-* card type (e.g. double or cloze).")))
+
+(defun org-fc-card--from-raw (raw-card)
+  "Return a `org-fc-card' constructed from RAW-CARD."
+  (let ((card (org-fc-card
+               :created (plist-get raw-card :created)
+               :filetitle (plist-get raw-card :filetitle)
+               :tags (plist-get raw-card :tags)
+               :id (plist-get raw-card :id)
+               :inherited-tags (plist-get raw-card :inherited-tags)
+               :local-tags (plist-get raw-card :local-tags)
+               :path (plist-get raw-card :path)
+               :suspended (plist-get raw-card :suspended)
+               :title (plist-get raw-card :title)
+               :type (plist-get raw-card :type))))
+    (oset card positions (mapcar
+                          (lambda (raw-position)
+                            "Return a `org-fc-position' constructed from RAW-POSITION."
+                            (org-fc-position
+                             :box (plist-get raw-position :box)
+                             :card card
+                             :due (plist-get raw-position :due)
+                             :ease (plist-get raw-position :ease)
+                             :interval (plist-get raw-position :interval)
+                             :pos (plist-get raw-position :position)))
+                          (plist-get raw-card :positions)))
+    card))
 
 ;;; Footer
 

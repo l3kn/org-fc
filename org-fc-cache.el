@@ -110,11 +110,13 @@ the AWK command and directories are not supported."
      (plist-put file :cards
                 (mapcar
                  (lambda (card)
-                   (plist-put
-                    card :tags
-                    (org-fc-awk-combine-tags
-                     (plist-get card :inherited-tags)
-                     (plist-get card :local-tags))))
+                   (plist-put card :blocked-by (split-string
+                                                (or (plist-get card :blocked-by)
+                                                    "")
+                                                ","))
+                   (plist-put card :tags (org-fc-awk-combine-tags
+                                          (plist-get card :inherited-tags)
+                                          (plist-get card :local-tags))))
                  (plist-get file :cards))))
    (read
     (shell-command-to-string
@@ -153,7 +155,7 @@ are renamed or deleted."
   :global t
   (if org-fc-cache-mode
       (org-fc-cache--enable)
-      (org-fc-cache--disable)))
+    (org-fc-cache--disable)))
 
 ;;; Coherence Check
 
