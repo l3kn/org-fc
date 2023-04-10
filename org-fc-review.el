@@ -76,6 +76,10 @@ Hide title for individual cards by adding the :notitle: tag."
   :type 'boolean
   :group 'org-fc)
 
+(defcustom org-fc-review-position-filters '()
+  "Filters run before a review session starts to restrict the positions to review."
+  :group 'org-fc)
+
 ;;; Variables
 
 (defvar org-fc-review--session nil
@@ -111,6 +115,10 @@ Valid contexts:
                           (org-fc-index--to-shuffled-positions index)
                         (org-fc-index--to-positions index)))
            (positions (org-fc-positions--filter-due positions)))
+      ;; Allow users to apply further filtering to the positions.
+      (dolist (filter-fn org-fc-review-position-filters)
+        (setq
+         positions (funcall filter-fn positions)))
       (if (null positions)
           (message "No positions due right now.")
         (progn
