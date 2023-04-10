@@ -37,6 +37,7 @@
 (require 'org-fc-core)
 (require 'org-fc-awk)
 (require 'org-fc-review)
+(require 'org-fc-card)
 
 ;;; Queue / Processing of Files
 
@@ -163,12 +164,12 @@ are renamed or deleted."
 (defun org-fc-cache-coherence-check ()
   "Check if the entry at point is coherent with its cache representation.
 This is especially relevant w.r.t a card's due date / suspension state before review."
-  (org-fc-review-with-current-item cur
+  (org-fc-review-with-current-item position
     (if (org-fc-suspended-entry-p)
         (error "Trying to review a suspended card"))
-    (let* ((position (plist-get cur :position))
-           (review-data (org-fc-review-data-get))
-           (row (assoc position review-data #'string=))
+    (let* ((review-data (org-fc-review-data-get))
+           (pos (oref position pos))
+           (row (assoc pos review-data #'string=))
            (due (parse-iso8601-time-string (nth 4 row))))
       (unless (time-less-p due (current-time))
         (error "Trying to review a non-due card")))))
