@@ -126,7 +126,7 @@ FILTER can be either nil or a function taking a single card as
                         (lambda (card)
                           (plist-put card :blocked-by (split-string
                                                        (or (plist-get card :blocked-by)
-                                                           '())
+                                                           "")
                                                        ","))
                           (plist-put card :tags (org-fc-awk-combine-tags
                                                  (plist-get card :inherited-tags)

@@ -99,9 +99,14 @@ Blocking cards must be in the same file as the blocked card."
                                 (member (oref it id)
                                         blocking-ids)
                                 cached-cards))
-               (blocking-positions (org-fc-cards--to-positions blocking-cards))
+               (blocking-positions (-flatten
+                                    (mapcar
+                                     (lambda (card)
+                                       (oref card positions))
+                                     blocking-cards)))
                (blocking-positions-below-threshold (--filter
-                                                    (< (oref it box) box-threshold)
+                                                    (< (oref it box)
+                                                       box-threshold)
                                                     blocking-positions)))
           (not (null blocking-positions-below-threshold)))))))
 

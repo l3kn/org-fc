@@ -98,6 +98,7 @@
   (let ((card (org-fc-card
                :created (plist-get raw-card :created)
                :filetitle (plist-get raw-card :filetitle)
+               :blocked-by (plist-get raw-card :blocked-by)
                :tags (plist-get raw-card :tags)
                :id (plist-get raw-card :id)
                :inherited-tags (plist-get raw-card :inherited-tags)
