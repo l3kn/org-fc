@@ -37,7 +37,9 @@
 
 (require 'eieio)
 
+(require 'org-fc-awk)
 (require 'org-fc-core)
+(require 'org-fc-position)
 
 ;;; Hooks
 
@@ -101,17 +103,19 @@ Valid contexts:
       (when (yes-or-no-p "Flashcards are already being reviewed. Resume? ")
         (org-fc-review-resume))
     (let* ((index (org-fc-index context))
-           (cards (org-fc-index-filter-due index)))
-      (if org-fc-shuffle-positions
-          (setq cards (org-fc-index-shuffled-positions cards))
-        (setq cards (org-fc-index-positions cards)))
+           (cards (org-fc-index--to-cards index))
+           (positions (org-fc-positions--filter-due
+                       (org-fc-cards--to-positions cards)))
+           (positions (if org-fc-shuffle-positions
+                          (org-fc-shuffle positions)
+                        positions)))
       (if (null cards)
           (message "No cards due right now")
         (progn
           (setq org-fc-review--session
-                (org-fc-make-review-session cards))
+                (org-fc-review-session--create positions))
           (run-hooks 'org-fc-before-review-hook)
-          (org-fc-review-next-card))))))
+          (org-fc-review-next-position))))))
 
 (defun org-fc-review-resume ()
   "Resume review session, if it was paused."
@@ -119,7 +123,7 @@ Valid contexts:
   (if org-fc-review--session
       (progn
         (org-fc-review-edit-mode -1)
-        (org-fc-review-next-card 'resuming))
+        (org-fc-review-next-position 'resuming))
     (message "No session to resume to")))
 
 ;;;###autoload
@@ -134,17 +138,17 @@ Valid contexts:
   (interactive)
   (org-fc-review org-fc-context-all))
 
-(defun org-fc-review-next-card (&optional resuming)
+(defun org-fc-review-next-position (&optional resuming)
   "Review the next card of the current session.
 If RESUMING is non-nil, some parts of the buffer setup are skipped."
-  (if (not (null (oref org-fc-review--session cards)))
+  (if (not (null (oref org-fc-review--session positions)))
       (condition-case err
-          (let* ((card (pop (oref org-fc-review--session cards)))
-                 (path (plist-get card :path))
-                 (id (plist-get card :id))
-                 (type (plist-get card :type))
-                 (position (plist-get card :position)))
-            (setf (oref org-fc-review--session current-item) card)
+          (let* ((pos (pop (oref org-fc-review--session positions)))
+                 (card (oref pos card))
+                 (path (oref card path))
+                 (id (oref card id))
+                 (type (oref card type)))
+            (setf (oref org-fc-review--session current-item) pos)
             (let ((buffer (find-buffer-visiting path)))
               (with-current-buffer (find-file path)
                 (unless resuming
@@ -168,7 +172,7 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
                 (run-hooks 'org-fc-before-setup-hook)
 
                 (setq org-fc-review--timestamp (time-to-seconds (current-time)))
-                (let ((step (funcall (org-fc-type-setup-fn type) position)))
+                (let ((step (funcall (org-fc-type-setup-fn type) (oref pos pos))))
                   (run-hooks 'org-fc-after-setup-hook)
 
                   ;; If the card has a no-noop flip function,
@@ -193,7 +197,7 @@ same ID as the current card in the session."
   (declare (indent defun))
   `(if org-fc-review--session
        (if-let ((,var (oref org-fc-review--session current-item)))
-           (if (string= (plist-get ,var :id) (org-id-get))
+           (if (string= (oref (oref ,var card) id) (org-id-get))
                (progn ,@body)
              (message "Flashcard ID mismatch"))
          (message "No flashcard review is in progress"))))
@@ -202,8 +206,9 @@ same ID as the current card in the session."
   "Flip the current flashcard."
   (interactive)
   (condition-case err
-      (org-fc-review-with-current-item card
-        (let ((type (plist-get card :type)))
+      (org-fc-review-with-current-item pos
+        (let* ((card (oref pos card))
+               (type (oref card type)))
           (funcall (org-fc-type-flip-fn type))
           (run-hooks 'org-fc-after-flip-hook)
           (org-fc-review-rate-mode)))
@@ -215,25 +220,25 @@ same ID as the current card in the session."
   "Rate the card at point with RATING."
   (interactive)
   (condition-case err
-      (org-fc-review-with-current-item card
-        (let* ((path (plist-get card :path))
-               (id (plist-get card :id))
-               (position (plist-get card :position))
+      (org-fc-review-with-current-item pos
+        (let* ((card (oref pos card))
+               (path (oref card path))
+               (id (oref card id))
                (now (time-to-seconds (current-time)))
                (delta (- now org-fc-review--timestamp)))
           (org-fc-review-add-rating org-fc-review--session rating)
-          (org-fc-review-update-data path id position rating delta)
+          (org-fc-review-update-data path id pos rating delta)
           (org-fc-review-reset)
 
           (if (and (eq rating 'again) org-fc-append-failed-cards)
-              (with-slots (cards) org-fc-review--session
-                (setf cards (append cards (list card)))))
+              (with-slots (positions) org-fc-review--session
+                (setf positions (append positions (list pos)))))
 
           (save-buffer)
           (if org-fc-reviewing-existing-buffer
               (org-fc-review-reset)
             (kill-buffer))
-          (org-fc-review-next-card)))
+          (org-fc-review-next-position)))
     (error
      (org-fc-review-quit)
      (signal (car err) (cdr err)))))
@@ -262,21 +267,23 @@ same ID as the current card in the session."
   "Skip card and proceed to next."
   (interactive)
   (org-fc-review-reset)
-  (org-fc-review-next-card))
+  (org-fc-review-next-position))
 
 (defun org-fc-review-suspend-card ()
   "Suspend card and proceed to next."
   (interactive)
   (org-fc-suspend-card)
   ;; Remove all other positions from review session
-  (with-slots (current-item cards) org-fc-review--session
-    (let ((id (plist-get current-item :id)))
-      (setf cards
+  (with-slots (current-item positions) org-fc-review--session
+    (let* ((card (oref current-item card))
+           (id (oref card id)))
+      (setf positions
             (cl-remove-if
              (lambda (card)
-               (string= id (plist-get card :id))) cards))))
+               (string= id (oref card id)))
+             positions))))
   (org-fc-review-reset)
-  (org-fc-review-next-card))
+  (org-fc-review-next-position))
 
 (defun org-fc-review-update-data (path id position rating delta)
   "Update the review data of the card.
@@ -289,18 +296,21 @@ rating the card."
    ;; don't update its review data
    (unless (member org-fc-demo-tag (org-get-tags))
      (let* ((data (org-fc-review-data-get))
-            (current (assoc position data #'string=)))
+            (pos-pos (oref position pos))
+            (current (assoc pos-pos
+                            data
+                            #'string=)))
        (unless current
          (error "No review data found for this position"))
-       (let ((ease (string-to-number (cl-second current)))
-             (box (string-to-number (cl-third current)))
-             (interval (string-to-number (cl-fourth current))))
+       (let ((ease (oref position ease))
+             (box (oref position box))
+             (interval (oref position interval)))
          (org-fc-review-history-add
           (list
            (org-fc-timestamp-in 0)
            path
            id
-           position
+           pos-pos
            (format "%.2f" ease)
            (format "%d" box)
            (format "%.2f" interval)
@@ -346,7 +356,7 @@ Pauses the review, unnarrows the buffer and activates
   ;; Queue the current flashcard so it's reviewed a second time
   (push
    (oref org-fc-review--session current-item)
-   (oref org-fc-review--session cards))
+   (oref org-fc-review--session positions))
   (setf (oref org-fc-review--session paused) t)
   (setf (oref org-fc-review--session current-item) nil)
   (org-fc-review-edit-mode 1))
@@ -429,21 +439,78 @@ removed."
 ;;; Sessions
 
 (defclass org-fc-review-session ()
-  ((current-item :initform nil)
-   (paused :initform nil :initarg :paused)
-   (history :initform nil)
-   (ratings :initform nil :initarg :ratings)
-   (cards :initform nil :initarg :cards)))
+  ((current-item
+    :initform nil
+    :initarg :current-item
+    :documentation "The `org-fc-position' currently under review.")
+   (paused
+    :initform nil
+    :initarg :paused
+    :type boolean
+    :documentation "t when the review session is paused; nil otherwise")
+   (history
+    :initform nil
+    :initarg :paused)
+   (ratings
+    :initform nil
+    :initarg :ratings
+    :documentation "`org-fc-review-session-rating'."
+    )
+   (positions
+    :initform nil
+    :initarg :positions
+    :documentation "List of `org-fc-position's.")))
 
-(defun org-fc-make-review-session (cards)
-  "Create a new review session with CARDS."
-  (make-instance
-   'org-fc-review-session
-   :ratings
-   (if-let ((stats (org-fc-awk-stats-reviews)))
-       (plist-get stats :day)
-     '(:total 0 :again 0 :hard 0 :good 0 :easy 0))
-   :cards cards))
+(defclass org-fc-review-session-rating ()
+  ((total
+    :intiform 0
+    :initarg :total
+    :type integer)
+   (again
+    :intiform 0
+    :initarg :again
+    :type integer)
+   (hard
+    :intiform 0
+    :initarg :hard
+    :type integer)
+   (good
+    :intiform 0
+    :initarg :good
+    :type integer)
+   (easy
+    :intiform 0
+    :initarg :easy
+    :type integer)))
+
+(cl-defmethod org-fc-awk-stats-reviews-as-rating (stats key)
+  "Return the KEY of STATS as `org-fc-review-session-rating'."
+  (cl-destructuring-bind
+      (&key total again hard good easy &allow-other-keys)
+      (pcase key
+        ('all
+         (plist-get stats :all))
+        ('month
+         (plist-get stats :month))
+        ('week
+         (plist-get stats :week))
+        ('day
+         (plist-get stats :day)))
+    (org-fc-review-session-rating
+     :total total
+     :again again
+     :hard hard
+     :good good
+     :easy easy)))
+
+(defun org-fc-review-session--create (positions)
+  "Create a new review session with POSITIONS."
+  (let ((ratings (if-let ((stats (org-fc-awk-stats-reviews)))
+                     (org-fc-awk-stats-reviews-as-rating stats 'day)
+                   (org-fc-review-session-rating))))
+    (org-fc-review-session
+     :positions positions
+     :ratings ratings)))
 
 (defun org-fc-review-history-add (elements)
   "Add ELEMENTS to review history."
@@ -472,11 +539,11 @@ removed."
   "Store RATING in the review history of SESSION."
   (with-slots (ratings) session
     (cl-case rating
-      ('again (cl-incf (cl-getf ratings :again) 1))
-      ('hard (cl-incf (cl-getf ratings :hard) 1))
-      ('good (cl-incf (cl-getf ratings :good) 1))
-      ('easy (cl-incf (cl-getf ratings :easy) 1)))
-    (cl-incf (cl-getf ratings :total 1))))
+      ('again (cl-incf (oref ratings again) 1))
+      ('hard (cl-incf (oref ratings hard) 1))
+      ('good (cl-incf (oref ratings good) 1))
+      ('easy (cl-incf (oref ratings easy) 1)))
+    (cl-incf (oref ratings total) 1)))
 
 ;;; Header Line
 
@@ -485,12 +552,12 @@ removed."
 
 (defun org-fc-set-header-line ()
   "Set the header-line for review."
-  (let* ((remaining (1+ (length (oref org-fc-review--session cards))))
-         (current (oref org-fc-review--session current-item))
-         (title
-          (unless (or org-fc-review-hide-title-in-header-line
-                      (member "notitle" (plist-get current :tags)))
-            (plist-get current :filetitle))))
+  (let* ((remaining (1+ (length (oref org-fc-review--session positions))))
+         (current-position (oref org-fc-review--session current-item))
+         (current-card (oref current-position card))
+         (title (unless (or org-fc-review-hide-title-in-header-line
+                            (member "notitle" (oref current-card tags)))
+                  (oref current-card filetitle))))
     (setq org-fc-original-header-line-format header-line-format)
     (setq-local
      header-line-format
