@@ -76,7 +76,7 @@ Hide title for individual cards by adding the :notitle: tag."
   :type 'boolean
   :group 'org-fc)
 
-(defcustom org-fc-review-position-filters '()
+(defcustom org-fc-review-position-filters '(org-fc-review--filter-blocked)
   "Filters run before a review session starts to restrict the positions to review."
   :group 'org-fc)
 
@@ -114,9 +114,6 @@ Valid contexts:
            (positions (if org-fc-shuffle-positions
                           (org-fc-index--to-shuffled-positions index)
                         (org-fc-index--to-positions index)))
-           (positions (--filter
-                       (not (org-fc-position--is-blocked it))
-                       positions))
            (positions (org-fc-positions--filter-due positions)))
       ;; Allow users to apply further filtering to the positions.
       (dolist (filter-fn org-fc-review-position-filters)

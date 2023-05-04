@@ -120,6 +120,13 @@
                           (plist-get raw-card :positions)))
     card))
 
+(cl-defmethod org-fc-cards--to-positions ((cards list))
+  "Return a list of all positions within CARDS."
+  (-flatten
+   (--map
+    (oref it positions)
+    cards)))
+
 ;;; Footer
 
 (provide 'org-fc-card)

@@ -84,31 +84,30 @@
 (cl-defmethod org-fc-position--is-blocked ((position org-fc-position))
   "Return t if the CARD is blocked; nil otherwise.
 Blocking cards must be in the same file as the blocked card."
-  (when org-fc-cache-mode
+  (if (not org-fc-cache-mode)
+      (message "org-fc-cache-mode must be enabled to check for blocking.")
     (let* ((card (oref position card))
            (blocking-ids (oref card blocked-by)))
       (if (null blocking-ids)
           nil
         (let* ((box-threshold (length org-fc-algo-sm2-intervals))
-               (path (oref card path))
-               (cached-raw-cards (plist-get (gethash path org-fc-cache)
-                                            :cards))
                (cached-cards (mapcar #'org-fc-card--from-raw
-                                     cached-raw-cards))
+                                     (plist-get (gethash (oref card path)
+                                                         org-fc-cache)
+                                                :cards)))
                (blocking-cards (--filter
                                 (member (oref it id)
                                         blocking-ids)
                                 cached-cards))
-               (blocking-positions (-flatten
-                                    (mapcar
-                                     (lambda (card)
-                                       (oref card positions))
-                                     blocking-cards)))
                (blocking-positions-below-threshold (--filter
-                                                    (< (oref it box)
-                                                       box-threshold)
-                                                    blocking-positions)))
+                                                    (< (oref it box) box-threshold)
+                                                    (org-fc-cards--to-positions blocking-cards))))
           (not (null blocking-positions-below-threshold)))))))
+
+(cl-defmethod org-fc-positions--filter-blocked ((positions list))
+  (--filter
+   (not (org-fc-position--is-blocked it))
+   positions))
 
 ;;; Footer
 
