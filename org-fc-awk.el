@@ -49,7 +49,8 @@ With the '-L' option, 'find' follows symlinks."
     ("type_property" . ,org-fc-type-property)
     ("cloze_type_property" . ,org-fc-type-cloze-type-property)
     ("created_property" . ,org-fc-created-property)
-    ("review_data_drawer" . ,org-fc-review-data-drawer)))
+    ("review_data_drawer" . ,org-fc-review-data-drawer)
+    ("blocked_by_property" . ,org-fc-blocked-by-property)))
 
 (cl-defun org-fc-awk--command (file &optional &key variables input)
   "Generate the shell command for calling awk.
@@ -123,11 +124,13 @@ FILTER can be either nil or a function taking a single card as
             (plist-put file :cards
                        (mapcar
                         (lambda (card)
-                          (plist-put
-                           card :tags
-                           (org-fc-awk-combine-tags
-                            (plist-get card :inherited-tags)
-                            (plist-get card :local-tags))))
+                          (plist-put card :blocked-by (split-string
+                                                       (or (plist-get card :blocked-by)
+                                                           "")
+                                                       ","))
+                          (plist-put card :tags (org-fc-awk-combine-tags
+                                                 (plist-get card :inherited-tags)
+                                                 (plist-get card :local-tags))))
                         (plist-get file :cards))))
           (read output)))
       (error "Org-fc shell error: %s" output))))

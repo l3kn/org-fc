@@ -37,6 +37,7 @@
 (require 'org-fc-core)
 (require 'org-fc-awk)
 (require 'org-fc-review)
+(require 'org-fc-card)
 
 ;;; Queue / Processing of Files
 
@@ -109,11 +110,13 @@ the AWK command and directories are not supported."
      (plist-put file :cards
                 (mapcar
                  (lambda (card)
-                   (plist-put
-                    card :tags
-                    (org-fc-awk-combine-tags
-                     (plist-get card :inherited-tags)
-                     (plist-get card :local-tags))))
+                   (plist-put card :blocked-by (split-string
+                                                (or (plist-get card :blocked-by)
+                                                    "")
+                                                ","))
+                   (plist-put card :tags (org-fc-awk-combine-tags
+                                          (plist-get card :inherited-tags)
+                                          (plist-get card :local-tags))))
                  (plist-get file :cards))))
    (read
     (shell-command-to-string
@@ -152,7 +155,7 @@ are renamed or deleted."
   :global t
   (if org-fc-cache-mode
       (org-fc-cache--enable)
-      (org-fc-cache--disable)))
+    (org-fc-cache--disable)))
 
 ;;; Coherence Check
 
@@ -163,12 +166,12 @@ are renamed or deleted."
 (defun org-fc-cache-coherence-check ()
   "Check if the entry at point is coherent with its cache representation.
 This is especially relevant w.r.t a card's due date / suspension state before review."
-  (org-fc-review-with-current-item cur
+  (org-fc-review-with-current-item position
     (if (org-fc-suspended-entry-p)
         (error "Trying to review a suspended card"))
-    (let* ((position (plist-get cur :position))
-           (review-data (org-fc-review-data-get))
-           (row (assoc position review-data #'string=))
+    (let* ((review-data (org-fc-review-data-get))
+           (pos (oref position pos))
+           (row (assoc pos review-data #'string=))
            (due (parse-iso8601-time-string (nth 4 row))))
       (unless (time-less-p due (current-time))
         (error "Trying to review a non-due card")))))

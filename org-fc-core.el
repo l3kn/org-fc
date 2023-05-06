@@ -29,6 +29,7 @@
 (require 'org-id)
 (require 'org-indent)
 (require 'org-element)
+(require 'org-fc-index)
 
 (require 'subr-x)
 
@@ -74,6 +75,11 @@ Used to generate absolute paths to the awk scripts.")
 
 (defcustom org-fc-type-property "FC_TYPE"
   "Property used to store the cards type."
+  :type 'string
+  :group 'org-fc)
+
+(defcustom org-fc-blocked-by-property "FC_BLOCKED_BY"
+  "Property used to store the cards creation time."
   :type 'string
   :group 'org-fc)
 
@@ -180,9 +186,6 @@ This is expected to be called on an card entry heading."
 Used to determine if a card uses the compact style."
   (not (null (org-fc-back-heading-position))))
 
-(defun org-fc-sorted-random (n)
-  "Generate a list of N sorted random numbers."
-  (sort (cl-loop for i below n collect (cl-random 1.0)) #'>))
 
 (defun org-fc-zip (as bs)
   "Zip two lists AS and BS."
@@ -565,83 +568,9 @@ use `(and (type double) (tag \"math\"))'."
              `(eq ',(if (stringp (cadr filter))
                         (intern (cadr filter))
                       (cadr filter))
-                  (plist-get ,card-var :type))))))
+               (plist-get ,card-var :type))))))
       `(lambda (,card-var)
          ,(compile-inner filter)))))
-
-(defun org-fc-index (context)
-  "Create an index for review CONTEXT."
-  (let ((paths (plist-get context :paths))
-        (filter (plist-get context :filter)))
-    ;; Handle path formats / symbols
-    (cond
-     ((or (null paths) (eq paths 'all)) (setq paths org-fc-directories))
-     ((eq paths 'buffer) (setq paths (list (buffer-file-name))))
-     ((stringp paths) (setq paths (list paths))))
-
-    (if filter (setq filter (org-fc--compile-filter filter)))
-
-    (funcall org-fc-index-function paths filter)))
-
-(defun org-fc-index-flatten-card (card)
-  "Flatten CARD into a list of positions.
-Relevant data from the card is included in each position
-element."
-  (mapcar
-   (lambda (pos)
-     (list
-      :filetitle (plist-get card :filetitle)
-      :tags (plist-get card :tags)
-      :path (plist-get card :path)
-      :id (plist-get card :id)
-      :type (plist-get card :type)
-      :due (plist-get pos :due)
-      :position (plist-get pos :position)))
-   (plist-get card :positions)))
-
-(defun org-fc-index-filter-due (index)
-  "Filter INDEX to include only unsuspended due positions.
-Cards with no positions are removed from the index."
-  (let (res (now (current-time)))
-    (dolist (card index)
-      (unless (plist-get card :suspended)
-        (let ((due
-               (cl-remove-if-not
-                (lambda (pos)
-                  (time-less-p (plist-get pos :due) now))
-                (plist-get card :positions))))
-          (unless (null due)
-            (plist-put
-             card :positions
-             (if (or (not org-fc-bury-siblings)
-                     (member (plist-get card :cloze-type) '(single enumeration)))
-                 due (list (car due))))
-            (push card res)))))
-    res))
-
-(defun org-fc-index-positions (index)
-  "Return all positions in INDEX."
-  (mapcan (lambda (card) (org-fc-index-flatten-card card)) index))
-
-(defun org-fc-index-shuffled-positions (index)
-  "Return all positions in INDEX in random order.
-Positions are shuffled in a way that preserves the order of the
-  positions for each card."
-  ;; 1. assign each position a random number
-  ;; 2. flatten the list
-  ;; 3. sort by the random number
-  ;; 4. remove the random numbers from the result
-  (let ((positions
-         (mapcan
-          (lambda (card)
-            (let ((pos (org-fc-index-flatten-card card)))
-              (org-fc-zip
-               (org-fc-sorted-random (length pos))
-               pos)))
-          index)))
-    (mapcar
-     #'cdr
-     (sort positions (lambda (a b) (> (car a) (car b)))))))
 
 ;;; Demo Mode
 
