@@ -157,7 +157,8 @@ Does not apply to cloze single and cloze enumeration cards."
 
 (defun org-fc-show-latex ()
   "Show latex fragments of heading at point."
-  (org-latex-preview 4))
+  (let ((inhibit-message t))
+    (org-latex-preview 4)))
 
 (defun org-fc-back-heading-position ()
   "Return point at the beginning of an entries 'Back' subheading.
