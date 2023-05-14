@@ -664,6 +664,8 @@ Positions are shuffled in a way that preserves the order of the
   (interactive)
   (let ((path (expand-file-name "demo.org" org-fc-source-path)))
     (with-current-buffer (find-file path)
+      ;; Prevent any changes to the demo file
+      (read-only-mode 1)
       (org-fc-review-buffer))))
 
 ;;; Contexts
