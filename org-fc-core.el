@@ -31,6 +31,7 @@
 (require 'org-element)
 
 (require 'subr-x)
+(require 'cl)
 
 ;;; Customization
 
@@ -480,10 +481,20 @@ Other useful values are:
 
 ;;;###autoload
 (defun org-fc-suspend-card ()
-  "Suspend the headline at point if it is a flashcard."
+  "Suspend the headline at point if it is a flashcard.
+If there is an active review session, all positions of
+the now suspended card are removed from it."
   (interactive)
   (org-fc-with-point-at-entry
-   (org-fc--add-tag org-fc-suspended-tag)))
+   (org-fc--add-tag org-fc-suspended-tag)
+
+   (when org-fc-review--session
+     (let ((id (org-id-get)))
+       (with-slots (cards) org-fc-review--session
+         (setf cards
+               (cl-remove-if
+                (lambda (card)
+                  (string= id (plist-get card :id))) cards)))))))
 
 ;;;###autoload
 (defun org-fc-suspend-tree ()
