@@ -26,7 +26,9 @@
    index))
 
 (ert-deftest org-fc-filter-test ()
-  (let* ((index (org-fc-awk-index-paths (list (org-fc-test-fixture "filter/")))))
+  (let* ((index
+          (org-fc-index-flatten-file
+           (org-fc-awk-index (list (org-fc-test-fixture "filter/"))))))
     ;; Index of all cards
     (should (org-fc-test-compare-ids
              index

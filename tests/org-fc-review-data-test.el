@@ -3,9 +3,11 @@
 (require 'ert)
 
 (ert-deftest org-fc-test-review-data ()
-  (let ((index (org-fc-awk-index-paths
-                (list
-                 (org-fc-test-fixture "index/review_data.org")))))
+  (let ((index
+         (org-fc-index-flatten-file
+          (org-fc-awk-index
+           (list
+            (org-fc-test-fixture "index/review_data.org"))))))
     (should (eq (length index) 2))
     (let ((card1 (car index))
           (card2 (cadr index)))

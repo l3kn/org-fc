@@ -12,12 +12,12 @@
     (dolist (file files)
       (org-fc-test-check-structure
        '((:cards ()))
-       (org-fc-awk-index-paths (list (org-fc-test-fixture file)))))))
+       (org-fc-awk-index (list (org-fc-test-fixture file)))))))
 
 (ert-deftest org-fc-test-escaping ()
   (org-fc-test-check-structure
    '((:cards ((:id "33645f3a-384d-44ed-aed2-a2d56b973800"))))
-   (org-fc-awk-index-paths
+   (org-fc-awk-index
     (list (org-fc-test-fixture "escaping/spaces in filename.org")))))
 
 (ert-deftest org-fc-test-index-keywords ()
@@ -26,7 +26,7 @@
       :cards ((:inherited-tags ":tag1:tag2:")))
      (:title "File Title Lowercase"
       :cards ((:inherited-tags ":tag3:tag4:"))))
-   (org-fc-awk-index-paths
+   (org-fc-awk-index
     (list (org-fc-test-fixture "index/uppercase.org")
           (org-fc-test-fixture "index/lowercase.org")))))
 
