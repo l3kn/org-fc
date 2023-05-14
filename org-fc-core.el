@@ -684,14 +684,26 @@ Positions are shuffled in a way that preserves the order of the
    org-fc-custom-contexts))
 
 (defun org-fc-select-context ()
-  "Select a review context."
-  (let ((context (completing-read
+  "Select a review context.
+The `buffer' context is resolved to the filename of the current
+buffer immediately."
+  (let* ((choice (completing-read
                   "Context: "
                   (mapcar (lambda (c) (car c)) (org-fc-contexts))
                   nil
-                  :require-match)))
-    (unless (string= context "")
-      (alist-get (intern context) (org-fc-contexts)))))
+                  :require-match))
+         (context
+          ;; If the result is empty, the user quit the prompt
+          (unless (string= choice "")
+            (alist-get (intern choice) (org-fc-contexts)))))
+    ;; Resolve the `buffer' immediately so it will be valid even when
+    ;; using the selected context from within another buffer,
+    ;; e.g. when starting a review from the dashboard.
+    (if (eq (plist-get context :paths) 'buffer)
+        (list
+         :paths (buffer-file-name)
+         :filter (plist-get context :filter))
+      context)))
 
 ;;; Footer
 
