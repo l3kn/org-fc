@@ -40,9 +40,21 @@
 
 ;;; Queue / Processing of Files
 
-(defvar org-fc-cache
-  (make-hash-table :test #'equal)
+(defvar org-fc-cache nil
   "Cache mapping filenames to card lists.")
+
+(defun org-fc-cache-build ()
+  "Build initial cache"
+  (let* ((hashes (org-fc-cache-hashes org-fc-directories))
+         (table (make-hash-table :test #'equal)))
+    (dolist (entry (org-fc-awk-index org-fc-directories))
+      (let* ((path (plist-get entry :path))
+             (hash (gethash path hashes)))
+        (puthash
+         path
+         (plist-put entry :hash hash)
+         table)))
+    (setq org-fc-cache table)))
 
 (defun org-fc-cache-update ()
   "Make sure the cache is up to date."
@@ -99,7 +111,7 @@ as its input."
   "Enable org-fc-cache.
 Initializes the cache and adds hooks."
   (message "building org-fc cache...")
-  (org-fc-cache-update)
+  (org-fc-cache-build)
   (add-hook 'org-fc-before-setup-hook #'org-fc-cache-coherence-check)
   (setq org-fc-index-function #'org-fc-cache-index)
   (message "org-fc cache enabled"))
@@ -107,7 +119,7 @@ Initializes the cache and adds hooks."
 (defun org-fc-cache--disable ()
   "Disable org-fc-cache.
 Resets the cache and removes hooks."
-  (setq org-fc-cache (make-hash-table :test #'equal))
+  (setq org-fc-cache nil)
   (remove-hook 'org-fc-before-setup-hook #'org-fc-cache-coherence-check)
   (setq org-fc-index-function #'org-fc-awk-index)
   (message "org-fc cache disabled"))
