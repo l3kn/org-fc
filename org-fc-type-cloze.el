@@ -1,6 +1,6 @@
 ;;; org-fc-type-cloze.el --- Cloze deletion card type -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2021  Leon Rische
+;; Copyright (C) 2020-2023  Leon Rische
 
 ;; Author: Leon Rische <emacs@leonrische.me>
 

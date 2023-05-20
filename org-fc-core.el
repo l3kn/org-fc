@@ -1,6 +1,6 @@
 ;;; org-fc-core.el --- Core functions of org-fc -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2021  Leon Rische
+;; Copyright (C) 2020-2023  Leon Rische
 
 ;; Author: Leon Rische <emacs@leonrische.me>
 
