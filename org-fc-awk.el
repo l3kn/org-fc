@@ -106,31 +106,32 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
 
 (defun org-fc-awk-index (paths &optional filter)
   "Generate a list of all cards and positions in PATHS."
-  (let ((output (shell-command-to-string
-                 (org-fc-awk--pipe
-                  (org-fc-awk--find paths)
-                  (org-fc-awk--xargs
-                   (org-fc-awk--command
-                    "awk/index.awk"
-                    :variables (org-fc-awk--indexer-variables)))))))
-    (if (string-prefix-p "(" output)
-        (mapcar
-         (lambda (file)
-           (let ((cards
-                  (mapcar
-                   (lambda (card)
-                     (plist-put
-                      card :tags
-                      (org-fc-awk-combine-tags
-                       (plist-get card :inherited-tags)
-                       (plist-get card :local-tags))))
-                   (plist-get file :cards))))
-             (plist-put file :cards
-                        (if filter
-                            (cl-remove-if-not filter cards)
-                          cards))))
-         (read output))
-      (error "Org-fc shell error: %s" output))))
+  (when paths
+    (let ((output (shell-command-to-string
+                   (org-fc-awk--pipe
+                    (org-fc-awk--find paths)
+                    (org-fc-awk--xargs
+                     (org-fc-awk--command
+                      "awk/index.awk"
+                      :variables (org-fc-awk--indexer-variables)))))))
+      (if (string-prefix-p "(" output)
+          (mapcar
+           (lambda (file)
+             (let ((cards
+                    (mapcar
+                     (lambda (card)
+                       (plist-put
+                        card :tags
+                        (org-fc-awk-combine-tags
+                         (plist-get card :inherited-tags)
+                         (plist-get card :local-tags))))
+                     (plist-get file :cards))))
+               (plist-put file :cards
+                          (if filter
+                              (cl-remove-if-not filter cards)
+                            cards))))
+           (read output))
+        (error "Org-fc shell error: %s" output)))))
 
 (defun org-fc-awk-stats-reviews ()
   "Statistics for all card reviews.
