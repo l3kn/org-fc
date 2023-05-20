@@ -52,16 +52,21 @@ If nil, all entries in the history are used."
 Matches all .org files ignoring ones with names don't start with
 a '.' to exclude temporary / backup files.
 With the '-L' option, 'find' follows symlinks."
-  (format
-   (case org-fc-awk-find-command
-     ('ripgrep
-      "rg ^:FC_CREATED: -L -l --null -g \"[^.]*.org\" %s %s")
-     (t
-      "find -L %s -name \".*\" -prune -o -name \"[^.]*.org\" -type f -exec grep -l --null \"^:FC_CREATED\" {} \\+ %s"))
-   (mapconcat #'identity org-fc-awk-find-flags " ")
-   (mapconcat
-    (lambda (path) (shell-quote-argument (expand-file-name path)))
-    paths " ")))
+  (let ((flags
+        (mapconcat #'identity org-fc-awk-find-flags " "))
+       (paths
+        (mapconcat
+         (lambda (path) (shell-quote-argument (expand-file-name path)))
+         paths " ")))
+    (case org-fc-awk-find-command
+      ('ripgrep
+       (format
+        "rg ^:FC_CREATED: -L -l --null -g \"[^.]*.org\" %s %s"
+        flags paths))
+      (t
+       (format
+        "find -L %s %s -name \".*\" -prune -o -name \"[^.]*.org\" -type f -exec grep -l --null \"^:FC_CREATED\" {} \\+"
+        paths flags)))))
 
 (defun org-fc-awk--indexer-variables ()
   "Variables to pass to indexer scripts."
