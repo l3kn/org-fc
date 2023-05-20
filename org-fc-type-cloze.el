@@ -170,7 +170,9 @@ Processes all holes in the card text."
   (setq org-fc-type-cloze--hint nil)
   (outline-hide-subtree)
   (org-show-entry)
-  (org-fc-type-cloze-hide-holes (string-to-number position)))
+  (org-fc-type-cloze-hide-holes (string-to-number position))
+  (goto-char (overlay-start org-fc-type-cloze--text))
+  (recenter))
 
 (defun org-fc-type-cloze-flip ()
   "Flip a cloze card."
