@@ -29,6 +29,18 @@
 (require 'org-fc-core)
 (require 'org-fc-type-cloze)
 
+(defcustom org-fc-awk-find-command 'find
+  "Command to use for finding .org files with flashcards.
+- `find' (default) slower but pre-installed on many systems
+- `ripgrep' ripgrep, faster"
+  :type '(choice (const find) (const ripgrep))
+  :group 'org-fc)
+
+(defcustom org-fc-awk-find-flags '()
+  "Additional flags passed to the `org-fc-awk-find-command'."
+  :type '(repeat string)
+  :group 'org-fc)
+
 ;;;; Shell wrappers
 
 (defun org-fc-awk--find (paths)
@@ -37,7 +49,12 @@ Matches all .org files ignoring ones with names don't start with
 a '.' to exclude temporary / backup files.
 With the '-L' option, 'find' follows symlinks."
   (format
-   "find -L %s -name \"*.org\" -not -name \".*\" -print0"
+   (case org-fc-awk-find-command
+     ('ripgrep
+      "rg ^:FC_CREATED: -L -l --null -g \"[^.]*.org\" %s %s")
+     (t
+      "find -L %s -name \".*\" -prune -o -name \"[^.]*.org\" -type f -exec grep -l --null \"^:FC_CREATED\" {} \\+ %s"))
+   (mapconcat #'identity org-fc-awk-find-flags " ")
    (mapconcat
     (lambda (path) (shell-quote-argument (expand-file-name path)))
     paths " ")))
