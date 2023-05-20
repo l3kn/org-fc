@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'org-fc-core)
+(require 'org-fc-review)
 
 (defcustom org-fc-audio-before-setup-property "FC_AUDIO_BEFORE_SETUP"
   "Name of the property to use for storing before-setup audio files."
@@ -49,6 +50,21 @@
 
 (defcustom org-fc-audio-after-flip-property "FC_AUDIO_AFTER_FLIP"
   "Name of the property to use for storing after-flip audio files."
+  :type 'string
+  :group 'org-fc)
+
+(defcustom org-fc-audio-before-setup-prefix "FC_AUDIO_BEFORE_SETUP"
+  "Prefix of the property to use for storing before-setup audio files."
+  :type 'string
+  :group 'org-fc)
+
+(defcustom org-fc-audio-after-setup-prefix "FC_AUDIO_AFTER_SETUP"
+  "Prefix of the property to use for storing after-setup audio files."
+  :type 'string
+  :group 'org-fc)
+
+(defcustom org-fc-audio-after-flip-prefix "FC_AUDIO_AFTER_FLIP"
+  "Prefix of the property to use for storing after-flip audio files."
   :type 'string
   :group 'org-fc)
 
@@ -80,9 +96,17 @@ the file at the given speed."
    (list
     (completing-read
      "Type: "
-     `(,org-fc-audio-before-setup-property
-       ,org-fc-audio-after-setup-property
-       ,org-fc-audio-after-flip-property))))
+     (let ((props (mapcar #'car (org-entry-properties))))
+       (remove-if-not
+        (lambda (prop)
+          (or
+           (string= org-fc-audio-before-setup-property prop)
+           (string= org-fc-audio-after-setup-property prop)
+           (string= org-fc-audio-after-flip-property prop)
+           (string-prefix-p org-fc-audio-before-setup-prefix prop)
+           (string-prefix-p org-fc-audio-after-setup-prefix prop)
+           (string-prefix-p org-fc-audio-after-flip-prefix prop)))
+        props)))))
   (if-let ((file (org-entry-get (point) property)))
       (org-fc-audio-play-file file (or speed 1.0))))
 
@@ -94,17 +118,31 @@ the file at the given speed."
    nil
    (format "mpv %s --speed=%f" file speed)))
 
+(defun org-fc-audio-play-position (prefix)
+  "Play the audio file for PREFIX and the current position."
+  (org-fc-review-with-current-item current-item
+    (when current-item
+      (let* ((pos (plist-get current-item :position))
+             (property (format "%s_%s" prefix (upcase pos))))
+        (org-fc-audio-play property)))))
+
 (add-hook
  'org-fc-before-setup-hook
- (lambda () (org-fc-audio-play org-fc-audio-before-setup-property)))
+ (lambda ()
+   (org-fc-audio-play org-fc-audio-before-setup-property)
+   (org-fc-audio-play-position org-fc-audio-before-setup-prefix)))
 
 (add-hook
  'org-fc-after-setup-hook
- (lambda () (org-fc-audio-play org-fc-audio-after-setup-property)))
+ (lambda ()
+   (org-fc-audio-play org-fc-audio-after-setup-property)
+   (org-fc-audio-play-position org-fc-audio-after-setup-prefix)))
 
 (add-hook
  'org-fc-after-flip-hook
- (lambda () (org-fc-audio-play org-fc-audio-after-flip-property)))
+ (lambda ()
+   (org-fc-audio-play org-fc-audio-after-flip-property)
+   (org-fc-audio-play-position org-fc-audio-after-flip-prefix)))
 
 (defun org-fc-audio-replay ()
   (interactive)
@@ -115,7 +153,6 @@ the file at the given speed."
   (interactive)
   (when org-fc-audio-last-file
     (org-fc-audio-play-file org-fc-audio-last-file 0.7)))
-
 
 ;;; Footer
 
