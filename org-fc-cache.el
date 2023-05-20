@@ -99,9 +99,10 @@ as its input."
           (list :path path
                 :title (plist-get file :title)
                 :cards
-                (if filter
-                    (cl-remove-if-not filter (plist-get file :cards))
-                  (plist-get file :cards)))
+                (mapcar #'copy-tree
+                        (if filter
+                            (cl-remove-if-not filter (plist-get file :cards))
+                          (plist-get file :cards))))
           res)))
      org-fc-cache)
     res))
