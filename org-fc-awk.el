@@ -41,6 +41,13 @@
   :type '(repeat string)
   :group 'org-fc)
 
+(defcustom org-fc-awk-review-history-limit nil
+  "Limit on the number of review history entries used for statistics.
+When non-nil, only the last N entries of the history are used.
+If nil, all entries in the history are used."
+  :type '(choice (const nil) integer)
+  :group 'org-fc)
+
 ;;;; Shell wrappers
 
 (defun org-fc-awk--find (paths)
@@ -139,10 +146,16 @@ Return nil there is no history file."
   (if (file-exists-p org-fc-review-history-file)
       (let ((output
              (shell-command-to-string
-              (org-fc-awk--command
-               "awk/stats_reviews.awk"
-               :input org-fc-review-history-file
-               :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
+              (if org-fc-awk-review-history-limit
+                  (org-fc-awk--pipe
+                   (format "tail -n%s %s" org-fc-awk-review-history-limit org-fc-review-history-file)
+                   (org-fc-awk--command
+                    "awk/stats_reviews.awk"
+                    :variables `(("min_box" . ,org-fc-stats-review-min-box))))
+                (org-fc-awk--command
+                 "awk/stats_reviews.awk"
+                 :input org-fc-review-history-file
+                 :variables `(("min_box" . ,org-fc-stats-review-min-box)))))))
         (if (string-prefix-p "(" output)
             (read output)
           (error "Org-fc shell error: %s" output)))))
