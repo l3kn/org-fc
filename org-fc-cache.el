@@ -97,6 +97,7 @@ as its input."
          ;; the entries of the hash table.
          (push
           (list :path path
+                :title (plist-get file :title)
                 :cards
                 (if filter
                     (cl-remove-if-not filter (plist-get file :cards))
