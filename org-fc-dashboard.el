@@ -153,7 +153,7 @@ environment without svg support."
                     :x (+ pos 5)
                     :y (+ fontsize (floor (- height fontsize) 2))))
       (setq pos (+ pos (* width (car value)))))
-    (svg-image svg)))
+    (svg-image svg :ascent 'center)))
 
 (defun org-fc-dashboard-text-bar-chart (stat)
   "Generate a text bar-chart for the plist STAT."
