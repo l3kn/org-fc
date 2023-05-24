@@ -21,6 +21,8 @@
 ;;
 ;;; Code:
 
+(require 'thingatpt)
+
 (require 'org-fc-core)
 
 (defcustom org-fc-type-cloze-type-property "FC_CLOZE_TYPE"
@@ -208,41 +210,37 @@ Processes all holes in the card text."
      (format "%s" (1- hole-id)))
     (org-fc-review-data-update (reverse ids))))
 
-(defun org-fc-cloze-dwim (&optional hint)
-  "Convert current active region or word under cursor to Cloze
-syntax.
-
-This calls `org-fc--region-to-cloze' with the active region as
-the argument then, prompt user for hint. The function will
-replace the region with the new string in the format of {{REGION}{HINT}@N}
-
-where REGION is the replaced string.
-HINT is what the user specifies in the prompt, will naturally be omitted
-if the user specifies an empty string for the prompt.
-and N will be the prefix argument the user gives in ARG."
+(defun org-fc-type-cloze-dwim (&optional hint)
+  "Mark current active region or word at point as cloze hole.
+Called interactively, the user is prompted for an optional hint."
   (interactive "sHint (optional): ")
-  (require 'thingatpt)
-  (declare-function bounds-of-thing-at-point "thingatpt")
-  (when (and (org-fc-entry-p)
-             (not (string= "cloze" (org-entry-get nil org-fc-type-property))))
-    (user-error "Entry is not a cloze"))
   (cond
    ((region-active-p)
-    (org-fc--region-to-cloze (region-beginning) (region-end) hint))
+    (org-fc-type-cloze--mark-hole
+     (region-beginning)
+     ;; If the region includes a trailing newline, insert the cloze
+     ;; hole marker before the newline.
+     (save-excursion
+       (goto-char (region-end))
+       (skip-chars-backward "\n" 1)
+       (point))
+     hint))
    ((bounds-of-thing-at-point 'word)
     (let ((bounds (bounds-of-thing-at-point 'word)))
-      (org-fc--region-to-cloze (car bounds) (cdr bounds) hint)))
+      (org-fc-type-cloze--mark-hole (car bounds) (cdr bounds) hint)))
    (t (user-error "Nothing to create cloze.")))
-  (when (org-fc-entry-p)
-    (save-excursion
-      (org-back-to-heading-or-point-min t)
-      (org-fc-update))))
 
-(defun org-fc--region-to-cloze (begin end hint)
-  "Cloze region from BEGIN to END with number ARG."
+  (when (and (org-fc-entry-p)
+             (string= "cloze" (org-entry-get nil org-fc-type-property)))
+    (org-fc-with-point-at-entry (org-fc-update))))
+
+(defun org-fc-type-cloze--mark-hole (begin end &optional hint)
+  "Mark region from BEGIN to END as a cloze hole."
   (save-excursion
     (goto-char end)
-    (insert (format "}%s}" hint))
+    (if (and (stringp hint) (not (string-blank-p hint)))
+        (insert (format "}{%s}}" hint))
+        (insert "}}"))
     (goto-char begin)
     (insert "{{")))
 
