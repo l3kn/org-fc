@@ -28,10 +28,11 @@
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-type-cloze-context 1
-  "Number of surrounding cards to show for 'context' type cards."
-  :type 'number
-  :group 'org-fc)
+(org-fc-property org-fc-type-cloze-context 1
+                 "Number of surrounding cards to show for 'context' type cards."
+                 :type 'natnum
+                 :group 'org-fc
+                 :property "FC_CLOZE_CONTEXT")
 
 (defface org-fc-type-cloze-hole-face
   '((t (:bold t)))
@@ -85,14 +86,14 @@ the hole for the current position."
             (setq current-index (1- (length holes))))))
     (cons (reverse holes) current-index)))
 
-(defun org-fc-type-cloze--hole-visible-p (type i current-index)
+(defun org-fc-type-cloze--hole-visible-p (type i current-index context)
   "Determine whether hole I of card TYPE should be visible based.
 CURRENT-INDEX is the index of the current position in the list of all holes."
   (cl-case type
     ('enumeration (< i current-index))
     ('deletion t)
     ('single nil)
-    ('context (<= (abs (- i current-index)) org-fc-type-cloze-context))
+    ('context (<= (abs (- i current-index)) context))
     (t (error "Org-fc: Unknown cloze card type %s" type))))
 
 (defun org-fc-type-cloze--end ()
@@ -109,7 +110,8 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
           (end (1+ (org-fc-type-cloze--end)))
           (holes-index (org-fc-type-cloze--parse-holes position end))
           (holes (car holes-index))
-          (current-index (cdr holes-index)))
+          (current-index (cdr holes-index))
+          (context (org-fc-type-cloze-context)))
      (cl-loop
       for i below (length holes)
       for (hole-beg hole-end text-beg text-end hint-beg hint-end) in holes
@@ -140,7 +142,7 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
            'face 'org-fc-type-cloze-hole-face))
          ;; If the text of another hole should be visible,
          ;; hide the hole markup and the hint
-         ((org-fc-type-cloze--hole-visible-p type i current-index)
+         ((org-fc-type-cloze--hole-visible-p type i current-index context)
           (org-fc-hide-region hole-beg text-beg)
           (org-fc-hide-region text-end hole-end))
          ;; If the text of another hole should not be visible,
