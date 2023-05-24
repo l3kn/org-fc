@@ -240,15 +240,11 @@ and N will be the prefix argument the user gives in ARG."
 
 (defun org-fc--region-to-cloze (begin end hint)
   "Cloze region from BEGIN to END with number ARG."
-  (let ((region (buffer-substring begin end)))
-    (save-excursion
-      (delete-region begin end)
-      (goto-char begin)
-      (insert (format "{{%s}%s}"
-                      region
-                      (if (not (string-blank-p hint))
-                          (format "{%s}" hint)
-                        ""))))))
+  (save-excursion
+    (goto-char end)
+    (insert (format "}%s}" hint))
+    (goto-char begin)
+    (insert "{{")))
 
 (org-fc-register-type
  'cloze
