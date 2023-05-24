@@ -208,6 +208,51 @@ Processes all holes in the card text."
      (format "%s" (1- hole-id)))
     (org-fc-review-data-update (reverse ids))))
 
+(defun org-fc-cloze-dwim (&optional arg hint)
+  "Convert current active region or word under cursor to Cloze
+syntax.
+
+This calls `org-fc--region-to-cloze' with the active region as
+the argument then, prompt user for hint. The function will
+replace the region with the new string in the format of {{REGION}{HINT}@N}
+
+where REGION is the replaced string.
+HINT is what the user specifies in the prompt, will naturally be omitted
+if the user specifies an empty string for the prompt.
+and N will be the prefix argument the user gives in ARG."
+  (interactive "P\nsHint (optional): ")
+  (require 'thingatpt)
+  (declare-function bounds-of-thing-at-point "thingatpt")
+  (when (and (org-fc-entry-p)
+             (not (string= "cloze" (org-entry-get nil org-fc-type-property))))
+    (user-error "Entry is not a cloze"))
+  (cond
+   ((region-active-p)
+    (org-fc--region-to-cloze (region-beginning) (region-end) arg hint))
+   ((bounds-of-thing-at-point 'word)
+    (let ((bounds (bounds-of-thing-at-point 'word)))
+      (org-fc--region-to-cloze (car bounds) (cdr bounds) arg hint)))
+   (t (user-error "Nothing to create cloze.")))
+  (when (org-fc-entry-p)
+    (save-excursion
+      (org-back-to-heading-or-point-min t)
+      (org-fc-update))))
+
+(defun org-fc--region-to-cloze (begin end arg hint)
+  "Cloze region from BEGIN to END with number ARG."
+  (let ((region (buffer-substring begin end)))
+    (save-excursion
+      (delete-region begin end)
+      (goto-char begin)
+      (insert (format "{{%s}%s%s}"
+                      region
+                      (if (not (string-blank-p hint))
+                          (format "{%s}" hint)
+                        "")
+                      (if arg
+                          (concat "@" (number-to-string arg))
+                        ""))))))
+
 (org-fc-register-type
  'cloze
  'org-fc-type-cloze-setup
