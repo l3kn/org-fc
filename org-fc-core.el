@@ -238,6 +238,43 @@ If point is not inside a flashcard entry, an error is raised."
          (goto-char pos)
          ,@body)))
 
+(defmacro org-fc-property (symbol standard doc &rest args)
+  "Macro similar to `defcustom' with property-based overrides."
+  (let (defcustom-args property)
+    (while args
+      (let ((keyword (pop args)))
+        (unless (symbolp keyword)
+          (error "Junk in args %S" args))
+        (unless args
+          (error "Keyword %s is missing an argument" keyword))
+        (let ((value (pop args)))
+          (cl-case keyword
+            (:property (setq property value))
+            (t
+             (push value defcustom-args)
+             (push keyword defcustom-args))))))
+    (unless property
+      (error "Missing keyword :property"))
+    (let ((property-symbol (intern (concat (symbol-name symbol) "-property"))))
+      `(progn
+         (defcustom
+           ,symbol
+           ,standard
+           ,doc
+           ,@defcustom-args)
+         (defcustom
+           ,property-symbol
+           ,property
+           ,(format "Headline property for `%s'" symbol)
+           :type 'string
+           :group ,(plist-get defcustom-args :group))
+         (defun ,symbol ()
+           ,(format "Getter for `%s'" symbol)
+           (if-let ((value (org-entry-get (point) ,property-symbol t)))
+               ;; TODO: Switch on possible types
+               (read value)
+             ,symbol))))))
+
 ;;; Checking for / going to flashcard headings
 
 (defun org-fc-entry-p ()

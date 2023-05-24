@@ -27,49 +27,6 @@
 
 (require 'org-fc-core)
 
-(defmacro org-fc-property (symbol standard doc &rest args)
-  (let (defcustom-args property)
-    (while args
-      (let ((keyword (pop args)))
-        (unless (symbolp keyword)
-          (error "Junk in args %S" args))
-        (unless args
-          (error "Keyword %s is missing an argument" keyword))
-        (let ((value (pop args)))
-          (cl-case keyword
-            (:property (setq property value))
-            (t
-             (push value defcustom-args)
-             (push keyword defcustom-args))))))
-    (unless property
-      (error "Missing keyword :property"))
-    (let ((property-symbol (intern (concat (symbol-name symbol) "-property"))))
-      `(progn
-         (defcustom
-           ,symbol
-           ,standard
-           ,doc
-           ,@defcustom-args)
-         (defcustom
-           ,property-symbol
-           ,property
-           ,(format "Headline property for `%s'" symbol)
-           :type 'string
-           :group ,(plist-get defcustom-args :group))
-         (defun ,symbol ()
-           ,(format "Getter for `%s'" symbol)
-           (if-let ((value (org-entry-get (point) ,property-symbol t)))
-               ;; TODO: Switch on possible types
-               (read value)
-             ;; ,(case (plist-get defcustom-args :type)
-             ;;    ('string 'value)
-             ;;    ('float '(string-to-number value))
-             ;;    ('list '(read value))
-             ;;    (t (error "Unsupported property type %s"
-             ;; (plist-get defcustom-args :type)
-
-             ,symbol))))))
-
 ;;;; Properties
 
 (org-fc-property org-fc-algo-sm2-ease-min 1.3
