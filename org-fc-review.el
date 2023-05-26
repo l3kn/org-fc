@@ -53,6 +53,11 @@
   :type 'hook
   :group 'org-fc)
 
+(defcustom org-fc-after-rate-hook '()
+  "Functions run after a card is rated during review."
+  :type 'hook
+  :group 'org-fc)
+
 (defcustom org-fc-before-review-hook '()
   "Functions run when a review session is started."
   :type 'hook
@@ -221,6 +226,7 @@ same ID as the current card in the session."
           (org-fc-review-add-rating org-fc-review--session rating)
           (org-fc-review-update-data path id position rating delta)
           (org-fc-review-reset)
+          (run-hooks 'org-fc-after-rate-hook)
 
           (if (and (eq rating 'again) org-fc-append-failed-cards)
               (with-slots (cards) org-fc-review--session
