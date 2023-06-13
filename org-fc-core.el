@@ -157,9 +157,13 @@ Does not apply to cloze single and cloze enumeration cards."
      "UTC0")))
 
 (defun org-fc-show-latex ()
-  "Show latex fragments of heading at point."
+  "Show latex fragments of heading at point.
+Print message in case of error, but do not exit review."
   (let ((inhibit-message t))
-    (org-latex-preview 4)))
+    (condition-case err
+        (org-latex-preview 4)
+      (error
+       (message "Error during org-latex-preview: %s" (error-message-string err))))))
 
 (defun org-fc-back-heading-position ()
   "Return point at the beginning of an entries 'Back' subheading.
