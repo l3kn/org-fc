@@ -107,13 +107,18 @@ the file at the given speed."
   (if-let ((file (org-entry-get (point) property)))
       (org-fc-audio-play-file file (or speed 1.0))))
 
+(defvar org-fc-audio--process nil)
+
 (defun org-fc-audio-play-file (file speed)
   "Play the audio FILE at SPEED."
   (setq org-fc-audio-last-file file)
-  (start-process-shell-command
-   "org-fc audio"
-   nil
-   (format "mpv %s --speed=%f" file speed)))
+  (when (process-live-p org-fc-audio--process)
+    (kill-process org-fc-audio--process))
+  (setq org-fc-audio--process
+        (start-process-shell-command
+         "org-fc audio"
+         nil
+         (format "mpv %s --speed=%f" file speed))))
 
 (defun org-fc-audio-play-position (prefix)
   "Play the audio file for PREFIX and the current position."
