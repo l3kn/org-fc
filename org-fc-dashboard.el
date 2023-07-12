@@ -117,7 +117,7 @@ environment without svg support."
 
 ;;; Sections
 
-(defun org-fc-dashboard-insert-card-stats (index)
+(defun org-fc-dashboard-insert-card-stats (cards)
   (let* ((total 0)
          (suspended 0)
          ;; NOTE: This has to use `list' so incf + getf works as
@@ -129,18 +129,18 @@ environment without svg support."
          (minus-week (time-subtract now (* 7 24 60 60)))
          (minus-month (time-subtract now (* 30 24 60 60))))
 
-    (dolist (card index)
+    (dolist (card cards)
       (cl-incf total 1)
-      (if (plist-get card :suspended)
+      (if (oref card suspended)
           (cl-incf suspended 1)
-        (let ((card-created (plist-get card :created)))
+        (let ((card-created (oref card created)))
           (when (time-less-p minus-day card-created)
             (cl-incf (cl-getf created :day) 1))
           (when (time-less-p minus-week card-created)
             (cl-incf (cl-getf created :week) 1))
           (when (time-less-p minus-month card-created)
             (cl-incf (cl-getf created :month) 1))))
-      (cl-incf (gethash (plist-get card :type) by-type 0) 1))
+      (cl-incf (gethash (oref card type) by-type 0) 1))
 
 
     (insert
@@ -160,7 +160,7 @@ environment without svg support."
       (insert (format "  %6d %s\n" (cdr pair) (car pair))))
     (insert "\n")))
 
-(defun org-fc-dashboard-insert-position-stats (index)
+(defun org-fc-dashboard-insert-position-stats (cards)
   (let* ((n-pos 0)
          (due (list :now 0 :day 0 :week 0 :month 0))
          (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0)
@@ -169,12 +169,12 @@ environment without svg support."
          (plus-week (time-add now (* 7 24 60 60)))
          (plus-month (time-add now (* 30 24 60 60))))
 
-    (dolist (card index)
-      (when (not (plist-get card :suspended))
-        (dolist (pos (plist-get card :positions))
+    (dolist (card cards)
+      (when (not (oref card suspended))
+        (dolist (pos (oref card positions))
           (cl-incf n-pos 1)
 
-          (let ((pos-due (plist-get pos :due)))
+          (let ((pos-due (oref pos due)))
             (when (time-less-p pos-due now)
               (cl-incf (cl-getf due :now) 1))
             (when (time-less-p pos-due plus-day)
@@ -184,9 +184,9 @@ environment without svg support."
             (when (time-less-p pos-due plus-month)
               (cl-incf (cl-getf due :month) 1)))
 
-          (cl-incf avg-ease (plist-get pos :ease))
-          (cl-incf avg-box (plist-get pos :box))
-          (cl-incf avg-interval (plist-get pos :interval)))))
+          (cl-incf avg-ease (oref pos ease))
+          (cl-incf avg-box (oref pos box))
+          (cl-incf avg-interval (oref pos interval)))))
 
     (setq avg-ease (/ avg-ease n-pos))
     (setq avg-box (/ avg-box n-pos))
@@ -208,7 +208,7 @@ environment without svg support."
 
     (insert "\n")))
 
-(defun org-fc-dashboard-insert-review-stats (index)
+(defun org-fc-dashboard-insert-review-stats (_cards)
   (when-let ((reviews-stats (org-fc-awk-stats-reviews)))
     (insert
      (propertize "Review Statistics (All Cards)\n\n" 'face 'org-level-1))
@@ -234,12 +234,12 @@ environment without svg support."
   "Show the dashboard view for CONTEXT in the current buffer."
   (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
          (inhibit-read-only t)
-         (index (org-fc-index context)))
+         (cards (org-fc-index-flatten-file (org-fc-index context))))
     (with-current-buffer buf
       (erase-buffer)
-      (org-fc-dashboard-insert-card-stats index)
-      (org-fc-dashboard-insert-position-stats index)
-      (org-fc-dashboard-insert-review-stats index)
+      (org-fc-dashboard-insert-card-stats cards)
+      (org-fc-dashboard-insert-position-stats cards)
+      (org-fc-dashboard-insert-review-stats cards)
       (insert
        (propertize "[r] Review\n" 'face 'org-level-1))
       (insert

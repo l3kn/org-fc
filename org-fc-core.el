@@ -27,8 +27,9 @@
 (require 'org-indent)
 (require 'org-element)
 
-(require 'subr-x)
 (require 'cl)
+(require 'eieio)
+(require 'subr-x)
 
 ;;; Customization
 
@@ -330,6 +331,133 @@ Should only be used by the init functions of card TYPEs."
   (org-id-get-create)
   (org-fc--add-tag org-fc-flashcard-tag))
 
+;;; Classes
+
+(defclass org-fc-file ()
+  ((path
+    :initarg :path
+    :type string
+    :documentation "Location of the file.")
+   (hash
+    :initarg :hash
+    :type (or null string)
+    :documentation "Optional hash of the file, used for caching.")
+   (title
+    :initarg :title
+    :type (or null string)
+    :documentation "Title of the file.")
+   (cards
+    :initarg :cards
+    :initform nil
+    :type list
+    :custom (repeat org-fc-card)
+    :documentation "Flashcards in the file.")))
+
+(defclass org-fc-card ()
+  ((file
+    :initarg :file
+    :type org-fc-file
+    :documentation "Parent file.")
+   (id
+    :initarg :id
+    :type string
+    :documentation "Org-mode ID of the card.")
+   (title
+    :initarg :title
+    :type string
+    :documentation "Title of the card.")
+   (type
+    :initarg :type
+    :type symbol
+    :documentation "Type of the card.")
+   ;; TODO: Can both types be combined?
+   (cloze-type
+    :initarg :cloze-type
+    :type (or null symbol)
+    :documentation "Cloze-type of the card.")
+   (created
+    :initarg :created
+    :initform nil
+    :type list
+    :custom (repeat integer)
+    :documentation "Timestamp when this card was created.")
+   (suspended
+    :initarg :suspended
+    :initform nil
+    :type boolean
+    :documentation "Suspension state of the card.")
+   (tags
+    :initarg :tags
+    :initform nil
+    :type list
+    :custom (repeat string)
+    :documentation "Tags of the card, both local and inherited.")
+   (positions
+    :initarg :positions
+    :initform nil
+    :type list
+    ;; TODO: Is this valid?
+    :custom (repeat org-fc-position)
+    :documentation "Positions of the card.")))
+
+(defun org-fc-card-from-plist (plist file)
+  (let* ((card
+          (org-fc-card
+           :file file
+           :id (plist-get plist :id)
+           :title (plist-get plist :title)
+           :type (plist-get plist :type)
+           :cloze-type (plist-get plist :cloze-type)
+           :created (plist-get plist :created)
+           :suspended (plist-get plist :suspended)
+           :tags (plist-get plist :tags)))
+         (positions
+          (mapcar (lambda (plist) (org-fc-position-from-plist plist card))
+                  (plist-get plist :positions))))
+    (oset card positions positions)
+    card))
+
+(defun org-fc-position-from-plist (plist card)
+  (org-fc-position
+   :card card
+   :box (plist-get plist :box)
+   :due (plist-get plist :due)
+   :ease (plist-get plist :ease)
+   :interval (plist-get plist :interval)
+   :name (plist-get plist :position)))
+
+(defclass org-fc-position ()
+  ((card
+    :initarg :card
+    :type org-fc-card
+    :documentation "Parent card of this position.")
+   (box
+    :initarg :box
+    :initform 0
+    :type integer
+    :documentation "Count of consecutive correct reviews.")
+   (due
+    :initarg :due
+    :initform nil
+    :type list
+    :custom (repeat integer)
+    :documentation "Timestamp when this position is due.")
+   (ease
+    :initarg :ease
+    :initform 0.0
+    :type (or number float)
+    :documentation "Ease factor.")
+   (interval
+    :initarg :interval
+    :initform 0.0
+    :type (or number float)
+    :documentation "Repetition interval in days.")
+   (name
+    :initarg :name
+    :initform ""
+    :type string
+    :documentation "Name of the position, e.g. \"front\", \"back\" or \"0\", \"1\", ... .")))
+
 ;;; Card Types
 ;;;; Type Management
 
@@ -521,14 +649,13 @@ the now suspended card are removed from it."
   (interactive)
   (org-fc-with-point-at-entry
    (org-fc--add-tag org-fc-suspended-tag)
-
    (when org-fc-review--session
      (let ((id (org-id-get)))
        (with-slots (cards) org-fc-review--session
          (setf cards
                (cl-remove-if
                 (lambda (card)
-                  (string= id (plist-get card :id))) cards)))))))
+                  (string= id (oref card id))) cards)))))))
 
 ;;;###autoload
 (defun org-fc-suspend-tree ()
@@ -598,20 +725,20 @@ use `(and (type double) (tag \"math\"))'."
          (compile-inner
           (filter)
           (cl-case (car filter)
-            ('and `(and ,@(mapcar #'compile-inner (cdr filter))))
-            ('or `(or ,@(mapcar #'compile-inner (cdr filter))))
-            ('not
+            (and `(and ,@(mapcar #'compile-inner (cdr filter))))
+            (or `(or ,@(mapcar #'compile-inner (cdr filter))))
+            (not
              (check-arity-exact filter 1)
              `(not ,(compile-inner (cadr filter))))
-            ('tag
+            (tag
              (check-arity-exact filter 1)
-             `(member ,(cadr filter) (plist-get ,card-var :tags)))
-            ('type
+             `(member ,(cadr filter) (oref ,card-var tags)))
+            (type
              (check-arity-exact filter 1)
              `(eq ',(if (stringp (cadr filter))
                         (intern (cadr filter))
                       (cadr filter))
-                  (plist-get ,card-var :type))))))
+                  (oref ,card-var type))))))
       `(lambda (,card-var)
          ,(compile-inner filter)))))
 
@@ -627,56 +754,42 @@ use `(and (type double) (tag \"math\"))'."
 
     (if filter (setq filter (org-fc--compile-filter filter)))
 
-    (org-fc-index-flatten-file
-     (funcall org-fc-index-function paths filter))))
+    (funcall org-fc-index-function paths filter)))
 
 (defun org-fc-index-flatten-file (index)
-  "Flatten INDEX into a list of cards.
-Relevant data from the file is included in each card element."
-  (mapcan
-   (lambda (file)
-     (mapcar
-      (lambda (card)
-        (plist-put card :path (plist-get file :path))
-        (plist-put card :filetitle (plist-get file :title)))
-      (plist-get file :cards)))
-   index))
+  "Flatten INDEX into a list of cards."
+  (mapcan (lambda (file) (oref file cards)) index))
 
 (defun org-fc-index-flatten-card (card)
   "Flatten CARD into a list of positions.
 Relevant data from the card is included in each position
 element."
-  (mapcar
-   (lambda (pos)
-     (list
-      :filetitle (plist-get card :filetitle)
-      :tags (plist-get card :tags)
-      :path (plist-get card :path)
-      :id (plist-get card :id)
-      :type (plist-get card :type)
-      :due (plist-get pos :due)
-      :position (plist-get pos :position)))
-   (plist-get card :positions)))
+  (oref card positions))
 
+;; TODO: Remove files with no cards, cards with no positions
 (defun org-fc-index-filter-due (index)
   "Filter INDEX to include only unsuspended due positions.
 Cards with no positions are removed from the index."
   (let (res (now (current-time)))
-    (dolist (card index)
-      (unless (plist-get card :suspended)
-        (let ((due
-               (cl-remove-if-not
-                (lambda (pos)
-                  (time-less-p (plist-get pos :due) now))
-                (plist-get card :positions))))
-          (unless (null due)
-            (plist-put
-             card :positions
-             (if (or (not org-fc-bury-siblings)
-                     (member (plist-get card :cloze-type) '(single enumeration)))
-                 due (list (car due))))
-            (push card res)))))
-    res))
+    (mapcar
+     (lambda (file)
+       (let ((cards (oref file cards))
+             res)
+         (dolist (card cards)
+           (unless (oref card suspended)
+             (let ((due
+                    (cl-remove-if-not
+                     (lambda (pos)
+                       (time-less-p (oref pos due) now))
+                     (oref card positions))))
+               (unless (null due)
+                 (oset card positions
+                       (if (or (not org-fc-bury-siblings)
+                               (member (oref card cloze-type) '(single enumeration)))
+                           due (list (car due))))
+                 (push card res)))))
+         (oset file cards res)
+         file)) index)))
 
 (defun org-fc-index-positions (index)
   "Return all positions in INDEX."

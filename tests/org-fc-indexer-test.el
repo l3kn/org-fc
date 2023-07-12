@@ -23,9 +23,9 @@
 (ert-deftest org-fc-test-index-keywords ()
   (org-fc-test-check-structure
    '((:title "File Title Uppercase"
-      :cards ((:inherited-tags ":tag1:tag2:")))
+      :cards ((:tags ("tag1" "tag2" "fc"))))
      (:title "File Title Lowercase"
-      :cards ((:inherited-tags ":tag3:tag4:"))))
+      :cards ((:tags ("tag3" "tag4" "fc")))))
    (org-fc-awk-index
     (list (org-fc-test-fixture "index/uppercase.org")
           (org-fc-test-fixture "index/lowercase.org")))))
@@ -34,12 +34,12 @@
   (org-fc-test-check-structure
    '((:cards
       ((:id "edee8940-5c9a-4c70-b1c4-f45c194c0c97"
-        :local-tags ":fc:tag1:"
+        :tags ("fc" "tag1")
         :title "Headline")
        (:id "59b3b102-aebd-44ba-a1fd-6dc912c34fcf"
-        :local-tags ":fc:tag2:"
+        :tags ("fc" "tag2")
         :title "Headline 2")
        (:id "a7ed2686-73e6-4780-825d-78cf4b2e5374"
-        :local-tags ":fc:tag3:"
+        :tags ("fc" "tag3")
         :title "Headline 3:not_a_tag:"))))
    (org-fc-awk-index (list (org-fc-test-fixture "index/test.org")))))

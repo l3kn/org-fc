@@ -45,12 +45,10 @@
   (let* ((hashes (org-fc-cache-hashes org-fc-directories))
          (table (make-hash-table :test #'equal)))
     (dolist (entry (org-fc-awk-index org-fc-directories))
-      (let* ((path (plist-get entry :path))
+      (let* ((path (oref entry path))
              (hash (gethash path hashes)))
-        (puthash
-         path
-         (plist-put entry :hash hash)
-         table)))
+        (setf (oref entry hash) hash)
+        (puthash path entry table)))
     (setq org-fc-cache table)))
 
 (defun org-fc-cache-update ()
@@ -59,18 +57,18 @@
          (changed
           (cl-remove-if
            (lambda (file)
-             (string=
-              (plist-get (gethash file org-fc-cache) :hash)
-              (gethash file hashes)))
+             (and
+              (gethash file org-fc-cache)
+              (string=
+               (oref (gethash file org-fc-cache) hash)
+               (gethash file hashes))))
            (hash-table-keys hashes))))
     ;; Update changed files
     (dolist (new (org-fc-awk-index changed))
-      (let* ((path (plist-get new :path))
+      (let* ((path (oref new path))
              (hash (gethash path hashes)))
-        (puthash
-         path
-         (plist-put new :hash hash)
-         org-fc-cache)))
+        (setf (oref new hash) hash)
+        (puthash path new org-fc-cache)))
     ;; Remove deleted files
     (dolist (file (hash-table-values org-fc-cache))
       (unless (gethash file hashes)
@@ -92,15 +90,17 @@ as its input."
        (when (cl-some (lambda (p) (string-prefix-p p path)) paths)
          ;; Use push instead of `nconc' because `nconc' would break
          ;; the entries of the hash table.
-         (push
-          (list :path path
-                :title (plist-get file :title)
-                :cards
-                (mapcar #'copy-tree
+         ;;
+         ;; To prevent cached files and cards from breaking,
+         ;; we'll also want to clone each one.
+         (let ((cards
+                (mapcar #'clone
                         (if filter
-                            (cl-remove-if-not filter (plist-get file :cards))
-                          (plist-get file :cards))))
-          res)))
+                            (cl-remove-if-not filter (oref file cards))
+                          (oref file cards)))))
+           ;; Only include files that contain some matching cards
+           (when cards
+             (push (clone file :cards cards) res)))))
      org-fc-cache)
     res))
 
@@ -148,9 +148,9 @@ This is especially relevant w.r.t a card's due date / suspension state before re
   (org-fc-review-with-current-item cur
     (if (org-fc-suspended-entry-p)
         (error "Trying to review a suspended card"))
-    (let* ((position (plist-get cur :position))
+    (let* ((name (oref cur name))
            (review-data (org-fc-review-data-get))
-           (row (assoc position review-data #'string=))
+           (row (assoc name review-data #'string=))
            (due (parse-iso8601-time-string (nth 4 row))))
       (unless (time-less-p due (current-time))
         (error "Trying to review a non-due card")))))

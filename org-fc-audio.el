@@ -124,7 +124,7 @@ the file at the given speed."
   "Play the audio file for PREFIX and the current position."
   (org-fc-review-with-current-item current-item
     (when current-item
-      (let* ((pos (plist-get current-item :position))
+      (let* ((pos (oref current-item name))
              (property (format "%s_%s" prefix (upcase pos))))
         (org-fc-audio-play property)))))
 

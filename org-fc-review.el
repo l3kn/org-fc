@@ -90,6 +90,7 @@ Used to calculate the time needed for reviewing a card.")
 
 ;;; Main Review Functions
 
+
 ;;;###autoload
 (defun org-fc-review (context)
   "Start a review session for all cards in CONTEXT.
@@ -102,16 +103,16 @@ Valid contexts:
   (if org-fc-review--session
       (when (yes-or-no-p "Flashcards are already being reviewed. Resume? ")
         (org-fc-review-resume))
-    (let* ((index (org-fc-index context))
-           (cards (org-fc-index-filter-due index)))
-      (if org-fc-shuffle-positions
-          (setq cards (org-fc-index-shuffled-positions cards))
-        (setq cards (org-fc-index-positions cards)))
-      (if (null cards)
-          (message "No cards due right now")
+    (let* ((index (org-fc-index-filter-due (org-fc-index context)))
+           (cards (org-fc-index-flatten-file index))
+           (positions
+            (if org-fc-shuffle-positions
+                (org-fc-index-shuffled-positions cards)
+              (org-fc-index-positions cards))))
+      (if (null positions)
+          (message "No positions due right now")
         (progn
-          (setq org-fc-review--session
-                (org-fc-make-review-session cards))
+          (setq org-fc-review--session (org-fc-make-review-session positions))
           (run-hooks 'org-fc-before-review-hook)
           (org-fc-review-next-card))))))
 
@@ -139,52 +140,11 @@ Valid contexts:
 (defun org-fc-review-next-card (&optional resuming)
   "Review the next card of the current session.
 If RESUMING is non-nil, some parts of the buffer setup are skipped."
-  (if (not (null (oref org-fc-review--session cards)))
-      (condition-case err
-          (let* ((card (pop (oref org-fc-review--session cards)))
-                 (path (plist-get card :path))
-                 (id (plist-get card :id))
-                 (type (plist-get card :type))
-                 (position (plist-get card :position)))
-            (setf (oref org-fc-review--session current-item) card)
-            (let ((buffer (find-buffer-visiting path)))
-              (with-current-buffer (find-file path)
-                (unless resuming
-                  ;; If buffer was already open, don't kill it after rating the card
-                  (if buffer
-                      (setq-local org-fc-reviewing-existing-buffer t)
-                    (setq-local org-fc-reviewing-existing-buffer nil))
-                  (org-fc-set-header-line))
-
-                (goto-char (point-min))
-                (org-fc-id-goto id path)
-
-                (org-fc-indent)
-                ;; Make sure the headline the card is in is expanded
-                (org-reveal)
-                (org-fc-narrow)
-                (org-fc-hide-keyword-times)
-                (org-fc-hide-drawers)
-                (org-fc-show-latex)
-                (org-display-inline-images)
-                (run-hooks 'org-fc-before-setup-hook)
-
-                (setq org-fc-review--timestamp (time-to-seconds (current-time)))
-                (let ((step (funcall (org-fc-type-setup-fn type) position)))
-                  (run-hooks 'org-fc-after-setup-hook)
-
-                  ;; If the card has a no-noop flip function,
-                  ;; skip to rate-mode
-                  (let ((flip-fn (org-fc-type-flip-fn type)))
-                    (if (or
-                         (eq step 'rate)
-                         (null flip-fn)
-                         (eq flip-fn #'org-fc-noop))
-                        (org-fc-review-rate-mode 1)
-                      (org-fc-review-flip-mode 1)))))))
-        (error
-         (org-fc-review-quit)
-         (signal (car err) (cdr err))))
+  (if-let ((item (org-fc-review-pop-item org-fc-review--session)))
+    (condition-case err (org-fc-review-item item resuming)
+      (error
+       (org-fc-review-quit)
+       (signal (car err) (cdr err))))
     (message "Review Done")
     (org-fc-review-quit)))
 
@@ -194,18 +154,22 @@ Before evaluating BODY, check if the heading at point has the
 same ID as the current card in the session."
   (declare (indent defun))
   `(if org-fc-review--session
+       ;; TODO: Generalize to different items
        (if-let ((,var (oref org-fc-review--session current-item)))
-           (if (string= (plist-get ,var :id) (org-id-get))
+           ;; (message ,var)
+           (if (string= (oref (oref ,var card) id) (org-id-get))
                (progn ,@body)
-             (message "Flashcard ID mismatch"))
+             (message "Flashcard ID mismatch")
+             (message (format "Expected %s" (oref (oref ,var card) id)))
+             (message (format "Got %s" (org-id-get))))
          (message "No flashcard review is in progress"))))
 
 (defun org-fc-review-flip ()
   "Flip the current flashcard."
   (interactive)
   (condition-case err
-      (org-fc-review-with-current-item card
-        (let ((type (plist-get card :type)))
+      (org-fc-review-with-current-item item
+        (let ((type (oref (oref item card) type)))
           (funcall (org-fc-type-flip-fn type))
           (run-hooks 'org-fc-after-flip-hook)
           (org-fc-review-rate-mode)))
@@ -217,20 +181,26 @@ same ID as the current card in the session."
   "Rate the card at point with RATING."
   (interactive)
   (condition-case err
-      (org-fc-review-with-current-item card
-        (let* ((path (plist-get card :path))
-               (id (plist-get card :id))
-               (position (plist-get card :position))
+      (org-fc-review-with-current-item item
+        (let* ((card (oref item card))
+               (path (oref (oref card file) path))
+               (id (oref card id))
+               (name (oref item name))
                (now (time-to-seconds (current-time)))
                (delta (- now org-fc-review--timestamp)))
           (org-fc-review-add-rating org-fc-review--session rating)
-          (org-fc-review-update-data path id position rating delta)
+          (org-fc-review-update-data path id name rating delta)
           (org-fc-review-reset)
           (run-hooks 'org-fc-after-rate-hook)
 
-          (if (and (eq rating 'again) org-fc-append-failed-cards)
-              (with-slots (cards) org-fc-review--session
-                (setf cards (append cards (list card)))))
+          ;; TODO: With a failed box of 1, we can't guarantee timely
+          ;; (not too early) reviews this way Alternative would be to
+          ;; track a "failed" queue and once cards run out, see if one
+          ;; of the cards there is due.
+          ;;
+          ;; (if (and (eq rating 'again) org-fc-append-failed-cards)
+          ;;     (with-slots (cards) org-fc-review--session
+          ;;       (setf cards (append cards (list card)))))
 
           (save-buffer)
           (if org-fc-reviewing-existing-buffer
@@ -342,7 +312,7 @@ Pauses the review, unnarrows the buffer and activates
   ;; Queue the current flashcard so it's reviewed a second time
   (push
    (oref org-fc-review--session current-item)
-   (oref org-fc-review--session cards))
+   (oref org-fc-review--session items))
   (setf (oref org-fc-review--session paused) t)
   (setf (oref org-fc-review--session current-item) nil)
   (org-fc-review-edit-mode 1))
@@ -429,17 +399,66 @@ removed."
    (paused :initform nil :initarg :paused)
    (history :initform nil)
    (ratings :initform nil :initarg :ratings)
-   (cards :initform nil :initarg :cards)))
+   (items :initform nil :initarg :items)))
 
-(defun org-fc-make-review-session (cards)
-  "Create a new review session with CARDS."
-  (make-instance
-   'org-fc-review-session
+(cl-defmethod org-fc-review-pop-item ((session org-fc-review-session))
+  (when-let ((item (pop (oref session items))))
+    (setf (oref session current-item) item)
+    item))
+
+(cl-defmethod org-fc-review-prepend-items ((session org-fc-review-session) items)
+  (setf (oref session items) (append items (oref session items))))
+
+(cl-defmethod org-fc-review-item ((item org-fc-position) resuming)
+  (let* ((card (oref item card))
+         (path (oref (oref card file) path))
+         (id (oref card id))
+         (type (oref card type))
+         (name (oref item name)))
+  (message "review item")
+    (let ((buffer (find-buffer-visiting path)))
+      (with-current-buffer (find-file path)
+        (unless resuming
+          ;; If buffer was already open, don't kill it after rating the card
+          (if buffer
+              (setq-local org-fc-reviewing-existing-buffer t)
+            (setq-local org-fc-reviewing-existing-buffer nil))
+          (org-fc-set-header-line))
+
+        (goto-char (point-min))
+        (org-fc-id-goto id path)
+
+        (org-fc-indent)
+        ;; Make sure the headline the card is in is expanded
+        (org-reveal)
+        (org-fc-narrow)
+        (org-fc-hide-keyword-times)
+        (org-fc-hide-drawers)
+        (org-fc-show-latex)
+        (org-display-inline-images)
+        (run-hooks 'org-fc-before-setup-hook)
+
+        (setq org-fc-review--timestamp (time-to-seconds (current-time)))
+        (let ((step (funcall (org-fc-type-setup-fn type) name)))
+          (run-hooks 'org-fc-after-setup-hook)
+
+          ;; If the card has a no-noop flip function,
+          ;; skip to rate-mode
+          (let ((flip-fn (org-fc-type-flip-fn type)))
+            (if (or
+                 (eq step 'rate)
+                 (null flip-fn)
+                 (eq flip-fn #'org-fc-noop))
+                (org-fc-review-rate-mode 1)
+              (org-fc-review-flip-mode 1))))))))
+(defun org-fc-make-review-session (items)
+  "Create a new review session with ITEMS."
+  (org-fc-review-session
    :ratings
    (if-let ((stats (org-fc-awk-stats-reviews)))
        (plist-get stats :day)
      '(:total 0 :again 0 :hard 0 :good 0 :easy 0))
-   :cards cards))
+   :items items))
 
 (defun org-fc-review-history-add (elements)
   "Add ELEMENTS to review history."
@@ -481,12 +500,13 @@ removed."
 
 (defun org-fc-set-header-line ()
   "Set the header-line for review."
-  (let* ((remaining (1+ (length (oref org-fc-review--session cards))))
-         (current (oref org-fc-review--session current-item))
+  (let* ((remaining (1+ (length (oref org-fc-review--session items))))
+         ;; TODO: Generalize to different items
+         (card (oref (oref org-fc-review--session current-item) card))
          (title
           (unless (or org-fc-review-hide-title-in-header-line
-                      (member "notitle" (plist-get current :tags)))
-            (plist-get current :filetitle))))
+                      (member "notitle" (oref card tags)))
+            (oref (oref card file) title))))
     (setq org-fc-original-header-line-format header-line-format)
     (setq-local
      header-line-format
