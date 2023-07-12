@@ -90,6 +90,31 @@ Used to calculate the time needed for reviewing a card.")
 
 ;;; Main Review Functions
 
+(defun org-fc-review-order-sequential (index)
+  "Return all positions in INDEX."
+  (mapcan
+   #'org-fc-index-flatten-card
+   (org-fc-index-flatten-file index)))
+
+(defun org-fc-review-order-random (index)
+  "Return all positions in INDEX in random order.
+Positions are shuffled in a way that preserves the order of the
+  positions for each card."
+  ;; 1. assign each position a random number
+  ;; 2. flatten the list
+  ;; 3. sort by the random number
+  ;; 4. remove the random numbers from the result
+  (let ((positions
+         (mapcan
+          (lambda (card)
+            (let ((pos (org-fc-index-flatten-card card)))
+              (org-fc-zip
+               (org-fc-sorted-random (length pos))
+               pos)))
+          (org-fc-index-flatten-file index))))
+    (mapcar
+     #'cdr
+     (sort positions (lambda (a b) (> (car a) (car b)))))))
 
 ;;;###autoload
 (defun org-fc-review (context)
@@ -104,11 +129,15 @@ Valid contexts:
       (when (yes-or-no-p "Flashcards are already being reviewed. Resume? ")
         (org-fc-review-resume))
     (let* ((index (org-fc-index-filter-due (org-fc-index context)))
-           (cards (org-fc-index-flatten-file index))
+           (order (or (plist-get context :order)
+                      (if org-fc-shuffle-positions 'random 'ordered)))
            (positions
-            (if org-fc-shuffle-positions
-                (org-fc-index-shuffled-positions cards)
-              (org-fc-index-positions cards))))
+            (case order
+              (sequential (org-fc-review-order-sequential index))
+              (random     (org-fc-review-order-random index))
+              (otherwise  (if (functionp order)
+                              (funcall order index)
+                            (error (format "Unknown review order: %s" order)))))))
       (if (null positions)
           (message "No positions due right now")
         (progn
