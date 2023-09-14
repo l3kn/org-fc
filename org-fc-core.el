@@ -31,7 +31,7 @@
 (require 'org-element)
 
 (require 'subr-x)
-(require 'cl)
+(require 'cl-lib)
 
 ;;; Customization
 
