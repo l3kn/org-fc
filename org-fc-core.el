@@ -318,6 +318,11 @@ If point is not inside a flashcard entry, an error is raised."
 
 ;;; Card Initialization
 
+(defcustom org-fc-after-init-card-hook '()
+  "Functions run after a card initialized as a flashcard."
+  :type 'hook
+  :group 'org-fc)
+
 (defun org-fc--init-card (type)
   "Initialize the current card as a flashcard.
 Should only be used by the init functions of card TYPEs."
@@ -329,7 +334,8 @@ Should only be used by the init functions of card TYPEs."
    (org-fc-timestamp-in 0))
   (org-set-property org-fc-type-property type)
   (org-id-get-create)
-  (org-fc--add-tag org-fc-flashcard-tag))
+  (org-fc--add-tag org-fc-flashcard-tag)
+  (run-hooks 'org-fc-after-init-card-hook))
 
 ;;; Classes
 
