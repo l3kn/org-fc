@@ -14,6 +14,7 @@ body
 :PROPERTIES:
 :FC_CREATED: 2020-07-08T12:05:06Z
 :FC_TYPE:  normal
+:FC_ALGO:  algo1
 :ID:       59b3b102-aebd-44ba-a1fd-6dc912c34fcf
 :END:
 :REVIEW_DATA:
@@ -26,6 +27,7 @@ body
 :PROPERTIES:
 :FC_CREATED: 2020-07-08T12:18:45Z
 :FC_TYPE:  normal
+:FC_ALGO:  algo2
 :ID:       a7ed2686-73e6-4780-825d-78cf4b2e5374
 :END:
 :REVIEW_DATA:

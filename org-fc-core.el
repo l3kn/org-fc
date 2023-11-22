@@ -71,6 +71,11 @@ Used to generate absolute paths to the awk scripts.")
 
 ;;;; Org Tags / Properties
 
+(defcustom org-fc-algo-property "FC_ALGO"
+  "Property used to store the cards algorithm."
+  :type 'string
+  :group 'org-fc)
+
 (defcustom org-fc-type-property "FC_TYPE"
   "Property used to store the cards type."
   :type 'string
@@ -376,6 +381,10 @@ Should only be used by the init functions of card TYPEs."
     :initarg :type
     :type symbol
     :documentation "Type of the card.")
+   (algo
+    :initarg :algo
+    :type (or null symbol)
+    :documentation "Algorithm of the card.")
    ;; TODO: Can both types be combined?
    (cloze-type
     :initarg :cloze-type
@@ -412,6 +421,7 @@ Should only be used by the init functions of card TYPEs."
            :file file
            :id (plist-get plist :id)
            :title (plist-get plist :title)
+           :algo (plist-get plist :algo)
            :type (plist-get plist :type)
            :cloze-type (plist-get plist :cloze-type)
            :created (plist-get plist :created)
