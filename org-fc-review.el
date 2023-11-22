@@ -211,31 +211,25 @@ same ID as the current card in the session."
   (interactive)
   (condition-case err
       (org-fc-review-with-current-item item
-        (let* ((card (oref item card))
-               (path (oref (oref card file) path))
-               (id (oref card id))
-               (name (oref item name))
-               (now (time-to-seconds (current-time)))
-               (delta (- now org-fc-review--timestamp)))
-          (org-fc-review-add-rating org-fc-review--session rating)
-          (org-fc-review-update-data path id name rating delta)
-          (org-fc-review-reset)
-          (run-hooks 'org-fc-after-rate-hook)
+        (org-fc-review-add-rating org-fc-review--session rating)
+        (org-fc-review-update-data item rating)
+        (org-fc-review-reset)
+        (run-hooks 'org-fc-after-rate-hook)
 
-          ;; TODO: With a failed box of 1, we can't guarantee timely
-          ;; (not too early) reviews this way Alternative would be to
-          ;; track a "failed" queue and once cards run out, see if one
-          ;; of the cards there is due.
-          ;;
-          ;; (if (and (eq rating 'again) org-fc-append-failed-cards)
-          ;;     (with-slots (cards) org-fc-review--session
-          ;;       (setf cards (append cards (list card)))))
+        ;; TODO: With a failed box of 1, we can't guarantee timely
+        ;; (not too early) reviews this way Alternative would be to
+        ;; track a "failed" queue and once cards run out, see if one
+        ;; of the cards there is due.
+        ;;
+        ;; (if (and (eq rating 'again) org-fc-append-failed-cards)
+        ;;     (with-slots (cards) org-fc-review--session
+        ;;       (setf cards (append cards (list card)))))
 
-          (save-buffer)
-          (if org-fc-reviewing-existing-buffer
-              (org-fc-review-reset)
-            (kill-buffer))
-          (org-fc-review-next-card)))
+        (save-buffer)
+        (if org-fc-reviewing-existing-buffer
+            (org-fc-review-reset)
+          (kill-buffer))
+        (org-fc-review-next-card))
     (error
      (org-fc-review-quit)
      (signal (car err) (cdr err)))))
@@ -273,7 +267,7 @@ same ID as the current card in the session."
   (org-fc-review-reset)
   (org-fc-review-next-card))
 
-(defun org-fc-review-update-data (path id position rating delta)
+(defun org-fc-review-update-data (position rating)
   "Update the review data of the card.
 Also add a new entry in the review history file.  PATH, ID,
 POSITION identify the position that was reviewed, RATING is a
@@ -283,8 +277,14 @@ rating the card."
    ;; If the card is marked as a demo card, don't log its reviews and
    ;; don't update its review data
    (unless (member org-fc-demo-tag (org-get-tags))
-     (let* ((data (org-fc-review-data-get))
-            (current (assoc position data #'string=)))
+     (let* ((now (time-to-seconds (current-time)))
+            (delta (- now org-fc-review--timestamp))
+            (card (oref position card))
+            (path (oref (oref card file) path))
+            (id (oref card id))
+            (name (oref position name))
+            (data (org-fc-review-data-get))
+            (current (assoc name data #'string=)))
        (unless current
          (error "No review data found for this position"))
        (let ((ease (string-to-number (cl-second current)))
@@ -295,7 +295,7 @@ rating the card."
            (org-fc-timestamp-in 0)
            path
            id
-           position
+           name
            (format "%.2f" ease)
            (format "%d" box)
            (format "%.2f" interval)
