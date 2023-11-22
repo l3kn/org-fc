@@ -327,7 +327,6 @@ rating the card."
   (interactive)
   (org-fc-review-reset)
   (run-hooks 'org-fc-after-review-hook)
-  (org-fc-review-history-save)
   (setq org-fc-review--session nil))
 
 ;;;###autoload
@@ -491,26 +490,10 @@ removed."
 
 (defun org-fc-review-history-add (elements)
   "Add ELEMENTS to review history."
-  (push
-   elements
-   (oref org-fc-review--session history)))
-
-(defun org-fc-review-history-save ()
-  "Save all history entries in the current session."
-  (when (and org-fc-review--session (oref org-fc-review--session history))
-    (append-to-file
-     (concat
-      (mapconcat
-       (lambda (elements) (mapconcat #'identity elements "\t"))
-       (reverse (oref org-fc-review--session history))
-       "\n")
-      "\n")
-     nil
-     org-fc-review-history-file)
-    (setf (oref org-fc-review--session history) nil)))
-
-;; Make sure the history is saved even if Emacs is killed
-(add-hook 'kill-emacs-hook #'org-fc-review-history-save)
+  (append-to-file
+   (format "%s\n" (mapconcat #'identity elements "\t"))
+   nil
+   org-fc-review-history-file))
 
 (defun org-fc-review-add-rating (session rating)
   "Store RATING in the review history of SESSION."
