@@ -229,6 +229,18 @@ indenting the current heading."
          (org-element-property :begin el)
          (org-element-property :end el)))))
 
+(defun org-fc-plist-excluding (plist blacklist)
+  "Remove all key-value pairs from PLIST where the key is in the
+BLACKLIST."
+   (let (result)
+     (while plist
+       (let ((key (car plist))
+             (value (cadr plist)))
+         (when (not (member key blacklist))
+           (setq result (plist-put result key value)))
+         (setq plist (cddr plist))))
+     result))
+
 (defmacro org-fc-with-point-at-entry (&rest body)
   "Execute BODY with point at the card heading.
 If point is not inside a flashcard entry, an error is raised."
@@ -436,43 +448,31 @@ Should only be used by the init functions of card TYPEs."
 (defun org-fc-position-from-plist (plist card)
   (org-fc-position
    :card card
-   :box (plist-get plist :box)
+   :name (plist-get plist :position)
    :due (plist-get plist :due)
-   :ease (plist-get plist :ease)
-   :interval (plist-get plist :interval)
-   :name (plist-get plist :position)))
+   :data (org-fc-plist-excluding plist '(:position :due))))
 
 (defclass org-fc-position ()
   ((card
     :initarg :card
     :type org-fc-card
     :documentation "Parent card of this position.")
-   (box
-    :initarg :box
-    :initform 0
-    :type integer
-    :documentation "Count of consecutive correct reviews.")
+   (name
+    :initarg :name
+    :initform ""
+    :type string
+    :documentation "Name of the position, e.g. \"front\", \"back\" or \"0\", \"1\", ... .")
    (due
     :initarg :due
     :initform nil
     :type list
     :custom (repeat integer)
     :documentation "Timestamp when this position is due.")
-   (ease
-    :initarg :ease
-    :initform 0.0
-    :type (or number float)
-    :documentation "Ease factor.")
-   (interval
-    :initarg :interval
-    :initform 0.0
-    :type (or number float)
-    :documentation "Repetition interval in days.")
-   (name
-    :initarg :name
-    :initform ""
-    :type string
-    :documentation "Name of the position, e.g. \"front\", \"back\" or \"0\", \"1\", ... .")))
+   (data
+    :initarg :data
+    :initform nil
+    :type list
+    :documentation "Algorithm specific review data.")))
 
 ;;; Card Types
 ;;;; Type Management
