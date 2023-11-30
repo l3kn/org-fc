@@ -531,6 +531,7 @@ removed."
     (define-key map (kbd "q") 'org-fc-review-quit)
     (define-key map (kbd "p") 'org-fc-review-edit)
     (define-key map (kbd "s") 'org-fc-review-suspend-card)
+    (define-key map (kbd "x") 'org-fc-review-skip-card)
     map)
   "Keymap for `org-fc-flip-mode'.")
 
