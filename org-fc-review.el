@@ -416,7 +416,6 @@ removed."
 (defclass org-fc-review-session ()
   ((current-item :initform nil)
    (paused :initform nil :initarg :paused)
-   (history :initform nil)
    (ratings :initform nil :initarg :ratings)
    (items :initform nil :initarg :items)))
 
