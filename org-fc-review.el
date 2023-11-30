@@ -278,39 +278,38 @@ rating the card."
    ;; don't update its review data
    (unless (member org-fc-demo-tag (org-get-tags))
      (let* ((now (time-to-seconds (current-time)))
+            (algorithm
+             ;; For compatibility reasons, default to SM2 for cards that
+             ;; don't have the algorithm property set
+             (if-let ((algo (org-entry-get (point) org-fc-algo-property)))
+                 (intern algo)
+               'sm2))
+
             (delta (- now org-fc-review--timestamp))
-            (card (oref position card))
-            (path (oref (oref card file) path))
-            (id (oref card id))
             (name (oref position name))
-            (data (org-fc-review-data-get))
-            (current (assoc name data #'string=)))
+            (review-data (org-fc-review-data-parse
+                          (org-fc-review-data-headers algorithm)))
+            (current (org-fc-review-data-get-row review-data name)))
        (unless current
          (error "No review data found for this position"))
-       (let ((ease (string-to-number (cl-second current)))
-             (box (string-to-number (cl-third current)))
-             (interval (string-to-number (cl-fourth current))))
-         (org-fc-review-history-add
-          (list
-           (org-fc-timestamp-in 0)
-           path
-           id
-           name
-           (format "%.2f" ease)
-           (format "%d" box)
-           (format "%.2f" interval)
-           (symbol-name rating)
-           (format "%.2f" delta)
-           (symbol-name org-fc-algorithm)))
-         (cl-destructuring-bind (next-ease next-box next-interval)
-             (org-fc-algo-sm2-next-parameters ease box interval rating)
-           (setcdr
-            current
-            (list (format "%.2f" next-ease)
-                  (number-to-string next-box)
-                  (format "%.2f" next-interval)
-                  (org-fc-timestamp-in next-interval)))
-           (org-fc-review-data-set data)))))))
+
+       (case algorithm
+         (sm2
+          (org-fc-algo-sm2-history-add position current rating delta))
+         (fsrs
+          (org-fc-algo-fsrs-history-add position current rating delta)))
+
+       (org-fc-review-data-set-row
+        review-data name
+        (org-fc-plist-merge
+         current
+
+         (case algorithm
+           (sm2
+            (org-fc-algo-sm2-next-review-data current rating))
+           (fsrs
+            (org-fc-algo-fsrs-next-review-data current rating)))))
+       (org-fc-review-data-write review-data)))))
 
 (defun org-fc-review-reset ()
   "Reset the buffer to its state before the review."
@@ -379,46 +378,38 @@ END is the start of the line with :END: on it."
           (line-beginning-position 0)
           (line-beginning-position 0)))))))
 
-(defun org-fc-review-data-get ()
-  "Get a cards review data as a Lisp object."
-  (if-let ((position (org-fc-review-data-position)))
-      (org-with-point-at (car position)
-        (cddr (org-table-to-lisp)))))
+(defun org-fc-review-data-default (algorithm)
+  "Default review data for ALGORITHM."
+  (cl-case algorithm
+    (sm2 (org-fc-algo-sm2-initial-review-data))
+    (fsrs (org-fc-algo-fsrs-initial-review-data))))
 
-(defun org-fc-review-data-set (data)
-  "Set the cards review data to DATA."
-  (save-excursion
-    (let ((position (org-fc-review-data-position 'create)))
-      (kill-region (car position) (cdr position))
-      (goto-char (car position))
-      (insert "| position | ease | box | interval | due |\n")
-      (insert "|-|-|-|-|-|\n")
-      (dolist (datum data)
-        (insert
-         "| "
-         (mapconcat (lambda (x) (format "%s" x)) datum " | ")
-         " |\n"))
-      (org-table-align))))
-
-(defun org-fc-review-data-default (position)
-  "Default review data for position POSITION."
-  (cl-case org-fc-algorithm
-    ('sm2-v1 (org-fc-algo-sm2-initial-review-data position))
-    ('sm2-v2 (org-fc-algo-sm2-initial-review-data position))))
+(defun org-fc-review-data-headers (algorithm)
+  "Default review data headers for ALGORITHM."
+  (cl-case algorithm
+    (sm2 '(position ease box interval due))
+    (fsrs '(position last-review state difficulty stability reps lapses due))))
 
 (defun org-fc-review-data-update (positions)
   "Update review data to POSITIONS.
 If a doesn't exist already, it is initialized with default
 values.  Entries in the table not contained in POSITIONS are
 removed."
-  (let ((old-data (org-fc-review-data-get)))
-    (org-fc-review-data-set
-     (mapcar
-      (lambda (pos)
-        (or
-         (assoc pos old-data #'string=)
-         (org-fc-review-data-default pos)))
-      positions))))
+  (let* ((algorithm
+          ;; For compatibility reasons, default to SM2 for cards that
+          ;; don't have the algorithm property set
+          (if-let ((algo (org-entry-get (point) org-fc-algo-property)))
+              (intern algo)
+            'sm2))
+         (review-data
+          (org-fc-review-data-parse
+           (org-fc-review-data-headers algorithm))))
+    (org-fc-review-data-ensure-rows
+     review-data
+     positions
+     (org-fc-review-data-default algorithm))
+    (org-fc-review-data-write
+     review-data)))
 
 ;;; Sessions
 
