@@ -1,6 +1,7 @@
 BEGIN {
     FS = "\t"
-    t_day = time_days_ago(1);
+    t_day = strftime("%FT00:00:00Z", systime());
+    # t_day = time_days_ago(1);
     t_week = time_days_ago(7);
     t_month = time_days_ago(30);
     min_box = or_default(min_box, 0);
