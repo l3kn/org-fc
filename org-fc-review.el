@@ -88,6 +88,100 @@ Used to calculate the time needed for reviewing a card.")
   "Track if the current buffer was open before the review.")
 (make-variable-buffer-local 'org-fc-reviewing-existing-buffer)
 
+;;; Review Data
+
+(defclass org-fc-review-data ()
+  ((headers :initarg :headers)
+   (data :initarg :data :initform nil)))
+
+(cl-defmethod org-fc-review-data-get-row
+  ((review-data org-fc-review-data) position)
+  (cdr (assoc position (oref review-data data) #'string=)))
+
+(cl-defmethod org-fc-review-data-set-row
+  ((review-data org-fc-review-data) position row)
+  (if-let ((binding
+            (assoc position (oref review-data data) #'string=)))
+      (setcdr binding row)
+    (oset
+     review-data data
+     (append
+      (oref review-data data)
+      (list (cons position row))))))
+
+(cl-defmethod org-fc-review-data-ensure-rows
+  ((review-data org-fc-review-data) positions default)
+  (let ((old-data (oref review-data data)))
+    (oset
+     review-data data
+     (mapcar
+      (lambda (pos)
+        (or
+         (assoc pos old-data #'string=)
+         ;; Make a copy so updates don't mess up shared lists
+         (cons pos (copy-list default))))
+      positions)))
+  review-data)
+
+(defun org-fc-review-data-parse (headers)
+  "Get a cards review data as a Lisp object."
+  (if-let ((position (org-fc-review-data-position)))
+    (org-with-point-at (car position)
+      (let* ((table (org-table-to-lisp))
+             (headers
+              (mapcar #'intern (car table))))
+        (org-fc-review-data
+         :headers headers
+         :data
+         (mapcar
+          (lambda (row)
+            ;; Combine cells of the row into a plist for easier use
+            (let (position res)
+              (dolist (header headers)
+                (if (eq header 'position)
+                    (setq position (pop row))
+                  (setq res
+                        (plist-put
+                         res
+                         header
+                         (substring-no-properties (pop row))))))
+              (cons position res)))
+          (cddr table)))))
+    (org-fc-review-data :headers headers :data '())))
+
+(defun org-fc-review-data-write (review-data)
+  (save-excursion
+    (let ((headers (oref review-data headers))
+          (data (oref review-data data))
+          (position (org-fc-review-data-position 'create)))
+      (delete-region (car position) (cdr position))
+      (goto-char (car position))
+      (insert
+       "| "
+       (mapconcat (lambda (header) (format "%s" header)) headers " | ")
+       " |\n")
+
+      (insert
+       "|"
+       (mapconcat (lambda (_header) "-") headers "+")
+       "|\n")
+
+      (dolist (row-assoc data)
+        (let ((row
+               ;; Convert back to a list in the same order as the
+               ;; headers
+               (mapcar
+                (lambda (header)
+                  (if (eq header 'position)
+                      (car row-assoc)
+                    (plist-get (cdr row-assoc) header)))
+                headers)))
+          (insert
+           "| "
+           (mapconcat (lambda (x) (format "%s" x)) row " | ")
+           " |\n")))
+      (org-table-align))))
+
 ;;; Main Review Functions
 
 (defun org-fc-review-order-sequential (index)
