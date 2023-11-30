@@ -180,8 +180,16 @@ $0 ~ review_data_drawer {
 
                 # TODO: extract values as strings, parse in Emacs when
                 # necessary.
+                # TODO: Instead of explicitly stating column names,
+                # match value against ISO-8601 regex
                 if (col == "due") {
                     val = parse_time(val);
+                } else if (col == "last-review") {
+                    if (val == "nil") {
+                        val = "nil";
+                    } else {
+                        val = parse_time(val);
+                    }
                 } else if (col == "position") {
                     val = escape_string(val);
                 }
