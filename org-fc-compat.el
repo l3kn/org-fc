@@ -92,6 +92,10 @@
   'org-fc-audio-set-after
   'org-fc-audio-set-after-setup "0.1.0")
 
+(make-obsolete-variable
+  'org-fc-algorithm
+  "Use a list of `org-fc-algorithms' instead" "1.0.0")
+
 ;;; Footer
 
 (provide 'org-fc-compat)

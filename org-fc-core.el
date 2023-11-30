@@ -119,12 +119,7 @@ types."
   :type 'integer
   :group 'org-fc)
 
-;;;; Spacing Parameters
-
-(defcustom org-fc-algorithm 'sm2-v1
-  "Algorithm for spacing reviews of cards."
-  :type '(choice (const sm2-v1) (const sm2-v2))
-  :group 'org-fc)
+;;;; Algorithm and Spacing Parameters
 
 (defcustom org-fc-algorithms '(sm2 fsrs)
   "List of algorithms to choose from when creating a new flashcard.")
