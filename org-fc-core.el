@@ -131,6 +131,9 @@ types."
   :type '(choice (const sm2-v1) (const sm2-v2))
   :group 'org-fc)
 
+(defcustom org-fc-algorithms '(sm2 fsrs)
+  "List of algorithms to choose from when creating a new flashcard.")
+
 (defcustom org-fc-bury-siblings nil
   "If non-nil, show at most one position of a card per review.
 Does not apply to cloze single and cloze enumeration cards."
@@ -343,16 +346,24 @@ If point is not inside a flashcard entry, an error is raised."
 (defun org-fc--init-card (type)
   "Initialize the current card as a flashcard.
 Should only be used by the init functions of card TYPEs."
-  (if (org-fc-entry-p)
-      (error "Headline is already a flashcard"))
-  (org-back-to-heading)
-  (org-set-property
-   org-fc-created-property
-   (org-fc-timestamp-in 0))
-  (org-set-property org-fc-type-property type)
-  (org-id-get-create)
-  (org-fc--add-tag org-fc-flashcard-tag)
-  (run-hooks 'org-fc-after-init-card-hook))
+  (when (org-fc-entry-p)
+    (error "Headline is already a flashcard"))
+  (let ((algo
+         (if (= 1 (length org-fc-algorithms))
+             (car org-fc-algorithms)
+           (completing-read "Algorithm: " org-fc-algorithms))))
+    (when (null algo)
+        (error "No algorithm selected"))
+    (org-back-to-heading)
+    (org-set-property
+     org-fc-created-property
+     (org-fc-timestamp-in 0))
+    (org-set-property org-fc-type-property type)
+    (when algo
+      (org-set-property org-fc-algo-property algo))
+    (org-id-get-create)
+    (org-fc--add-tag org-fc-flashcard-tag)
+    (run-hooks 'org-fc-after-init-card-hook)))
 
 ;;; Classes
 
