@@ -149,9 +149,9 @@ This is especially relevant w.r.t a card's due date / suspension state before re
     (if (org-fc-suspended-entry-p)
         (error "Trying to review a suspended card"))
     (let* ((name (oref cur name))
-           (review-data (org-fc-review-data-get))
-           (row (assoc name review-data #'string=))
-           (due (parse-iso8601-time-string (nth 4 row))))
+           (review-data (org-fc-review-data-parse '(due)))
+           (row (org-fc-review-data-get-row review-data name))
+           (due (parse-iso8601-time-string (plist-get row 'due))))
       (unless (time-less-p due (current-time))
         (error "Trying to review a non-due card")))))
 
