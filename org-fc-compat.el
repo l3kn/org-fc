@@ -96,6 +96,10 @@
   'org-fc-algorithm
   "Use a list of `org-fc-algorithms' instead" "1.0.0")
 
+(define-obsolete-variable-alias
+  'org-fc-review-history-file
+  'org-fc-algo-sm2-history-file "0.1.0")
+
 ;;; Footer
 
 (provide 'org-fc-compat)
