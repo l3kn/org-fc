@@ -1,9 +1,177 @@
 * Changelog
+
 I hope the current card / log format is flexible enough to accommodate
 upcoming changes.
 
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
+
+** Develop
+
+This update brings many changes to org-fc, including support for
+multiple spacing algorithms.
+
+Even if changes to configuration variables might be necessary, there
+is no need to change any cards in org-mode files.
+
+From now on, cards will include a =FC_ALGO= property. For
+compatibility reasons, if a card doesn't have this property, it's
+assumed that its algorithm is =sm2=, the original algorithm used by
+org-fc.
+
+While an attempt has been made to make this as uninvasive as possible,
+and users who used the main-branch version of org-fc without changing
+the configuration should be able to continue using this version
+without any changes, users who customized the parameters of the sm2
+algorithm are advised to take a look at the corresponding section of
+this document.
+
+Affected are the variables:
+- ~org-fc-algorithm~
+  Replaced with a list of algorithms
+- ~org-fc-review-history-file~
+  Now split into one file per algorithm (currently
+  ~org-fc-algo-sm2-history-file~ and ~org-fc-algo-fsrs-history-file~)
+
+Users who extended org-fc in some way that used the internal data
+structures for cards and positions should refer to the *EIEIO*
+section.
+
+*** SM2 Algorithm
+
+During the development of org-fc, some changes have been made
+to the algorithm to approximate the algorithm used by Anki.
+
+Previously, these were distinguished by different algorithm versions
+(~sm2-v1~, ~sm2-v2~, ~sm2-v3~). To simplify the code, the changes
+between these versions have been moved to configuration variables.
+
+Users who choose to update to this version of org-fc
+are advised to set these parameters in accordance to the version of
+the algorithm they used previously or want to use now.
+
+- ~org-fc-algo-sm2-hard-factor~, default 1.2
+
+  Usually the next interval of a card is computed
+  as ~(* current-interval next-ease)~.
+
+  When set to a non-nil value, this factor will be used instead, for a
+  next interval of ~(* current-interval hard-factor)~.
+
+  | Version | Value |
+  |---------+-------|
+  | sm2-v1  |   nil |
+  | sm2-v2  |   1.2 |
+  | sm2-v3  |   1.2 |
+
+- ~org-fc-algo-sm2-easy-bonus~, default 1.3
+
+  To reduce the number of cards that are rated easy multiple times in
+  a row, a bonus factor can be applied to cards rated easy.
+
+  | Version | Value |
+  |---------+-------|
+  | sm2-v1  |   1.0 |
+  | sm2-v2  |   1.0 |
+  | sm2-v3  |   1.3 |
+
+- ~org-fc-algo-again-box~, default 1
+
+  By resetting the cards to box 1 instead of 0, even failed cards
+  (rated "again") are not due for review immediately.
+
+  This is closer to the behavior of Anki and with a non-zero value,
+  it's possible to determine whether a SM2 card has not been reviewed
+  yet by comparing its box to 0.
+
+  | Version | Value |
+  |---------+-------|
+  | sm2-v1  |     0 |
+  | sm2-v2  |     0 |
+  | sm2-v3  |     1 |
+
+*** EIEIO
+
+Internal data structures for files, cards and positions
+now use eieio classes instead of plists.
+
+Code extending org-fc will need to replace ~plist-get~ with ~oref~ on
+the relevant object.
+
+*** Other
+**** Skipping Cards
+
+Before flipping a card, it can now be skipped with the =x= key.
+
+**** Review Data
+
+To allow for different spacing algorithms, a position now requires
+only a due date and a name, the remaining entries of the review-data
+table are stored in a plist.
+
+They are mostly relevant for creating statistics.
+
+During review, a much simpler procedure is used, passing the current
+plist corresponding to a single row of the data-table to the spacing
+algorithm and storing the new parameters it returns.
+
+The next update of the cache then takes care of updating the data of
+the object-based positions.
+
+**** Performance
+
+- The default find command lists only files containing flashcards.
+
+- New variable ~org-fc-awk-find-command~ can be set to ~'ripgrep~
+  if installed. This will speed up finding files with flashcards in
+  large directories.
+
+- For review history files with many entries, a significant amount of
+  time was spent computing the "all" review statistics in the
+  dashboard. By setting ~org-fc-awk-review-history-limit~ to an
+  integer value, this can now be avoided.
+
+**** ~org-fc-audio~
+
+When used interactively, ~org-fc-audio-play~ now only lists audio
+properties that are set on the current heading.
+
+A new set of position-dependent properties has been added.
+
+- =FC_AUDIO_BEFORE_SETUP_{poition}=
+- =FC_AUDIO_AFTER_SETUP_{position}=
+- =FC_AUDIO_AFTER_FLIP_{position}=
+
+This allows e.g. playing an audio file both when showing the
+front->back and when flipping the back->front side of a double-type
+card, or playing different audio files for each position of a
+cloze-type card.
+
+~org-fc-audio~ now allows only one file to play at a time, killing the
+playback process of the previous file if it is still active.
+
+**** Cloze Cards
+
+When reviewing a cloze-type card, point (the text cursor) is now moved
+to the hole currently being reviewed.
+
+For long cards, this ensures the hole is visible during review.
+
+A new property =FC_CLOZE_CONTEXT= can be used to change the value of
+size of the context shown for ~'contex~ cloze cards on a per-card basis.
+
+**** Cache
+
+Fixed a bug where the list of positions of cached cards could get
+messed up over time.
+
+**** Hooks
+
+A new ~org-fc-after-rate-hook~ can be used e.g. for cleaning up
+overlays created in a ~org-fc-before-setup-hook~.
+
+A new ~org-fc-after-card-init-hook~ is run every time a new card is
+created (initialized).
 
 ** 0.1.0
 *** Added
