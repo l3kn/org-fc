@@ -477,13 +477,6 @@ removed."
    '(:total 0 :again 0 :hard 0 :good 0 :easy 0)
    :items items))
 
-(defun org-fc-review-history-add (elements)
-  "Add ELEMENTS to review history."
-  (append-to-file
-   (format "%s\n" (mapconcat #'identity elements "\t"))
-   nil
-   org-fc-review-history-file))
-
 (defun org-fc-review-add-rating (session rating)
   "Store RATING in the review history of SESSION."
   (with-slots (ratings) session
