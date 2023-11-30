@@ -31,6 +31,7 @@
 
 (require 'org-fc-awk)
 (require 'org-fc-algo-sm2)
+(require 'org-fc-algo-fsrs)
 
 (require 'org-fc-review)
 (require 'org-fc-dashboard)
