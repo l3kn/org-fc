@@ -474,9 +474,7 @@ removed."
   "Create a new review session with ITEMS."
   (org-fc-review-session
    :ratings
-   (if-let ((stats (org-fc-awk-stats-reviews)))
-       (plist-get stats :day)
-     '(:total 0 :again 0 :hard 0 :good 0 :easy 0))
+   '(:total 0 :again 0 :hard 0 :good 0 :easy 0)
    :items items))
 
 (defun org-fc-review-history-add (elements)
@@ -490,10 +488,10 @@ removed."
   "Store RATING in the review history of SESSION."
   (with-slots (ratings) session
     (cl-case rating
-      ('again (cl-incf (cl-getf ratings :again) 1))
-      ('hard (cl-incf (cl-getf ratings :hard) 1))
-      ('good (cl-incf (cl-getf ratings :good) 1))
-      ('easy (cl-incf (cl-getf ratings :easy) 1)))
+      (again (cl-incf (cl-getf ratings :again) 1))
+      (hard (cl-incf (cl-getf ratings :hard) 1))
+      (good (cl-incf (cl-getf ratings :good) 1))
+      (easy (cl-incf (cl-getf ratings :easy) 1)))
     (cl-incf (cl-getf ratings :total 1))))
 
 ;;; Header Line
