@@ -27,6 +27,13 @@
 
 (require 'org-fc-core)
 
+;;;; Customization
+
+(defcustom org-fc-algo-sm2-history-file (expand-file-name "org-fc-reviews.tsv" user-emacs-directory)
+  "File to store review history in."
+  :type 'string
+  :group 'org-fc)
+
 ;;;; Properties
 
 (org-fc-property org-fc-algo-sm2-ease-min 1.3
@@ -77,6 +84,28 @@ Values are in days."
                  :group 'org-fc
                  :property "FC_SM2_INTERVALS")
 
+(org-fc-property org-fc-algo-sm2-hard-factor
+                 nil
+                 "When set to a non-nil value, the interval of a card rated hard increases by this factor
+instead of the ease of the card."
+                 :type 'float
+                 :group 'org-fc
+                 :property "FC_SM2_HARD_FACTOR")
+
+(org-fc-property org-fc-algo-sm2-easy-bonus
+                 1.0
+                 "Factor applied to the interval of cards rated easy."
+                 :type 'float
+                 :group 'org-fc
+                 :property "FC_SM2_EASY_BONUS")
+
+(org-fc-property org-fc-algo-sm2-again-box
+                 1
+                 "Box cards rated `again' are moved to."
+                 :type 'integer
+                 :group 'org-fc
+                 :property "FC_SM2_AGAIN_BOX")
+
 ;;;; Helper Functions
 
 (defun org-fc-algo-sm2-fuzz (interval)
@@ -106,24 +135,69 @@ EASE, BOX and INTERVAL are the current parameters of the card."
           (cond
            ;; If a card is rated easy, skip the learning phase
            ((and (eq box 0) (eq rating 'easy)) 2)
-           ;; If the review failed, go back to box 0
-           ((eq rating 'again) 0)
+           ;; If the review failed, reset the box
+           ((eq rating 'again) (org-fc-algo-sm2-again-box))
            ;; Otherwise, move forward one box
            (t (1+ box))))
          (next-interval
           (cond ((< next-box (length intervals))
                  (nth next-box intervals))
-                ((and (eq org-fc-algorithm 'sm2-v2) (eq rating 'hard)) (* 1.2 interval))
+                ((eq rating 'hard)
+                 (let ((factor (or (org-fc-algo-sm2-hard-factor) next-ease)))
+                   (* factor interval)))
+                ((eq rating 'easy)
+                 (org-fc-algo-sm2-fuzz
+                  (* (org-fc-algo-sm2-easy-bonus) next-ease interval)))
                 (t (org-fc-algo-sm2-fuzz (* next-ease interval))))))
     (list next-ease next-box next-interval)))
 
-(defun org-fc-algo-sm2-initial-review-data (position)
-  "Initial SM2 review data for POSITION."
-  (let* ((box 0)
-         (ease (org-fc-algo-sm2-ease-initial))
-         (interval 0)
-         (due (org-fc-timestamp-in interval)))
-    (list position ease box interval due)))
+(defun org-fc-algo-sm2-initial-review-data ()
+  "Initial SM2 review data for any position."
+  (list
+   'ease (format "%.2f" (org-fc-algo-sm2-ease-initial))
+   'box (number-to-string 0)
+   'interval (format "%.2f" 0)
+   'due (org-fc-timestamp-in 0)))
+
+(defun org-fc-algo-sm2-next-review-data (old-data rating)
+  (let ((ease (string-to-number (plist-get old-data 'ease)))
+        (box (string-to-number (plist-get old-data 'box)))
+        (interval (string-to-number (plist-get old-data 'interval))))
+    (cl-destructuring-bind (next-ease next-box next-interval)
+        (org-fc-algo-sm2-next-parameters ease box interval rating)
+      (list
+       'ease (format "%.2f" next-ease)
+       'box (number-to-string next-box)
+       'interval (format "%.2f" next-interval)
+       'due (org-fc-timestamp-in next-interval)))))
+
+(defun org-fc-algo-sm2-history-add (position old-data rating delta)
+  (let* ((card (oref position card))
+         (path (oref (oref card file) path))
+         (id (oref card id))
+         (name (oref position name))
+
+         (ease (string-to-number (plist-get old-data 'ease)))
+         (box (string-to-number (plist-get old-data 'box)))
+         (interval (string-to-number (plist-get old-data 'interval)))
+
+         (elements
+          (list
+           (org-fc-timestamp-in 0)
+           path
+           id
+           name
+           (format "%.2f" ease)
+           (format "%d" box)
+           (format "%.2f" interval)
+           (symbol-name rating)
+           (format "%.2f" delta)
+           (symbol-name 'sm2))))
+
+    (append-to-file
+     (format "%s\n" (mapconcat #'identity elements "\t"))
+     nil
+     org-fc-algo-sm2-history-file)))
 
 ;;; Footer
 
