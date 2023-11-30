@@ -150,22 +150,40 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
            (read output))
         (error "Org-fc shell error: %s" output)))))
 
-(defun org-fc-awk-stats-reviews ()
+(defun org-fc-awk-sm2-review-stats ()
   "Statistics for all card reviews.
 Return nil there is no history file."
-  (if (file-exists-p org-fc-review-history-file)
+  (if (file-exists-p org-fc-algo-sm2-history-file)
       (let ((output
              (shell-command-to-string
               (if org-fc-awk-review-history-limit
                   (org-fc-awk--pipe
-                   (format "tail -n%s %s" org-fc-awk-review-history-limit org-fc-review-history-file)
+                   (format "tail -n%s %s" org-fc-awk-review-history-limit org-fc-algo-sm2-history-file)
                    (org-fc-awk--command
-                    "awk/stats_reviews.awk"
+                    "awk/sm2_review_stats.awk"
                     :variables `(("min_box" . ,org-fc-stats-review-min-box))))
                 (org-fc-awk--command
-                 "awk/stats_reviews.awk"
-                 :input org-fc-review-history-file
+                 "awk/sm2_review_stats.awk"
+                 :input org-fc-algo-sm2-history-file
                  :variables `(("min_box" . ,org-fc-stats-review-min-box)))))))
+        (if (string-prefix-p "(" output)
+            (read output)
+          (error "Org-fc shell error: %s" output)))))
+
+(defun org-fc-awk-fsrs-review-stats ()
+  "Statistics for all card reviews.
+Return nil there is no history file."
+  (if (file-exists-p org-fc-algo-fsrs-history-file)
+      (let ((output
+             (shell-command-to-string
+              (if org-fc-awk-review-history-limit
+                  (org-fc-awk--pipe
+                   (format "tail -n%s %s" org-fc-awk-review-history-limit org-fc-algo-fsrs-history-file)
+                   (org-fc-awk--command
+                    "awk/fsrs_review_stats.awk"))
+                (org-fc-awk--command
+                 "awk/fsrs_review_stats.awk"
+                 :input org-fc-algo-fsrs-history-file)))))
         (if (string-prefix-p "(" output)
             (read output)
           (error "Org-fc shell error: %s" output)))))
