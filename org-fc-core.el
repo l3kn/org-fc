@@ -244,6 +244,15 @@ BLACKLIST."
          (setq plist (cddr plist))))
      result))
 
+(defun org-fc-plist-merge (old new)
+  "Add all bindings from plist NEW to OLD."
+  (while new
+    (let ((key (car new))
+          (value (cadr new)))
+      (setq old (plist-put old key value))
+      (setq new (cddr new))))
+  old)
+
 (defmacro org-fc-with-point-at-entry (&rest body)
   "Execute BODY with point at the card heading.
 If point is not inside a flashcard entry, an error is raised."
