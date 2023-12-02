@@ -42,7 +42,7 @@
 
 (defcustom org-fc-directories '("~/org/")
   "Directories to search for flashcards."
-  :type 'string
+  :type '(repeat directory)
   :group 'org-fc)
 
 (defvar org-fc-source-path
@@ -53,7 +53,7 @@ Used to generate absolute paths to the awk scripts.")
 
 (defcustom org-fc-review-history-file (expand-file-name "org-fc-reviews.tsv" user-emacs-directory)
   "File to store review results in."
-  :type 'string
+  :type 'file
   :group 'org-fc)
 
 (defcustom org-fc-shuffle-positions t
@@ -113,7 +113,7 @@ types."
 
 (defcustom org-fc-drawer-whitelist '()
   "Drawers that are not hidden during review."
-  :type 'list
+  :type '(repeat string)
   :group 'org-fc)
 
 (defcustom org-fc-stats-review-min-box 0
@@ -125,7 +125,7 @@ types."
 
 (defcustom org-fc-algorithm 'sm2-v1
   "Algorithm for spacing reviews of cards."
-  :type '(choice (const sm2-v1) (const sm2-v2))
+  :type '(choice (const :tag "SM2 Version 1" sm2-v1) (const :tag "SM2 Version 2" sm2-v2))
   :group 'org-fc)
 
 (defcustom org-fc-bury-siblings nil

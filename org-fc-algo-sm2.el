@@ -111,7 +111,8 @@
                    (good . 0.0)
                    (easy . 0.15))
                  "Changes to a cards ease depending on its rating."
-                 :type 'list
+                 :type '(alist :key-type (symbol :tag "Rating: ")
+                               :value-type (float :tag "Adjustment: "))
                  :group 'org-fc
                  :property "FC_SM2_CHANGES")
 
@@ -119,7 +120,7 @@
                  '(0.0 0.01 1.0 6.0)
                  "Hard-coded intervals for the first few card boxes.
 Values are in days."
-                 :type 'list
+                 :type '(repeat float)
                  :group 'org-fc
                  :property "FC_SM2_INTERVALS")
 
