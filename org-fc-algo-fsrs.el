@@ -429,3 +429,5 @@
      (format "%s\n" (mapconcat #'identity elements "\t"))
      nil
      org-fc-algo-fsrs-history-file)))
+
+(provide 'org-fc-algo-fsrs)
