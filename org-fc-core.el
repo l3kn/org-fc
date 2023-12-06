@@ -656,7 +656,7 @@ Other useful values are:
   "Re-process the current flashcard."
   (interactive)
   (org-fc-with-point-at-entry
-   (let ((type (org-entry-get (point) "FC_TYPE")))
+   (let ((type (org-entry-get (point) org-fc-type-property)))
      (funcall (org-fc-type-update-fn type)))))
 
 ;;;###autoload
