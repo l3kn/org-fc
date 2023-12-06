@@ -152,11 +152,13 @@ the file at the given speed."
    (org-fc-audio-play-position org-fc-audio-after-flip-prefix)))
 
 (defun org-fc-audio-replay ()
+  "Replay the most recent audio file."
   (interactive)
   (when org-fc-audio-last-file
     (org-fc-audio-play-file org-fc-audio-last-file 1.0)))
 
 (defun org-fc-audio-replay-slow ()
+  "Replay the most recent audio file at slow speed."
   (interactive)
   (when org-fc-audio-last-file
     (org-fc-audio-play-file org-fc-audio-last-file 0.7)))
