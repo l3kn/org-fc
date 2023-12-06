@@ -109,11 +109,16 @@ the file at the given speed."
 
 (defvar org-fc-audio--process nil)
 
+(defun org-fc-audio-stop ()
+  "Stop org-fc audio playback."
+  (interactive)
+  (when (process-live-p org-fc-audio--process)
+    (kill-process org-fc-audio--process)))
+
 (defun org-fc-audio-play-file (file speed)
   "Play the audio FILE at SPEED."
+  (org-fc-audio-stop)
   (setq org-fc-audio-last-file file)
-  (when (process-live-p org-fc-audio--process)
-    (kill-process org-fc-audio--process))
   (setq org-fc-audio--process
         (start-process-shell-command
          "org-fc audio"
