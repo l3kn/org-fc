@@ -136,6 +136,7 @@ the file at the given speed."
 (add-hook
  'org-fc-before-setup-hook
  (lambda ()
+   (org-fc-audio-stop)
    (org-fc-audio-play org-fc-audio-before-setup-property)
    (org-fc-audio-play-position org-fc-audio-before-setup-prefix)))
 
