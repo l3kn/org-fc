@@ -107,26 +107,19 @@
    last-d
    last-s
    retrievability)
-  (with-slots (again hard good easy) s
-    (let ((next-d (org-fc-algo-fsrs-next-difficulty scheduler last-d 'again)))
-      (oset again difficulty next-d)
-      (oset again stability
-            (org-fc-algo-fsrs-next-forget-stability scheduler last-d last-s retrievability)))
 
-    (let ((next-d (org-fc-algo-fsrs-next-difficulty scheduler last-d 'hard)))
-      (oset hard difficulty next-d)
-      (oset hard stability
-            (org-fc-algo-fsrs-next-recall-stability scheduler last-d last-s retrievability 'hard)))
+  ;; Set parameters for failed review
+  (oset (oref s again) difficulty
+        (org-fc-algo-fsrs-next-difficulty scheduler last-d 'again))
+  (oset (oref s again) stability
+        (org-fc-algo-fsrs-next-forget-stability scheduler last-d last-s retrievability))
 
-    (let ((next-d (org-fc-algo-fsrs-next-difficulty scheduler last-d 'good)))
-      (oset good difficulty next-d)
-      (oset good stability
-            (org-fc-algo-fsrs-next-recall-stability scheduler last-d last-s retrievability 'good)))
-
-    (let ((next-d (org-fc-algo-fsrs-next-difficulty scheduler last-d 'easy)))
-      (oset easy difficulty next-d)
-      (oset easy stability
-            (org-fc-algo-fsrs-next-recall-stability scheduler last-d last-s retrievability 'easy)))))
+  ;; Set parameters for successful reviews
+  (dolist (rating '(hard good easy))
+    (oset (eieio-oref s rating) difficulty
+          (org-fc-algo-fsrs-next-difficulty scheduler last-d rating))
+    (oset (eieio-oref s rating) stability
+          (org-fc-algo-fsrs-next-recall-stability scheduler last-d last-s retrievability rating))))
 
 (defclass org-fc-algo-fsrs-position ()
   ((state
