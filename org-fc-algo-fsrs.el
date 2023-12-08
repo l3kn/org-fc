@@ -111,22 +111,22 @@
     (let ((next-d (org-fc-algo-fsrs-next-difficulty scheduler last-d 'again)))
       (oset again difficulty next-d)
       (oset again stability
-            (org-fc-algo-fsrs-next-forget-stability scheduler next-d last-s retrievability)))
+            (org-fc-algo-fsrs-next-forget-stability scheduler last-d last-s retrievability)))
 
     (let ((next-d (org-fc-algo-fsrs-next-difficulty scheduler last-d 'hard)))
       (oset hard difficulty next-d)
       (oset hard stability
-            (org-fc-algo-fsrs-next-recall-stability scheduler next-d last-s retrievability 'hard)))
+            (org-fc-algo-fsrs-next-recall-stability scheduler last-d last-s retrievability 'hard)))
 
     (let ((next-d (org-fc-algo-fsrs-next-difficulty scheduler last-d 'good)))
       (oset good difficulty next-d)
       (oset good stability
-            (org-fc-algo-fsrs-next-recall-stability scheduler next-d last-s retrievability 'good)))
+            (org-fc-algo-fsrs-next-recall-stability scheduler last-d last-s retrievability 'good)))
 
     (let ((next-d (org-fc-algo-fsrs-next-difficulty scheduler last-d 'easy)))
       (oset easy difficulty next-d)
       (oset easy stability
-            (org-fc-algo-fsrs-next-recall-stability scheduler next-d last-s retrievability 'easy)))))
+            (org-fc-algo-fsrs-next-recall-stability scheduler last-d last-s retrievability 'easy)))))
 
 (defclass org-fc-algo-fsrs-position ()
   ((state
