@@ -351,8 +351,6 @@
             (plist-get old-data 'due))
            "UTC0"))
 
-         (foo (message (format "%s" due)))
-
          (state (intern (plist-get old-data 'state)))
          (difficulty (string-to-number (plist-get old-data 'difficulty)))
          (stability (string-to-number (plist-get old-data 'stability)))
