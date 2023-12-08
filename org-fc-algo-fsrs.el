@@ -88,18 +88,11 @@
 (cl-defmethod org-fc-algo-fsrs-init-ds
   ((s org-fc-algo-fsrs-scheduling-positions)
    (scheduler org-fc-algo-fsrs-scheduler))
-  (with-slots (again hard good easy) s
-    (oset again difficulty (org-fc-algo-fsrs-init-difficulty scheduler 'again))
-    (oset again stability  (org-fc-algo-fsrs-init-stability  scheduler 'again))
-
-    (oset hard  difficulty (org-fc-algo-fsrs-init-difficulty scheduler 'hard))
-    (oset hard  stability  (org-fc-algo-fsrs-init-stability  scheduler 'hard))
-
-    (oset good  difficulty (org-fc-algo-fsrs-init-difficulty scheduler 'good))
-    (oset good  stability  (org-fc-algo-fsrs-init-stability  scheduler 'good))
-
-    (oset easy  difficulty (org-fc-algo-fsrs-init-difficulty scheduler 'easy))
-    (oset easy  stability  (org-fc-algo-fsrs-init-stability  scheduler 'easy))))
+  (dolist (rating '(again hard good easy))
+    (oset (eieio-oref s rating) difficulty
+          (org-fc-algo-fsrs-init-difficulty scheduler rating))
+    (oset (eieio-oref s rating) stability
+          (org-fc-algo-fsrs-init-stability  scheduler rating))))
 
 (cl-defmethod org-fc-algo-fsrs-next-ds
   ((s org-fc-algo-fsrs-scheduling-positions)
