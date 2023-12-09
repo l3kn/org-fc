@@ -163,8 +163,8 @@ environment without svg support."
           (when (time-less-p minus-week card-created)
             (cl-incf (cl-getf created :week) 1))
           (when (time-less-p minus-month card-created)
-            (cl-incf (cl-getf created :month) 1))))
-      (cl-incf (gethash (oref card type) by-type 0) 1))
+            (cl-incf (cl-getf created :month) 1))
+          (cl-incf (gethash (oref card type) by-type 0) 1))))
 
     (insert (format "  New: %d (day) %d (week) %d (month) \n"
                     (plist-get created :day)
@@ -172,10 +172,8 @@ environment without svg support."
                     (plist-get created :month)))
 
     (insert "\n")
-    (insert (format
-             "  %6d Cards, %d suspended\n"
-             total
-             suspended))
+    (insert (format "  %6d cards\n" total))
+    (insert (format "  %6d suspended\n" suspended))
     (dolist (pair (org-fc-dashboard--hashtable-to-alist by-type))
       (insert (format "  %6d %s\n" (cdr pair) (car pair))))
     (insert "\n")))
