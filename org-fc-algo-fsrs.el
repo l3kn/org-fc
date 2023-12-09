@@ -9,8 +9,8 @@
 (defclass org-fc-algo-fsrs-parameters ()
   ((weights
     :initarg :weights
-    :type list
-    :custom (repeat float)
+    :type vector
+    :custom (vector float)
     :documentation "List of weights")
    (request-retention
     :initarg :request-retention
@@ -31,7 +31,7 @@
 (setq org-fc-algo-fsrs-default-parameters
       (org-fc-algo-fsrs-parameters
        :weights
-       '(0.4 0.6 2.4 5.8 4.93 0.94 0.86 0.01 1.49 0.14 0.94 2.18 0.05 0.34 1.26 0.29 2.61)
+       [0.4 0.6 2.4 5.8 4.93 0.94 0.86 0.01 1.49 0.14 0.94 2.18 0.05 0.34 1.26 0.29 2.61]
        :request-retention 0.90))
 
 (setq org-fc-algo-fsrs-default-scheduler
@@ -262,7 +262,7 @@
   (let ((parameters (oref scheduler parameters))
         (r (org-fc-algo-fsrs--rating-to-number rating)))
     (max
-     (nth (- r 1) (oref parameters weights))
+     (aref (oref parameters weights) (- r 1))
      0.1)))
 
 (cl-defmethod org-fc-algo-fsrs-init-difficulty ((scheduler org-fc-algo-fsrs-scheduler) rating)
@@ -272,8 +272,8 @@
     (min
      (max
       (-
-       (nth 4 weights)
-       (* (nth 5 weights) (- r 3)))
+       (aref weights 4)
+       (* (aref weights 5) (- r 3)))
       1)
      10)))
 
@@ -289,10 +289,10 @@
   (let* ((r (org-fc-algo-fsrs--rating-to-number rating))
          (parameters (oref scheduler parameters))
          (weights (oref parameters weights))
-         (next-d (- d (* (nth 6 weights) (- r 3)))))
+         (next-d (- d (* (aref weights 6) (- r 3)))))
     (min
      (max
-      (org-fc-algo-fsrs-mean-reversion scheduler (nth 4 weights) next-d)
+      (org-fc-algo-fsrs-mean-reversion scheduler (aref weights 4) next-d)
       1)
      10)))
 
@@ -300,32 +300,32 @@
   (let* ((parameters (oref scheduler parameters))
          (weights (oref parameters weights)))
     (+
-     (* (nth 7 weights) init)
-     (* (- 1 (nth 7 weights)) current))))
+     (* (aref weights 7) init)
+     (* (- 1 (aref weights 7)) current))))
 
 (cl-defmethod org-fc-algo-fsrs-next-recall-stability ((scheduler org-fc-algo-fsrs-scheduler) d s retrievability rating)
   (let* ((parameters (oref scheduler parameters))
          (weights (oref parameters weights))
          (hard-penalty
-          (if (eq rating 'hard) (nth 15 weights) 1))
+          (if (eq rating 'hard) (aref weights 15) 1))
          (easy-bonus
-          (if (eq rating 'easy) (nth 16 weights) 1)))
+          (if (eq rating 'easy) (aref weights 16) 1)))
     (* s
        (+ 1
-          (* (exp (nth 8 weights))
+          (* (exp (aref weights 8))
              (- 11 d)
-             (expt s (- (nth 9 weights)))
-             (- (exp (* (- 1 retrievability) (nth 10 weights))) 1)
+             (expt s (- (aref weights 9)))
+             (- (exp (* (- 1 retrievability) (aref weights 10))) 1)
              hard-penalty
              easy-bonus)))))
 
 (cl-defmethod org-fc-algo-fsrs-next-forget-stability ((scheduler org-fc-algo-fsrs-scheduler) d s retrievability)
   (let* ((parameters (oref scheduler parameters))
          (weights (oref parameters weights)))
-    (* (nth 11 weights)
-       (expt d (- (nth 12 weights)))
-       (- (expt (+ s 1) (nth 13 weights)) 1)
-       (exp (* (- 1 retrievability) (nth 14 weights))))))
+    (* (aref weights 11)
+       (expt d (- (aref weights 12)))
+       (- (expt (+ s 1) (aref weights 13)) 1)
+       (exp (* (- 1 retrievability) (aref weights 14))))))
 
 (defun org-fc-algo-fsrs-initial-review-data ()
   "Initial FSRS review data for any position."
