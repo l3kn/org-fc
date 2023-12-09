@@ -152,6 +152,8 @@ the file at the given speed."
    (org-fc-audio-play org-fc-audio-after-flip-property)
    (org-fc-audio-play-position org-fc-audio-after-flip-prefix)))
 
+(add-hook 'org-fc-after-review-hook #'org-fc-audio-stop)
+
 (defun org-fc-audio-replay ()
   "Replay the most recent audio file."
   (interactive)
