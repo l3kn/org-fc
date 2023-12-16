@@ -49,8 +49,6 @@ BEGIN {
     state_review_data = 4;
     state_review_data_body = 5;
     state_review_data_done = 6;
-
-    print "(";
 }
 
 ## File Parsing
@@ -62,7 +60,7 @@ BEGINFILE {
     parent_tags[0] = "";
     state = state_file;
 
-    print "  (" \
+    print "(" \
         ":path " escape_string(FILENAME) \
         " :cards (";
 }
@@ -229,8 +227,4 @@ $0 ~ review_data_drawer {
         review_index += 1;
     }
     next;
-}
-
-END {
-    print ")";
 }
