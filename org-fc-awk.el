@@ -112,7 +112,7 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
                         (if filter
                             (cl-remove-if-not filter cards)
                           cards))))
-         (read output))
+         (read (concat "(" output ")")))
       (error "Org-fc shell error: %s" output))))
 
 (defun org-fc-awk-stats-reviews ()
