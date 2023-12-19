@@ -35,12 +35,12 @@
   "Generate shell code to search PATHS for org files.
 Matches all .org files ignoring ones with names don't start with
 a '.' to exclude temporary / backup files.
-With the '-L' option, 'find' follows symlinks."
-  (format
-   "find -L %s -name \"*.org\" -not -name \".*\" -print0"
-   (mapconcat
-    (lambda (path) (shell-quote-argument (expand-file-name path)))
-    paths " ")))
+With the '-L' option follows symlinks."
+  (let ((xgrep "| xargs -0r grep -lZ ^:FC_CREATED:")
+        (p (mapconcat (lambda (path) (shell-quote-argument (expand-file-name path))) paths " ")))
+    (cond ((executable-find "rg") (format "rg ^:FC_CREATED: -L -l -0 -torg %s" p))
+          ((executable-find "fd") (format "fd 'org$' -L -0 %s %s" p xgrep))
+          (t (format "find -L %s -name '*.org' -not -name '.*' -print0 %s" p xgrep)))))
 
 (defun org-fc-awk--indexer-variables ()
   "Variables to pass to indexer scripts."
