@@ -71,6 +71,11 @@ Used to generate absolute paths to the awk scripts.")
   :type 'function
   :group 'org-fc)
 
+(defcustom org-fc-use-ripgrep nil
+  "Use ripgrep instead of find."
+  :type 'boolean
+  :group 'org-fc)
+
 ;;;; Org Tags / Properties
 
 (defcustom org-fc-type-property "FC_TYPE"

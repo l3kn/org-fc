@@ -37,7 +37,9 @@ Matches all .org files ignoring ones with names don't start with
 a '.' to exclude temporary / backup files.
 With the '-L' option, 'find' follows symlinks."
   (format
-   "find -L %s -name \"*.org\" -not -name \".*\" -print0"
+   (if (and org-fc-use-ripgrep (executable-find "rg"))
+          "rg ^:FC_CREATED: -L -l --null -g '[^.]*.org' %s"
+     "find -L %s -name \"*.org\" -not -name \".*\" -print0")
    (mapconcat
     (lambda (path) (shell-quote-argument (expand-file-name path)))
     paths " ")))
