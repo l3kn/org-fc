@@ -50,6 +50,11 @@
   (org-fc--init-card "vocab")
   (org-fc-review-data-update '("front" "back")))
 
+(defun org-fc-type-vocab-reset ()
+  "Reset review data for a vocab card."
+  (interactive)
+  (org-fc-review-data-update '("front" "back")) 't)
+
 (defun org-fc-type-vocab-setup (position)
   "Prepare POSITION of a vocab card for review."
   (pcase position
@@ -119,7 +124,8 @@
  'vocab
  'org-fc-type-vocab-setup
  'org-fc-type-vocab-flip
- 'org-fc-noop)
+ 'org-fc-noop
+ 'org-fc-type-vocab-reset)
 
 ;;; Footer
 

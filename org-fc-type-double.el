@@ -37,6 +37,11 @@
   (org-fc--init-card "double")
   (org-fc-review-data-update '("front" "back")))
 
+(defun org-fc-type-double-reset ()
+  "Reset review data for the double type."
+  (interactive)
+  (org-fc-review-data-update '("front" "back") 't))
+
 (defun org-fc-type-double-setup (position)
   "Prepare POSITION of a double card for review."
   (pcase position
@@ -66,7 +71,8 @@
  'double
  'org-fc-type-double-setup
  'org-fc-type-double-flip
- 'org-fc-noop)
+ 'org-fc-noop
+ 'org-fc-type-double-reset)
 
 ;;; Footer
 

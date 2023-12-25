@@ -405,17 +405,17 @@ END is the start of the line with :END: on it."
     ('sm2-v1 (org-fc-algo-sm2-initial-review-data position))
     ('sm2-v2 (org-fc-algo-sm2-initial-review-data position))))
 
-(defun org-fc-review-data-update (positions)
+(defun org-fc-review-data-update (positions &optional reset)
   "Update review data to POSITIONS.
 If a doesn't exist already, it is initialized with default
 values.  Entries in the table not contained in POSITIONS are
-removed."
+removed. If RESET flag is set, review data will be reset for sharing."
   (let ((old-data (org-fc-review-data-get)))
     (org-fc-review-data-set
      (mapcar
       (lambda (pos)
         (or
-         (assoc pos old-data #'string=)
+         (and (not reset) (assoc pos old-data #'string=))
          (org-fc-review-data-default pos)))
       positions))))
 

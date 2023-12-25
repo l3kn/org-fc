@@ -59,6 +59,11 @@ function is expected to be called with point on a heading."
   (org-fc--init-card "text-input")
   (org-fc-review-data-update '("front")))
 
+(defun org-fc-type-text-input-reset ()
+  "Mark headline as card of the text-input type."
+  (interactive)
+  (org-fc-review-data-update '("front") 't))
+
 (defun org-fc-type-text-input-setup (_position)
   "Prepare a text-input card for review."
   (interactive)
@@ -103,7 +108,8 @@ function is expected to be called with point on a heading."
  'text-input
  'org-fc-type-text-input-setup
  nil
- 'org-fc-noop)
+ 'org-fc-noop
+ 'org-fc-type-text-input-reset)
 
 ;;; Footer
 

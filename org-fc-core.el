@@ -304,14 +304,15 @@ Should only be used by the init functions of card TYPEs."
 Entries should be lists (name handler-fn update-fn).
 Use `org-fc-register-type' for adding card types.")
 
-(defun org-fc-register-type (name setup-fn flip-fn update-fn)
+(defun org-fc-register-type (name setup-fn flip-fn update-fn reset-fn)
   "Register a new card type.
 Argument NAME Name of the new type.
 Argument SETUP-FN Function for initializing a new card of this type.
 Argument FLIP-FN Function for flipping a card during review.
-Argument UPDATE-FN Function to update a card when it's contents have changed."
+Argument UPDATE-FN Function to update a card when it's contents have changed.
+Argument RESET-FN Functin to reset review data for a card for sharing."
   (push
-   (list name setup-fn flip-fn update-fn)
+   (list name setup-fn flip-fn update-fn reset-fn)
    org-fc-types))
 
 (defun org-fc-type-setup-fn (type)
@@ -333,6 +334,13 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
   (let ((entry (alist-get type org-fc-types nil nil #'string=)))
     (if entry
         (cl-third entry)
+      (error "No such flashcard type: %s" type))))
+
+(defun org-fc-type-reset-fn (type)
+  "Get the reset function for a card of TYPE."
+  (let ((entry (alist-get type org-fc-types nil nil #'string=)))
+    (if entry
+        (cl-fourth entry)
       (error "No such flashcard type: %s" type))))
 
 ;;; Working with Overlays / Hiding Text
