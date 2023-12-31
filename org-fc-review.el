@@ -388,7 +388,7 @@ END is the start of the line with :END: on it."
   "Set the cards review data to DATA."
   (save-excursion
     (let ((position (org-fc-review-data-position 'create)))
-      (kill-region (car position) (cdr position))
+      (delete-region (car position) (cdr position))
       (goto-char (car position))
       (insert "| position | ease | box | interval | due |\n")
       (insert "|-|-|-|-|-|\n")
