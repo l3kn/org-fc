@@ -24,6 +24,8 @@
 ;;
 ;;; Code:
 
+(require 'thingatpt)
+
 (require 'org-fc-core)
 
 (defcustom org-fc-type-cloze-type-property "FC_CLOZE_TYPE"
@@ -206,6 +208,49 @@ Processes all holes in the card text."
      org-fc-type-cloze-max-hole-property
      (format "%s" (1- hole-id)))
     (org-fc-review-data-update (reverse ids))))
+
+(defun org-fc-cloze-dwim (&optional hint)
+  "Convert current active region or word under cursor to Cloze
+syntax.
+
+This calls `org-fc--region-to-cloze' with the active region as
+the argument then, prompt user for hint. The function will
+replace the region with the new string in the format of {{REGION}{HINT}@N}
+
+where REGION is the replaced string.
+HINT is what the user specifies in the prompt, will naturally be omitted
+if the user specifies an empty string for the prompt.
+and N will be the prefix argument the user gives in ARG."
+  (interactive "sHint (optional): ")
+  (cond
+   ((region-active-p)
+    (org-fc-type-cloze--mark-hole
+     (region-beginning)
+     ;; If the region includes a trailing newline, insert the cloze
+     ;; hole marker before the newline.
+     (save-excursion
+       (goto-char (region-end))
+       (skip-chars-backward "\n" 1)
+       (point))
+     hint))
+   ((bounds-of-thing-at-point 'word)
+    (let ((bounds (bounds-of-thing-at-point 'word)))
+      (org-fc-type-cloze--mark-hole (car bounds) (cdr bounds) hint)))
+   (t (user-error "Can't determine region to mark as a cloze-hole.")))
+
+  (when (and (org-fc-entry-p)
+             (string= "cloze" (org-entry-get nil org-fc-type-property)))
+    (org-fc-with-point-at-entry (org-fc-update))))
+
+(defun org-fc-type-cloze--mark-hole (begin end &optional hint)
+  "Mark region from BEGIN to END as a cloze hole."
+  (save-excursion
+    (goto-char end)
+    (if (and (stringp hint) (not (string-blank-p hint)))
+        (insert (format "}{%s}}" hint))
+        (insert "}}"))
+    (goto-char begin)
+    (insert "{{")))
 
 (org-fc-register-type
  'cloze
