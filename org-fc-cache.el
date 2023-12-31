@@ -55,7 +55,7 @@
               (gethash file hashes)))
            (hash-table-keys hashes))))
     ;; Update changed files
-    (dolist (new (org-fc-awk-index-paths changed))
+    (dolist (new (org-fc-awk-index changed))
       (let* ((path (plist-get new :path))
              (hash (gethash path hashes)))
         (puthash
