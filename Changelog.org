@@ -5,6 +5,26 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.2.0
+*** Added
+
+- The ~org-fc-type-cloze-dwim~ command that can be used to mark regions
+  in a file as cloze holes (contributed by Github user c1-g)
+
+*** Fixed
+
+- Results of the AWK indexer are parsed in a way that prevents an
+  issue where some files would get ignored when indexing many files at
+  once (contributed by Github user mithraen)
+
+- The ~find~ command for searching org-mode files was improved to
+  ignore directories with a name ending in =.org= (contributed by
+  Github user vedang)
+
+- When updating the review data drawer, ~delete-region~ is used
+  instead of ~kill-region~ to avoid polluting the clipboard/kill-ring
+  (contributed by sr.ht user bram85)
+
 ** 0.1.0
 *** Added
 - A ~org-fc-after-flip-hook~ that is run after a card is flipped
