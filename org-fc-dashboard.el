@@ -177,6 +177,78 @@ environment without svg support."
        (colored-bar good "green")
        (colored-bar easy "blue")))))
 
+;;; Section Definitions
+
+(defun org-fc-dashboard-insert-overview (cards)
+  (let* ((card-count (length cards)) (suspended 0) (pos-count 0)
+         (created (list :day 0 :week 0 :month 0))
+         (due (list :now 0 :day 0 :week 0 :month 0))
+         (now (current-time))
+         (minus-day (time-subtract now (* 24 60 60)))
+         (minus-week (time-subtract now (* 7 24 60 60)))
+         (minus-month (time-subtract now (* 30 24 60 60)))
+         (plus-day (time-add now (* 24 60 60)))
+         (plus-week (time-add now (* 7 24 60 60)))
+         (plus-month (time-add now (* 30 24 60 60))))
+    (dolist (card cards)
+      (if (plist-get card :suspended)
+          (cl-incf suspended 1)
+        (let ((card-created (plist-get card :created)))
+
+          (if (time-less-p minus-day card-created)
+              (cl-incf (cl-getf created :day) 1))
+          (if (time-less-p minus-week card-created)
+              (cl-incf (cl-getf created :week) 1))
+          (if (time-less-p minus-month card-created)
+              (cl-incf (cl-getf created :month) 1))
+
+          (dolist (pos (plist-get card :positions))
+            (cl-incf pos-count)
+
+            (let ((pos-due (plist-get pos :due)))
+              (if (time-less-p pos-due now)
+                  (cl-incf (cl-getf due :now) 1))
+              (if (time-less-p pos-due plus-day)
+                  (cl-incf (cl-getf due :day) 1))
+              (if (time-less-p pos-due plus-week)
+                  (cl-incf (cl-getf due :week) 1))
+              (if (time-less-p pos-due plus-month)
+                  (cl-incf (cl-getf due :month) 1)))))))
+
+    (insert
+     (propertize "Overview\n\n" 'face 'org-level-1))
+
+    (insert (format
+	     "  %d cards, %d suspended\n"
+	     card-count suspended))
+    (insert (format "  new: %d (day) %d (week) %d (month) \n"
+		    (plist-get created :day)
+		    (plist-get created :week)
+		    (plist-get created :month)))
+
+    (insert "\n")
+
+    (insert (format "  %d positions\n" pos-count))
+
+    (when (plusp pos-count)
+      (insert (format "  due: %d (now) %d (day) %d (week) %d (month)\n\n"
+		      (plist-get due :now)
+		      (plist-get due :day)
+		      (plist-get due :week)
+		      (plist-get due :month))))))
+
+(defun org-fc-dashboard-insert-cards-by-type (cards)
+  (let* ((by-type (make-hash-table)))
+    (dolist (card cards)
+      (unless (plist-get card :suspended)
+	(cl-incf (gethash (plist-get card :type) by-type 0) 1)))
+
+    (insert
+     (propertize "Cards by Type\n\n" 'face 'org-level-1))
+    (dolist (pair (org-fc-dashboard--hashtable-to-alist by-type))
+      (insert (format "  %6d %s\n" (cdr pair) (car pair))))
+    (insert "\n")))
+
 ;;; Main View
 
 ;; Based on `mu4e-main-view-real'
@@ -192,34 +264,13 @@ environment without svg support."
     (with-current-buffer buf
       (erase-buffer)
 
-      (insert
-       (propertize "Card Statistics\n\n" 'face 'org-level-1))
+      (org-fc-dashboard-insert-overview index)
+      (org-fc-dashboard-insert-cards-by-type index)
 
-      (insert (format "  New: %d (day) %d (week) %d (month) \n"
-                      (plist-get created-stats :day)
-                      (plist-get created-stats :week)
-                      (plist-get created-stats :month)))
-
-      (insert "\n")
-      (insert (format
-               "  %6d Cards, %d suspended\n"
-               (plist-get stats :total)
-               (plist-get stats :suspended)))
-      (dolist (pair (plist-get stats :by-type))
-        (insert (format "  %6d %s\n" (cdr pair) (car pair))))
-      (insert "\n")
       (insert
        (propertize "Position Statistics\n\n" 'face 'org-level-1))
 
-      (insert (format "  Total: %d\n\n"
-                      (plist-get stats :total-positions)))
-
       (when (plusp (plist-get stats :total-positions))
-	(insert (format "  Due: %d (now) %d (day) %d (week) %d (month)\n\n"
-			(plist-get due-stats :now)
-			(plist-get due-stats :day)
-			(plist-get due-stats :week)
-			(plist-get due-stats :month)))
 
 	(dolist (position '((:avg-ease . "Avg. Ease")
 			    (:avg-box . "Avg. Box")
