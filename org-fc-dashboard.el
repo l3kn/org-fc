@@ -198,10 +198,10 @@ environment without svg support."
      (propertize "Review Statistics (All Cards)\n\n" 'face 'org-level-1))
     (if reviews-stats
 	(progn
-	  (dolist (scope '((:day . "Day")
-			   (:week . "Week")
-			   (:month . "Month")
-			   (:all . "All")))
+	  (dolist (scope '((:day . "day")
+			   (:week . "week")
+			   (:month . "month")
+			   (:all . "all")))
 	    (when-let (stat (plist-get reviews-stats (car scope)))
 	      (when (plusp (plist-get stat :total))
 		(insert "  ")
