@@ -71,64 +71,7 @@ environment without svg support."
       (push (cons key (gethash key ht)) res))
     res))
 
-;;; Stats
 
-(defun org-fc-dashboard-stats (index)
-  "Compute statistics for an INDEX of cards and positions."
-  (let* ((total 0) (suspended 0)
-         (by-type (make-hash-table))
-         (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0)
-         (n-pos 0)
-         ;; NOTE: This has to use `list' so incf + getf works as
-         ;; expected
-         (created (list :day 0 :week 0 :month 0))
-         (due (list :now 0 :day 0 :week 0 :month 0))
-         (now (current-time))
-         (minus-day (time-subtract now (* 24 60 60)))
-         (minus-week (time-subtract now (* 7 24 60 60)))
-         (minus-month (time-subtract now (* 30 24 60 60)))
-         (plus-day (time-add now (* 24 60 60)))
-         (plus-week (time-add now (* 7 24 60 60)))
-         (plus-month (time-add now (* 30 24 60 60))))
-    (dolist (card index)
-      (cl-incf total 1)
-      (if (plist-get card :suspended)
-          (cl-incf suspended 1)
-        (let ((card-created (plist-get card :created)))
-
-          (if (time-less-p minus-day card-created)
-              (cl-incf (cl-getf created :day) 1))
-          (if (time-less-p minus-week card-created)
-              (cl-incf (cl-getf created :week) 1))
-          (if (time-less-p minus-month card-created)
-              (cl-incf (cl-getf created :month) 1))
-
-          (dolist (pos (plist-get card :positions))
-            (cl-incf n-pos 1)
-
-            (let ((pos-due (plist-get pos :due)))
-              (if (time-less-p pos-due now)
-                  (cl-incf (cl-getf due :now) 1))
-              (if (time-less-p pos-due plus-day)
-                  (cl-incf (cl-getf due :day) 1))
-              (if (time-less-p pos-due plus-week)
-                  (cl-incf (cl-getf due :week) 1))
-              (if (time-less-p pos-due plus-month)
-                  (cl-incf (cl-getf due :month) 1)))
-
-            (cl-incf avg-ease (plist-get pos :ease))
-            (cl-incf avg-box (plist-get pos :box))
-            (cl-incf avg-interval (plist-get pos :interval)))))
-      (cl-incf (gethash (plist-get card :type) by-type 0) 1))
-    (list :total total
-          :total-positions n-pos
-          :suspended suspended
-          :due due
-          :by-type (org-fc-dashboard--hashtable-to-alist by-type)
-          :created created
-          :avg-ease (/ avg-ease n-pos)
-          :avg-box (/ avg-box n-pos)
-          :avg-interval (/ avg-interval n-pos))))
 
 ;;; Bar Chart Generation
 
@@ -270,6 +213,25 @@ environment without svg support."
 	  (insert "\n"))
       (insert "  No reviews yet\n\n"))))
 
+(defun org-fc-dashboard-insert-sm2-stats (cards)
+  (let* ((pos-count 0)
+         (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0))
+    (dolist (card cards)
+      (unless (plist-get card :suspended)
+        (dolist (pos (plist-get card :positions))
+          (cl-incf pos-count 1)
+          (cl-incf avg-ease (plist-get pos :ease))
+          (cl-incf avg-box (plist-get pos :box))
+          (cl-incf avg-interval (plist-get pos :interval)))))
+
+    (insert
+     (propertize "SM2 Statistics\n\n" 'face 'org-level-1))
+
+    (when (plusp pos-count)
+      (insert (format "  %6.2f avg. ease\n" (/ avg-ease pos-count)))
+      (insert (format "  %6.2f avg. box\n" (/ avg-box pos-count)))
+      (insert (format "  %6.2f avg. interval (days)\n\n" (/ avg-interval pos-count))))))
+
 ;;; Main View
 
 ;; Based on `mu4e-main-view-real'
@@ -277,30 +239,13 @@ environment without svg support."
   "Show the dashboard view for CONTEXT in the current buffer."
   (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
          (inhibit-read-only t)
-         (index (org-fc-index context))
-         (stats (org-fc-dashboard-stats index))
-         )
+         (index (org-fc-index context)))
     (with-current-buffer buf
       (erase-buffer)
 
       (org-fc-dashboard-insert-overview index)
       (org-fc-dashboard-insert-cards-by-type index)
-
-      (insert
-       (propertize "Position Statistics\n\n" 'face 'org-level-1))
-
-      (when (plusp (plist-get stats :total-positions))
-
-	(dolist (position '((:avg-ease . "Avg. Ease")
-			    (:avg-box . "Avg. Box")
-			    (:avg-interval . "Avg. Interval (days)")))
-	  (insert
-	   (format "  %6.2f %s\n"
-		   (plist-get stats (car position))
-		   (cdr position))))
-
-	(insert "\n"))
-
+      (org-fc-dashboard-insert-sm2-stats index)
       (org-fc-dashboard-insert-review-stats index)
 
       (insert
