@@ -213,21 +213,23 @@ environment without svg support."
 
       (insert (format "  Total: %d\n\n"
                       (plist-get stats :total-positions)))
-      (insert (format "  Due: %d (now) %d (day) %d (week) %d (month)\n\n"
-                      (plist-get due-stats :now)
-                      (plist-get due-stats :day)
-                      (plist-get due-stats :week)
-                      (plist-get due-stats :month)))
 
-      (dolist (position '((:avg-ease . "Avg. Ease")
-                          (:avg-box . "Avg. Box")
-                          (:avg-interval . "Avg. Interval (days)")))
-        (insert
-         (format "  %6.2f %s\n"
-                 (plist-get stats (car position))
-                 (cdr position))))
+      (when (plusp (plist-get stats :total-positions))
+	(insert (format "  Due: %d (now) %d (day) %d (week) %d (month)\n\n"
+			(plist-get due-stats :now)
+			(plist-get due-stats :day)
+			(plist-get due-stats :week)
+			(plist-get due-stats :month)))
 
-      (insert "\n")
+	(dolist (position '((:avg-ease . "Avg. Ease")
+			    (:avg-box . "Avg. Box")
+			    (:avg-interval . "Avg. Interval (days)")))
+	  (insert
+	   (format "  %6.2f %s\n"
+		   (plist-get stats (car position))
+		   (cdr position))))
+
+	(insert "\n"))
 
       (when reviews-stats
         (insert
@@ -238,7 +240,7 @@ environment without svg support."
                          (:month . "Month")
                          (:all . "All")))
           (when-let (stat (plist-get reviews-stats (car scope)))
-            (when (> (plist-get stat :total) 0)
+            (when (plusp (plist-get stat :total))
               (insert "    ")
               (if (and (display-graphic-p)
                        (memq 'svg (and (boundp 'image-types) image-types)))
