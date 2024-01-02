@@ -156,7 +156,7 @@ environment without svg support."
                     :x (+ pos 5)
                     :y (+ fontsize (floor (- height fontsize) 2))))
       (setq pos (+ pos (* width (car value)))))
-    (svg-image svg)))
+    (svg-image svg :ascent 'center)))
 
 (defun org-fc-dashboard-text-bar-chart (stat)
   "Generate a text bar-chart for the plist STAT."
@@ -246,7 +246,7 @@ environment without svg support."
                        (memq 'svg (and (boundp 'image-types) image-types)))
                   (insert-image (org-fc-dashboard-bar-chart stat))
                 (insert (org-fc-dashboard-text-bar-chart stat)))
-              (insert (propertize (format " %s (%d)\n\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
+              (insert (propertize (format " %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
               )))
         (insert "\n"))
       (insert
