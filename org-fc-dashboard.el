@@ -249,6 +249,27 @@ environment without svg support."
       (insert (format "  %6d %s\n" (cdr pair) (car pair))))
     (insert "\n")))
 
+(defun org-fc-dashboard-insert-review-stats (_cards)
+  (let ((reviews-stats (org-fc-awk-stats-reviews)))
+    (insert
+     (propertize "Review Statistics (All Cards)\n\n" 'face 'org-level-1))
+    (if reviews-stats
+	(progn
+	  (dolist (scope '((:day . "Day")
+			   (:week . "Week")
+			   (:month . "Month")
+			   (:all . "All")))
+	    (when-let (stat (plist-get reviews-stats (car scope)))
+	      (when (plusp (plist-get stat :total))
+		(insert "  ")
+		(if (and (display-graphic-p)
+			 (memq 'svg (and (boundp 'image-types) image-types)))
+		    (insert-image (org-fc-dashboard-bar-chart stat))
+		  (insert (org-fc-dashboard-text-bar-chart stat)))
+		(insert (propertize (format " %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1)))))
+	  (insert "\n"))
+      (insert "  No reviews yet\n\n"))))
+
 ;;; Main View
 
 ;; Based on `mu4e-main-view-real'
@@ -258,9 +279,7 @@ environment without svg support."
          (inhibit-read-only t)
          (index (org-fc-index context))
          (stats (org-fc-dashboard-stats index))
-         (created-stats (plist-get stats :created))
-         (due-stats (plist-get stats :due))
-         (reviews-stats (org-fc-awk-stats-reviews)))
+         )
     (with-current-buffer buf
       (erase-buffer)
 
@@ -282,24 +301,8 @@ environment without svg support."
 
 	(insert "\n"))
 
-      (when reviews-stats
-        (insert
-         (propertize "Review Statistics (All Cards)\n\n" 'face 'org-level-1))
+      (org-fc-dashboard-insert-review-stats index)
 
-        (dolist (scope '((:day . "Day")
-                         (:week . "Week")
-                         (:month . "Month")
-                         (:all . "All")))
-          (when-let (stat (plist-get reviews-stats (car scope)))
-            (when (plusp (plist-get stat :total))
-              (insert "    ")
-              (if (and (display-graphic-p)
-                       (memq 'svg (and (boundp 'image-types) image-types)))
-                  (insert-image (org-fc-dashboard-bar-chart stat))
-                (insert (org-fc-dashboard-text-bar-chart stat)))
-              (insert (propertize (format " %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1))
-              )))
-        (insert "\n"))
       (insert
        (propertize "[r] Review\n" 'face 'org-level-1))
       (insert
