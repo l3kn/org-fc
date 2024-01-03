@@ -7,9 +7,28 @@ performance and cards / card types.
 
 [[file:images/dashboard.png]]
 
-Review performance statistics are calculated based on
-the [[file:review_history.org][Review History]]. Only cards with a box >=
-~org-fc-stats-review-min-box~ (default: 0) are included.
+The dashboard is divided into several collapsible sections. Some are
+visible from the start, while others can be opened on demand.
+
+This saves screen space and computing time (since the contents of
+closed sections are only computed when they are opened) while allowing
+quick access to different types of statistics.
+
+A marker at the beginning of each section indicates whether it is
+currently selected (o), open (-), or closed (+).
+
+The currently selected section can be toggled (closed or open) with
+the =Tab= key. The next or previous section can be selected with the =n=
+and =p= keys.
+
+=r= starts a review for the selected context and =q= closes the
+dashboard buffer.
+
+* Review History
+
+The review history is calculated based on the [[file:review_history.org][Review History]]. Only
+cards with a box >= ~org-fc-stats-review-min-box~ (default: 0) are
+included.
 
 Setting this to a higher value (e.g. 2) excludes the first few
 "learning" reviews of a card.
