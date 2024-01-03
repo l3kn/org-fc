@@ -450,8 +450,6 @@ environment without svg support."
   (switch-to-buffer org-fc-dashboard-buffer-name)
   (org-fc-dashboard-mode))
 
-;; TODO: Add documentation for new dashboard
-
 ;;; Footer
 
 (provide 'org-fc-dashboard)
