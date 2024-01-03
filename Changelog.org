@@ -5,6 +5,14 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.3.0
+
+*** Changed
+
+The dashboard has been changed and split into collapsible sections,
+some of which are visible from the start while others can be opened on
+demand.
+
 ** 0.2.0
 *** Added
 
