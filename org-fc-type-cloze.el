@@ -91,10 +91,10 @@ the hole for the current position."
   "Determine whether hole I of card TYPE should be visible based.
 CURRENT-INDEX is the index of the current position in the list of all holes."
   (cl-case type
-    ('enumeration (< i current-index))
-    ('deletion t)
-    ('single nil)
-    ('context (<= (abs (- i current-index)) org-fc-type-cloze-context))
+    (enumeration (< i current-index))
+    (deletion t)
+    (single nil)
+    (context (<= (abs (- i current-index)) org-fc-type-cloze-context))
     (t (error "Org-fc: Unknown cloze card type %s" type))))
 
 (defun org-fc-type-cloze--end ()
