@@ -29,7 +29,9 @@ everything else is checked for equality."
       (dolist (key keys)
         (org-fc-test-check-structure
          (plist-get expected key)
-         (plist-get got key)))))
+         (if (object-p got)
+             (slot-value got key)
+           (plist-get got key))))))
    ;; Normal list
    ((listp expected)
     (should (eq (length expected) (length got)))
