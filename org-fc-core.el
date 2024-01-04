@@ -553,30 +553,30 @@ For example, to match all double cards with tag \"math\",
 use `(and (type double) (tag \"math\"))'."
   (let ((card-var (gensym)))
     (cl-labels
-        ((check-arity-exact
-          (filter n)
-          (unless (= (length filter) (1+ n))
-            (error
-             (format "Filter '%s' expects %d argument(s)" filter n))))
-         (compile-inner
-          (filter)
-          (cl-case (car filter)
-            (and `(and ,@(mapcar #'compile-inner (cdr filter))))
-            (or `(or ,@(mapcar #'compile-inner (cdr filter))))
-            (not
-             (check-arity-exact filter 1)
-             `(not ,(compile-inner (cadr filter))))
-            (tag
-             (check-arity-exact filter 1)
-             `(member ,(cadr filter) (plist-get ,card-var :tags)))
-            (type
-             (check-arity-exact filter 1)
-             `(eq ',(if (stringp (cadr filter))
-                        (intern (cadr filter))
-                      (cadr filter))
-                  (plist-get ,card-var :type))))))
+	((check-arity-exact
+	   (filter n)
+	   (unless (= (length filter) (1+ n))
+	     (error
+	      (format "Filter '%s' expects %d argument(s)" filter n))))
+	 (compile-inner
+	   (filter)
+	   (cl-case (car filter)
+	     (and `(and ,@(mapcar #'compile-inner (cdr filter))))
+	     (or `(or ,@(mapcar #'compile-inner (cdr filter))))
+	     (not
+	      (check-arity-exact filter 1)
+	      `(not ,(compile-inner (cadr filter))))
+	     (tag
+	      (check-arity-exact filter 1)
+	      `(member ,(cadr filter) (plist-get ,card-var :tags)))
+	     (type
+	      (check-arity-exact filter 1)
+	      `(eq ',(if (stringp (cadr filter))
+			 (intern (cadr filter))
+		       (cadr filter))
+		   (plist-get ,card-var :type))))))
       `(lambda (,card-var)
-         ,(compile-inner filter)))))
+	 ,(compile-inner filter)))))
 
 (defun org-fc-index (context)
   "Create an index for review CONTEXT."

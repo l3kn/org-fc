@@ -250,9 +250,9 @@ environment without svg support."
 (defun org-fc-dashboard-text-bar-chart (stat)
   "Generate a text bar-chart for the plist STAT."
   (cl-flet ((colored-bar (length color)
-                         (propertize
-                          (make-string length ?\s)
-                          'font-lock-face `(:background ,color))))
+	      (propertize
+	       (make-string length ?\s)
+	       'font-lock-face `(:background ,color))))
     (let* ((width org-fc-dashboard-text-bar-chart-width)
            (total (float (plist-get stat :total)))
            (again (floor (* width (/ (plist-get stat :again) total))))

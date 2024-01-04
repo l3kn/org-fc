@@ -245,7 +245,7 @@ and N will be the prefix argument the user gives in ARG."
     (goto-char end)
     (if (and (stringp hint) (not (string-blank-p hint)))
         (insert (format "}{%s}}" hint))
-        (insert "}}"))
+      (insert "}}"))
     (goto-char begin)
     (insert "{{")))
 

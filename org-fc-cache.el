@@ -120,7 +120,7 @@ are renamed or deleted."
   :global t
   (if org-fc-cache-mode
       (org-fc-cache--enable)
-      (org-fc-cache--disable)))
+    (org-fc-cache--disable)))
 
 ;;; Coherence Check
 
