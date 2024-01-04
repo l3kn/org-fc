@@ -1,4 +1,6 @@
-(require 'cl)
+(require 'org-fc-core)
+(require 'cl-lib)
+(require 'ert)
 
 (defun org-fc-test-fixture (name)
   "Return the full path of fixture file NAME."
