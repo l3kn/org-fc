@@ -44,7 +44,7 @@
          (org-fc-with-point-at-back-heading
           (org-fc-show-latex)
           (outline-show-entry))
-       (org-show-entry)
+       (org-fold-show-entry)
        (setq org-fc-type-double--overlay (org-fc-hide-heading "[...]"))))
     (_ (error "Invalid double position %s" position))))
 
@@ -52,11 +52,11 @@
   "Flip a double card."
   (if org-fc-type-double--overlay
       (delete-overlay org-fc-type-double--overlay))
-  (org-show-entry)
-  (org-show-children)
+  (org-fold-show-entry)
+  (org-fold-show-children)
   (org-fc-with-point-at-back-heading
-   (org-show-entry)
-   (org-show-children)
+   (org-fold-show-entry)
+   (org-fold-show-children)
    (org-fc-show-latex)))
 
 (org-fc-register-type

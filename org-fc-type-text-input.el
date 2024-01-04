@@ -46,7 +46,7 @@ function is expected to be called with point on a heading."
     (unless (looking-at-p org-heading-regexp)
       (cons
        (point)
-       (buffer-substring-no-properties (point) (point-at-eol))))))
+       (buffer-substring-no-properties (point) (line-end-position))))))
 
 (defun org-fc-type-text-input-init ()
   "Mark headline as card of the text-input type."
@@ -62,8 +62,8 @@ function is expected to be called with point on a heading."
   ;; Hide answer
   (outline-hide-subtree)
   (when (org-fc-has-back-heading-p)
-    (org-show-entry)
-    (org-fc-with-point-at-back-heading (org-show-set-visibility 'minimal)))
+    (org-fold-show-entry)
+    (org-fc-with-point-at-back-heading (org-fold-show-set-visibility 'minimal)))
   ;; Prompt user, create diff overlay
   (let* ((pos-content (org-fc-text-input-content))
          (content (cdr pos-content))
@@ -89,11 +89,11 @@ function is expected to be called with point on a heading."
           ")\n"))))
   ;; Reveal answer & diff
   (save-excursion
-    (org-show-entry)
-    (org-show-children)
+    (org-fold-show-entry)
+    (org-fold-show-children)
     (org-fc-with-point-at-back-heading
-     (org-show-entry)
-     (org-show-children)
+     (org-fold-show-entry)
+     (org-fold-show-children)
      (org-fc-show-latex))))
 
 (org-fc-register-type

@@ -35,20 +35,20 @@
   ;; Make sure the card is collapsed
   (outline-hide-subtree)
   (when (org-fc-has-back-heading-p)
-    (org-show-entry)
+    (org-fold-show-entry)
     ;; Make sure the back heading is visible
     (org-fc-with-point-at-back-heading
-     (org-show-set-visibility 'minimal))))
+     (org-fold-show-set-visibility 'minimal))))
 
 (defun org-fc-type-normal-flip ()
   "Flip a normal card."
   (interactive)
-  (org-show-entry)
-  (org-show-children)
+  (org-fold-show-entry)
+  (org-fold-show-children)
   ;; NOTE: the body only runs if the card has a back heading
   (org-fc-with-point-at-back-heading
-   (org-show-entry)
-   (org-show-children)
+   (org-fold-show-entry)
+   (org-fold-show-children)
    (org-fc-show-latex)))
 
 (org-fc-register-type

@@ -393,7 +393,7 @@ make it bold."
               (setq end (point))
             (error "No :END: found for drawer"))
           (if (member name org-fc-drawer-whitelist)
-              (org-flag-drawer nil nil start end)
+	      (org-fold-hide-drawer-toggle)
             (org-fc-hide-region start end)))))))
 
 ;;;; Hiding Headings / Section Contents
@@ -426,7 +426,7 @@ If TEXT is non-nil, the content is replaced with TEXT."
 
 (defcustom org-fc-narrow-visibility 'ancestors
   "Visibility of the current heading during review.
-See `org-show-set-visibility' for possible values"
+See `org-fold-show-set-visibility' for possible values"
   :group 'org-fc
   :type 'symbol
   :options '(ancestors lineage minimal local tree canonical))
@@ -443,7 +443,7 @@ Only parent headings of the current heading remain visible."
       (org-narrow-to-subtree)
       (outline-hide-subtree))
     ;; Show only the ancestors of the current card
-    (org-show-set-visibility org-fc-narrow-visibility)
+    (org-fold-show-set-visibility org-fc-narrow-visibility)
     (if (member "noheading" tags) (org-fc-hide-heading))))
 
 ;;; Updating Cards

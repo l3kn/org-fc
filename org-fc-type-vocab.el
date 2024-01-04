@@ -86,7 +86,7 @@
 (defun org-fc-type-vocab-typing-setup ()
   "Prepare a text-input vocab card for review."
   (interactive)
-  (org-show-subtree)
+  (org-fold-show-subtree)
   (let* ((pos-content (org-fc-vocab-content))
          (content (cdr pos-content))
          (start (car pos-content))

@@ -168,12 +168,12 @@ Processes all holes in the card text."
   (setq org-fc-type-cloze--text nil)
   (setq org-fc-type-cloze--hint nil)
   (outline-hide-subtree)
-  (org-show-entry)
+  (org-fold-show-entry)
   (org-fc-type-cloze-hide-holes (string-to-number position)))
 
 (defun org-fc-type-cloze-flip ()
   "Flip a cloze card."
-  (org-show-children)
+  (org-fold-show-children)
   (overlay-put org-fc-type-cloze--text 'invisible nil)
   (org-fc-show-latex)
   ;; Remove all overlays in the region of the hint to get rid of
