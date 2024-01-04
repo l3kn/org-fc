@@ -78,17 +78,19 @@ as its input."
     (maphash
      (lambda (path file)
        (when (cl-some (lambda (p) (string-prefix-p p path)) paths)
-         ;; Use push instead of `nconc' because `nconc' would break
-         ;; the entries of the hash table.
+	 ;; Use push instead of `nconc' because `nconc' would break
+	 ;; the entries of the hash table.
 	 ;;
-	 ;; TODO: to prevent cards from breaking, clone them
-         (let ((cards
-                (if filter
-                    (cl-remove-if-not filter (oref file cards))
-                  (oref file cards))))
-           ;; Only include files that contain some matching cards
-           (when cards
-             (push (clone file :cards cards) res)))))
+	 ;; To prevent cached files and cards from breaking,
+	 ;; we'll also want to clone each one.
+	 (let ((cards
+		(mapcar #'clone
+			(if filter
+			    (cl-remove-if-not filter (oref file cards))
+			  (oref file cards)))))
+	   ;; Only include files that contain some matching cards
+	   (when cards
+	     (push (clone file :cards cards) res)))))
      org-fc-cache)
     res))
 

@@ -285,9 +285,9 @@ environment without svg support."
          (plus-week (time-add now (* 7 24 60 60)))
          (plus-month (time-add now (* 30 24 60 60))))
     (dolist (card org-fc-dashboard-cards)
-      (if (plist-get card :suspended)
+      (if (oref card suspended)
           (cl-incf suspended 1)
-        (let ((card-created (plist-get card :created)))
+        (let ((card-created (oref card created)))
 
           (if (time-less-p minus-day card-created)
               (cl-incf (cl-getf created :day) 1))
@@ -296,7 +296,7 @@ environment without svg support."
           (if (time-less-p minus-month card-created)
               (cl-incf (cl-getf created :month) 1))
 
-          (dolist (pos (plist-get card :positions))
+          (dolist (pos (oref card positions))
             (cl-incf pos-count)
 
             (let ((pos-due (plist-get pos :due)))
@@ -334,8 +334,8 @@ environment without svg support."
   (insert "\n")
   (let* ((by-type (make-hash-table)))
     (dolist (card org-fc-dashboard-cards)
-      (unless (plist-get card :suspended)
-	(cl-incf (gethash (plist-get card :type) by-type 0) 1)))
+      (unless (oref card suspended)
+	(cl-incf (gethash (oref card type) by-type 0) 1)))
 
     (if (cl-plusp (hash-table-count by-type))
 	(dolist (pair (org-fc-dashboard--hashtable-to-alist by-type))
@@ -367,8 +367,8 @@ environment without svg support."
   (let* ((pos-count 0)
          (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0))
     (dolist (card org-fc-dashboard-cards)
-      (unless (plist-get card :suspended)
-        (dolist (pos (plist-get card :positions))
+      (unless (oref card suspended)
+        (dolist (pos (oref card positions))
           (cl-incf pos-count 1)
           (cl-incf avg-ease (plist-get pos :ease))
           (cl-incf avg-box (plist-get pos :box))

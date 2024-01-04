@@ -136,6 +136,7 @@ Valid contexts:
 If RESUMING is non-nil, some parts of the buffer setup are skipped."
   (if (not (null (oref org-fc-review--session cards)))
       (condition-case err
+	  ;; TODO: These are positions, not cards
           (let* ((card (pop (oref org-fc-review--session cards)))
                  (path (plist-get card :path))
                  (id (plist-get card :id))

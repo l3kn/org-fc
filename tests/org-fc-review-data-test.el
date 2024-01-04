@@ -13,12 +13,12 @@
           (card2 (cadr index)))
 
       (should
-       (equal (plist-get card1 :id)
+       (equal (oref card1 id)
               "f8cc05c7-aa3a-4a21-aa71-38178477e619"))
       (should
-       (eq (length (plist-get card1 :positions)) 2))
+       (eq (length (oref card1 positions)) 2))
 
-      (let* ((poss (plist-get card1 :positions))
+      (let* ((poss (oref card1 positions))
              (pos1 (car poss))
              (pos2 (cadr poss)))
 
@@ -35,12 +35,12 @@
         (should (equal (plist-get pos2 :due) '(24485 10260))))
 
       (should
-       (equal (plist-get card2 :id)
+       (equal (oref card2 id)
               "404557e5-ec07-4ee1-a000-3f0e8a94eaa0"))
       (should
-       (eq (length (plist-get card2 :positions)) 2))
+       (eq (length (oref card2 positions)) 2))
 
-      (let* ((poss (plist-get card2 :positions))
+      (let* ((poss (oref card2 positions))
              (pos1 (car poss))
              (pos2 (cadr poss)))
 

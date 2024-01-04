@@ -93,25 +93,30 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
                    (org-fc-awk--command
                     "awk/index.awk"
                     :variables (org-fc-awk--indexer-variables)))))))
+    ;; Naming convention:
+    ;; p(file|card) for the plist-based output of AWK
+    ;; o(file|card) for eieio objects
     (if (string-prefix-p "(" output)
         (mapcar
-         (lambda (file)
+         (lambda (pfile)
            (let* ((ofile
 		   (org-fc-file
-		    :path (plist-get file :path)
-		    :title (plist-get file :title)))
+		    :path (plist-get pfile :path)
+		    :title (plist-get pfile :title)))
 		  (filtered-cards
 		   (if filter
-		       (cl-remove-if-not filter (plist-get file :cards))
-		     (plist-get file :cards)))
+		       (cl-remove-if-not filter (plist-get pfile :cards))
+		     (plist-get pfile :cards)))
 		  (ocards
                    (mapcar
-                    (lambda (card)
-                      (plist-put
-                       card :tags
-                       (org-fc-awk-combine-tags
-			(plist-get card :inherited-tags)
-			(plist-get card :local-tags))))
+                    (lambda (pcard)
+		      (org-fc-card-from-plist
+                       (plist-put
+			pcard :tags
+			(org-fc-awk-combine-tags
+			 (plist-get pcard :inherited-tags)
+			 (plist-get pcard :local-tags)))
+		       ofile))
                     filtered-cards)))
 	     (oset ofile cards ocards)
 	     ofile))

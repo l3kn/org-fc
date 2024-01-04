@@ -261,6 +261,76 @@ If point is not inside a flashcard entry, an error is raised."
     ;; :custom (repeat org-fc-card)
     :documentation "Flashcards in the file.")))
 
+(defclass org-fc-card ()
+  ((file
+    :initarg :file
+    :type org-fc-file
+    :documentation "Parent file.")
+   (id
+    :initarg :id
+    :type string
+    :documentation "Org-mode ID of the card.")
+   (title
+    :initarg :title
+    :type string
+    :documentation "Title of the card.")
+   (type
+    :initarg :type
+    :type symbol
+    :documentation "Type of the card.")
+   (algo
+    :initarg :algo
+    :type (or null symbol)
+    :documentation "Algorithm of the card.")
+   ;; TODO: Can both types be combined?
+   (cloze-type
+    :initarg :cloze-type
+    :type (or null symbol)
+    :documentation "Cloze-type of the card.")
+   (created
+    :initarg :created
+    :initform nil
+    :type list
+    :custom (repeat integer)
+    :documentation "Timestamp when this card was created.")
+   (suspended
+    :initarg :suspended
+    :initform nil
+    :type boolean
+    :documentation "Suspension state of the card.")
+   (tags
+    :initarg :tags
+    :initform nil
+    :type list
+    :custom (repeat string)
+    :documentation "Tags of the card, both local and inherited.")
+   (positions
+    :initarg :positions
+    :initform nil
+    :type list
+    ;; TODO: Re-add this once there is a class for positions
+    ;; :custom (repeat org-fc-position)
+    :documentation "Positions of the card.")))
+
+(defun org-fc-card-from-plist (plist file)
+  (let* ((card
+          (org-fc-card
+           :file file
+           :id (plist-get plist :id)
+           :title (plist-get plist :title)
+           :algo (plist-get plist :algo)
+           :type (plist-get plist :type)
+           :cloze-type (plist-get plist :cloze-type)
+           :created (plist-get plist :created)
+           :suspended (plist-get plist :suspended)
+           :tags (plist-get plist :tags)))
+         ;; (positions
+         ;;  (mapcar (lambda (plist) (org-fc-position-from-plist plist card))
+         ;;          (plist-get plist :positions)))
+         (positions (plist-get plist :positions))
+	 )
+    (oset card positions positions)
+    card))
 
 ;;; Checking for / going to flashcard headings
 
@@ -515,7 +585,7 @@ the now suspended card are removed from it."
          (setf cards
                (cl-remove-if
                 (lambda (card)
-                  (string= id (plist-get card :id))) cards)))))))
+                  (string= id (oref card id))) cards)))))))
 
 ;;;###autoload
 (defun org-fc-suspend-tree ()
@@ -592,13 +662,13 @@ use `(and (type double) (tag \"math\"))'."
 	      `(not ,(compile-inner (cadr filter))))
 	     (tag
 	      (check-arity-exact filter 1)
-	      `(member ,(cadr filter) (plist-get ,card-var :tags)))
+	      `(member ,(cadr filter) (oref ,card-var tags)))
 	     (type
 	      (check-arity-exact filter 1)
 	      `(eq ',(if (stringp (cadr filter))
 			 (intern (cadr filter))
 		       (cadr filter))
-		   (plist-get ,card-var :type))))))
+		   (oref ,card-var type))))))
       `(lambda (,card-var)
 	 ,(compile-inner filter)))))
 
@@ -621,12 +691,7 @@ use `(and (type double) (tag \"math\"))'."
   "Flatten INDEX into a list of cards.
 Relevant data from the file is included in each card element."
   (mapcan
-   (lambda (file)
-     (mapcar
-      (lambda (card)
-        (plist-put card :path (oref file path))
-        (plist-put card :filetitle (oref file title)))
-      (oref file cards)))
+   (lambda (file) (oref file cards))
    index))
 
 (defun org-fc-index-flatten-card (card)
@@ -636,33 +701,32 @@ element."
   (mapcar
    (lambda (pos)
      (list
-      :filetitle (plist-get card :filetitle)
-      :tags (plist-get card :tags)
-      :path (plist-get card :path)
-      :id (plist-get card :id)
-      :type (plist-get card :type)
+      :filetitle (oref (oref card file) title)
+      :path (oref (oref card file) path)
+      :tags (oref card tags)
+      :id (oref card id)
+      :type (oref card type)
       :due (plist-get pos :due)
       :position (plist-get pos :position)))
-   (plist-get card :positions)))
+   (oref card positions)))
 
 (defun org-fc-index-filter-due (index)
   "Filter INDEX to include only unsuspended due positions.
 Cards with no positions are removed from the index."
   (let (res (now (current-time)))
     (dolist (card index)
-      (unless (plist-get card :suspended)
-        (let ((due
-               (cl-remove-if-not
-                (lambda (pos)
-                  (time-less-p (plist-get pos :due) now))
-                (plist-get card :positions))))
-          (unless (null due)
-            (plist-put
-             card :positions
-             (if (or (not org-fc-bury-siblings)
-                     (member (plist-get card :cloze-type) '(single enumeration)))
-                 due (list (car due))))
-            (push card res)))))
+      (unless (oref card suspended)
+	(let ((due
+	       (cl-remove-if-not
+		(lambda (pos)
+		  (time-less-p (plist-get pos :due) now))
+		(oref card positions))))
+	  (unless (null due)
+	    (oset card positions
+		  (if (or (not org-fc-bury-siblings)
+			  (member (oref card cloze-type) '(single enumeration)))
+		      due (list (car due))))
+	    (push card res)))))
     res))
 
 (defun org-fc-index-positions (index)
