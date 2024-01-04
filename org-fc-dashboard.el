@@ -76,6 +76,9 @@ environment without svg support."
       (push (cons key (gethash key ht)) res))
     res))
 
+(defun org-fc-dashboard-buffer ()
+  (get-buffer-create org-fc-dashboard-buffer-name))
+
 ;;; Sections and Folding
 
 (defclass org-fc-dashboard-section ()
@@ -195,8 +198,7 @@ environment without svg support."
   (interactive)
   (org-fc-dashboard-section-goto (mod (+ org-fc-dashboard-section--current 1) (length org-fc-dashboard-sections))))
 
-;; (defvar org-fc-dashboard-sections
-(setq org-fc-dashboard-sections
+(defvar org-fc-dashboard-sections
   (list
    (org-fc-dashboard-section
     :title "Hotkeys"
@@ -385,10 +387,9 @@ environment without svg support."
 ;; Based on `mu4e-main-view-real'
 (defun org-fc-dashboard-view (context)
   "Show the dashboard view for CONTEXT in the current buffer."
-  (let* ((buf (get-buffer-create org-fc-dashboard-buffer-name))
-         (inhibit-read-only t)
+  (let* ((inhibit-read-only t)
          (index (org-fc-index context)))
-    (with-current-buffer buf
+    (with-current-buffer (org-fc-dashboard-buffer)
       (setq org-fc-dashboard-context context)
       (setq org-fc-dashboard-cards index)
 
@@ -407,10 +408,12 @@ environment without svg support."
           (setq heading-end (point))
           (oset section heading-bounds (cons heading-beginning heading-end))
           (setq content-end (point))
-          (oset section content-bounds (cons heading-end content-end))
-	  (when (oref section start-visible)
-	    (org-fc-dashboard-section-open section)
-	    (goto-char (cdr (oref section content-bounds))))))
+          (oset section content-bounds (cons heading-end content-end))))
+
+      (dolist (section org-fc-dashboard-sections)
+	(when (oref section start-visible)
+	  (org-fc-dashboard-section-open section)
+	  (goto-char (cdr (oref section content-bounds)))))
 
       (org-fc-dashboard-section-goto 0 'is-first))))
 
@@ -446,9 +449,10 @@ environment without svg support."
 (defun org-fc-dashboard (context)
   "Open a buffer showing the dashboard view for CONTEXT."
   (interactive (list (org-fc-select-context)))
+  (with-current-buffer (org-fc-dashboard-buffer)
+    (org-fc-dashboard-mode))
   (org-fc-dashboard-view context)
-  (switch-to-buffer org-fc-dashboard-buffer-name)
-  (org-fc-dashboard-mode))
+  (switch-to-buffer (org-fc-dashboard-buffer)))
 
 ;;; Footer
 
