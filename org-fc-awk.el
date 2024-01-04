@@ -96,19 +96,25 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
     (if (string-prefix-p "(" output)
         (mapcar
          (lambda (file)
-           (let ((cards
-                  (mapcar
-                   (lambda (card)
-                     (plist-put
-                      card :tags
-                      (org-fc-awk-combine-tags
-                       (plist-get card :inherited-tags)
-                       (plist-get card :local-tags))))
-                   (plist-get file :cards))))
-             (plist-put file :cards
-                        (if filter
-                            (cl-remove-if-not filter cards)
-                          cards))))
+           (let* ((ofile
+		   (org-fc-file
+		    :path (plist-get file :path)
+		    :title (plist-get file :title)))
+		  (filtered-cards
+		   (if filter
+		       (cl-remove-if-not filter (plist-get file :cards))
+		     (plist-get file :cards)))
+		  (ocards
+                   (mapcar
+                    (lambda (card)
+                      (plist-put
+                       card :tags
+                       (org-fc-awk-combine-tags
+			(plist-get card :inherited-tags)
+			(plist-get card :local-tags))))
+                    filtered-cards)))
+	     (oset ofile cards ocards)
+	     ofile))
          (read (concat "(" output ")")))
       (error "Org-fc shell error: %s" output))))
 

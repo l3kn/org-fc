@@ -238,6 +238,30 @@ If point is not inside a flashcard entry, an error is raised."
          (goto-char pos)
          ,@body)))
 
+;;; Classes
+
+(defclass org-fc-file ()
+  ((path
+    :initarg :path
+    :type string
+    :documentation "Location of the file.")
+   (hash
+    :initarg :hash
+    :type (or null string)
+    :documentation "Optional hash of the file, used for caching.")
+   (title
+    :initarg :title
+    :type (or null string)
+    :documentation "Title of the file.")
+   (cards
+    :initarg :cards
+    :initform nil
+    :type list
+    ;; TODO: re-add this when switching to class-based cards
+    ;; :custom (repeat org-fc-card)
+    :documentation "Flashcards in the file.")))
+
+
 ;;; Checking for / going to flashcard headings
 
 (defun org-fc-entry-p ()
@@ -600,9 +624,9 @@ Relevant data from the file is included in each card element."
    (lambda (file)
      (mapcar
       (lambda (card)
-        (plist-put card :path (plist-get file :path))
-        (plist-put card :filetitle (plist-get file :title)))
-      (plist-get file :cards)))
+        (plist-put card :path (oref file path))
+        (plist-put card :filetitle (oref file title)))
+      (oref file cards)))
    index))
 
 (defun org-fc-index-flatten-card (card)

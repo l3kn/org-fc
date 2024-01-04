@@ -47,18 +47,18 @@
          (changed
           (cl-remove-if
            (lambda (file)
-             (string=
-              (plist-get (gethash file org-fc-cache) :hash)
-              (gethash file hashes)))
+	     (and
+	      (gethash file org-fc-cache)
+              (string=
+               (oref (gethash file org-fc-cache) hash)
+               (gethash file hashes))))
            (hash-table-keys hashes))))
     ;; Update changed files
     (dolist (new (org-fc-awk-index changed))
-      (let* ((path (plist-get new :path))
+      (let* ((path (oref new path))
              (hash (gethash path hashes)))
-        (puthash
-         path
-         (plist-put new :hash hash)
-         org-fc-cache)))
+	(oset new hash hash)
+        (puthash path new org-fc-cache)))
     ;; Remove deleted files
     (dolist (file (hash-table-values org-fc-cache))
       (unless (gethash file hashes)
@@ -80,13 +80,15 @@ as its input."
        (when (cl-some (lambda (p) (string-prefix-p p path)) paths)
          ;; Use push instead of `nconc' because `nconc' would break
          ;; the entries of the hash table.
-         (push
-          (list :path path
-                :cards
+	 ;;
+	 ;; TODO: to prevent cards from breaking, clone them
+         (let ((cards
                 (if filter
-                    (cl-remove-if-not filter (plist-get file :cards))
-                  (plist-get file :cards)))
-          res)))
+                    (cl-remove-if-not filter (oref file cards))
+                  (oref file cards))))
+           ;; Only include files that contain some matching cards
+           (when cards
+             (push (clone file :cards cards) res)))))
      org-fc-cache)
     res))
 
