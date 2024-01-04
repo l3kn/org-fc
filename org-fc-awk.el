@@ -31,8 +31,8 @@
 (defun org-fc-awk--find (paths)
   "Generate shell code to search PATHS for org files.
 Matches all .org files ignoring ones with names don't start with
-a '.' to exclude temporary / backup files.
-With the '-L' option, 'find' follows symlinks."
+a `.' to exclude temporary / backup files.
+With the `-L' option, `find' follows symlinks."
   (format
    "find -L %s -type f -name \"*.org\" -not -name \".*\" -print0"
    (mapconcat

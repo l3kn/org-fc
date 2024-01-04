@@ -129,8 +129,9 @@ are renamed or deleted."
 
 ;;;###autoload
 (defun org-fc-cache-coherence-check ()
-  "Check if the entry at point is coherent with its cache representation.
-This is especially relevant w.r.t a card's due date / suspension state before review."
+  "Check if the entry at point is coherent with its cache
+ representation. This is especially relevant w.r.t a card's due
+date / suspension state before review."
   (org-fc-review-with-current-item cur
     (if (org-fc-suspended-entry-p)
         (error "Trying to review a suspended card"))

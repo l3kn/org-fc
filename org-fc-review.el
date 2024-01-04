@@ -236,22 +236,22 @@ same ID as the current card in the session."
      (signal (car err) (cdr err)))))
 
 (defun org-fc-review-rate-again ()
-  "Rate the card at point with 'again'."
+  "Rate the card at point with `again'."
   (interactive)
   (org-fc-review-rate 'again))
 
 (defun org-fc-review-rate-hard ()
-  "Rate the card at point with 'hard'."
+  "Rate the card at point with `hard'."
   (interactive)
   (org-fc-review-rate 'hard))
 
 (defun org-fc-review-rate-good ()
-  "Rate the card at point with 'good'."
+  "Rate the card at point with `good'."
   (interactive)
   (org-fc-review-rate 'good))
 
 (defun org-fc-review-rate-easy ()
-  "Rate the card at point with 'easy'."
+  "Rate the card at point with `easy'."
   (interactive)
   (org-fc-review-rate 'easy))
 

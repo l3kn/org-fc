@@ -159,7 +159,7 @@ Does not apply to cloze single and cloze enumeration cards."
     (org-latex-preview 4)))
 
 (defun org-fc-back-heading-position ()
-  "Return point at the beginning of an entries 'Back' subheading.
+  "Return point at the beginning of an entries `Back' subheading.
 Return nil if there is no such heading.
 This is expected to be called on an card entry heading."
   (let ((found nil)
@@ -175,7 +175,7 @@ This is expected to be called on an card entry heading."
     found))
 
 (defun org-fc-has-back-heading-p ()
-  "Check if the entry at point has a 'Back' subheading.
+  "Check if the entry at point has a `Back' subheading.
 Used to determine if a card uses the compact style."
   (not (null (org-fc-back-heading-position))))
 
