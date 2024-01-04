@@ -322,7 +322,7 @@ environment without svg support."
 
     (insert (format "  %d positions\n" pos-count))
 
-    (when (plusp pos-count)
+    (when (cl-plusp pos-count)
       (insert (format "  due: %d (now) %d (day) %d (week) %d (month)\n"
 		      (plist-get due :now)
 		      (plist-get due :day)
@@ -337,7 +337,7 @@ environment without svg support."
       (unless (plist-get card :suspended)
 	(cl-incf (gethash (plist-get card :type) by-type 0) 1)))
 
-    (if (plusp (hash-table-count by-type))
+    (if (cl-plusp (hash-table-count by-type))
 	(dolist (pair (org-fc-dashboard--hashtable-to-alist by-type))
 	  (insert (format "  %6d %s\n" (cdr pair) (car pair))))
       (insert "  No cards yet\n"))
@@ -353,7 +353,7 @@ environment without svg support."
 			   (:month . "month")
 			   (:all . "all")))
 	    (when-let (stat (plist-get reviews-stats (car scope)))
-	      (when (plusp (plist-get stat :total))
+	      (when (cl-plusp (plist-get stat :total))
 		(insert "  ")
 		(if (and (display-graphic-p)
 			 (memq 'svg (and (boundp 'image-types) image-types)))
@@ -375,7 +375,7 @@ environment without svg support."
           (cl-incf avg-interval (plist-get pos :interval)))))
 
     (insert "\n")
-    (if (plusp pos-count)
+    (if (cl-plusp pos-count)
 	(progn
 	  (insert (format "  %6.2f avg. ease\n" (/ avg-ease pos-count)))
 	  (insert (format "  %6.2f avg. box\n" (/ avg-box pos-count)))
