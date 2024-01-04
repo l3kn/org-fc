@@ -399,8 +399,8 @@ END is the start of the line with :END: on it."
 (defun org-fc-review-data-default (position)
   "Default review data for position POSITION."
   (cl-case org-fc-algorithm
-    ('sm2-v1 (org-fc-algo-sm2-initial-review-data position))
-    ('sm2-v2 (org-fc-algo-sm2-initial-review-data position))))
+    (sm2-v1 (org-fc-algo-sm2-initial-review-data position))
+    (sm2-v2 (org-fc-algo-sm2-initial-review-data position))))
 
 (defun org-fc-review-data-update (positions)
   "Update review data to POSITIONS.
@@ -462,10 +462,10 @@ removed."
   "Store RATING in the review history of SESSION."
   (with-slots (ratings) session
     (cl-case rating
-      ('again (cl-incf (cl-getf ratings :again) 1))
-      ('hard (cl-incf (cl-getf ratings :hard) 1))
-      ('good (cl-incf (cl-getf ratings :good) 1))
-      ('easy (cl-incf (cl-getf ratings :easy) 1)))
+      (again (cl-incf (cl-getf ratings :again) 1))
+      (hard (cl-incf (cl-getf ratings :hard) 1))
+      (good (cl-incf (cl-getf ratings :good) 1))
+      (easy (cl-incf (cl-getf ratings :easy) 1)))
     (cl-incf (cl-getf ratings :total 1))))
 
 ;;; Header Line

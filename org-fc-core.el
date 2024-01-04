@@ -561,15 +561,15 @@ use `(and (type double) (tag \"math\"))'."
          (compile-inner
           (filter)
           (cl-case (car filter)
-            ('and `(and ,@(mapcar #'compile-inner (cdr filter))))
-            ('or `(or ,@(mapcar #'compile-inner (cdr filter))))
-            ('not
+            (and `(and ,@(mapcar #'compile-inner (cdr filter))))
+            (or `(or ,@(mapcar #'compile-inner (cdr filter))))
+            (not
              (check-arity-exact filter 1)
              `(not ,(compile-inner (cadr filter))))
-            ('tag
+            (tag
              (check-arity-exact filter 1)
              `(member ,(cadr filter) (plist-get ,card-var :tags)))
-            ('type
+            (type
              (check-arity-exact filter 1)
              `(eq ',(if (stringp (cadr filter))
                         (intern (cadr filter))
