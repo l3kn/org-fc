@@ -299,7 +299,7 @@ environment without svg support."
           (dolist (pos (oref card positions))
             (cl-incf pos-count)
 
-            (let ((pos-due (plist-get pos :due)))
+            (let ((pos-due (oref pos due)))
               (if (time-less-p pos-due now)
                   (cl-incf (cl-getf due :now) 1))
               (if (time-less-p pos-due plus-day)
@@ -370,9 +370,9 @@ environment without svg support."
       (unless (oref card suspended)
         (dolist (pos (oref card positions))
           (cl-incf pos-count 1)
-          (cl-incf avg-ease (plist-get pos :ease))
-          (cl-incf avg-box (plist-get pos :box))
-          (cl-incf avg-interval (plist-get pos :interval)))))
+          (cl-incf avg-ease (plist-get (oref pos data) :ease))
+          (cl-incf avg-box (plist-get (oref pos data) :box))
+          (cl-incf avg-interval (plist-get (oref pos data) :interval)))))
 
     (insert "\n")
     (if (cl-plusp pos-count)

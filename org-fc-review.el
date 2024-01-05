@@ -137,12 +137,12 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
   (if (not (null (oref org-fc-review--session cards)))
       (condition-case err
 	  ;; TODO: These are positions, not cards
-          (let* ((card (pop (oref org-fc-review--session cards)))
-                 (path (plist-get card :path))
-                 (id (plist-get card :id))
-                 (type (plist-get card :type))
-                 (position (plist-get card :position)))
-            (setf (oref org-fc-review--session current-item) card)
+          (let* ((pos (pop (oref org-fc-review--session cards)))
+                 (path (oref (oref (oref pos card) file) path))
+                 (id (oref (oref pos card) id))
+                 (type (oref (oref pos card) type))
+                 (position (oref pos name)))
+            (setf (oref org-fc-review--session current-item) pos)
             (let ((buffer (find-buffer-visiting path)))
               (with-current-buffer (find-file path)
                 (unless resuming
@@ -191,7 +191,7 @@ same ID as the current card in the session."
   (declare (indent defun))
   `(if org-fc-review--session
        (if-let ((,var (oref org-fc-review--session current-item)))
-           (if (string= (plist-get ,var :id) (org-id-get))
+           (if (string= (oref (oref ,var card) id) (org-id-get))
                (progn ,@body)
              (message "Flashcard ID mismatch"))
          (message "No flashcard review is in progress"))))
@@ -200,8 +200,8 @@ same ID as the current card in the session."
   "Flip the current flashcard."
   (interactive)
   (condition-case err
-      (org-fc-review-with-current-item card
-        (let ((type (plist-get card :type)))
+      (org-fc-review-with-current-item pos
+        (let ((type (oref (oref pos card) type)))
           (funcall (org-fc-type-flip-fn type))
           (run-hooks 'org-fc-after-flip-hook)
           (org-fc-review-rate-mode)))
@@ -213,10 +213,10 @@ same ID as the current card in the session."
   "Rate the card at point with RATING."
   (interactive)
   (condition-case err
-      (org-fc-review-with-current-item card
-        (let* ((path (plist-get card :path))
-               (id (plist-get card :id))
-               (position (plist-get card :position))
+      (org-fc-review-with-current-item pos
+        (let* ((path (oref (oref (oref pos card) file) path))
+	       (id (oref (oref pos card) id))
+               (position (oref pos name))
                (now (time-to-seconds (current-time)))
                (delta (- now org-fc-review--timestamp)))
           (org-fc-review-add-rating org-fc-review--session rating)

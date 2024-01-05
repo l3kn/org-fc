@@ -312,6 +312,28 @@ If point is not inside a flashcard entry, an error is raised."
     ;; :custom (repeat org-fc-position)
     :documentation "Positions of the card.")))
 
+(defclass org-fc-position ()
+  ((card
+    :initarg :card
+    :type org-fc-card
+    :documentation "Parent card of this position.")
+   (name
+    :initarg :name
+    :initform ""
+    :type string
+    :documentation "Name of the position, e.g. \"front\", \"back\" or \"0\", \"1\", ... .")
+   (due
+    :initarg :due
+    :initform nil
+    :type list
+    :custom (repeat integer)
+    :documentation "Timestamp when this position is due.")
+   (data
+    :initarg :data
+    :initform nil
+    :type list
+    :documentation "Algorithm specific review data.")))
+
 (defun org-fc-card-from-plist (plist file)
   (let* ((card
           (org-fc-card
@@ -324,13 +346,18 @@ If point is not inside a flashcard entry, an error is raised."
            :created (plist-get plist :created)
            :suspended (plist-get plist :suspended)
            :tags (plist-get plist :tags)))
-         ;; (positions
-         ;;  (mapcar (lambda (plist) (org-fc-position-from-plist plist card))
-         ;;          (plist-get plist :positions)))
-         (positions (plist-get plist :positions))
-	 )
+         (positions
+          (mapcar (lambda (plist) (org-fc-position-from-plist plist card))
+                  (plist-get plist :positions))))
     (oset card positions positions)
     card))
+
+(defun org-fc-position-from-plist (plist card)
+  (org-fc-position
+   :card card
+   :name (plist-get plist :position)
+   :due (plist-get plist :due)
+   :data plist))
 
 ;;; Checking for / going to flashcard headings
 
@@ -694,22 +721,6 @@ Relevant data from the file is included in each card element."
    (lambda (file) (oref file cards))
    index))
 
-(defun org-fc-index-flatten-card (card)
-  "Flatten CARD into a list of positions.
-Relevant data from the card is included in each position
-element."
-  (mapcar
-   (lambda (pos)
-     (list
-      :filetitle (oref (oref card file) title)
-      :path (oref (oref card file) path)
-      :tags (oref card tags)
-      :id (oref card id)
-      :type (oref card type)
-      :due (plist-get pos :due)
-      :position (plist-get pos :position)))
-   (oref card positions)))
-
 (defun org-fc-index-filter-due (index)
   "Filter INDEX to include only unsuspended due positions.
 Cards with no positions are removed from the index."
@@ -719,7 +730,7 @@ Cards with no positions are removed from the index."
 	(let ((due
 	       (cl-remove-if-not
 		(lambda (pos)
-		  (time-less-p (plist-get pos :due) now))
+		  (time-less-p (oref pos due) now))
 		(oref card positions))))
 	  (unless (null due)
 	    (oset card positions
@@ -731,7 +742,7 @@ Cards with no positions are removed from the index."
 
 (defun org-fc-index-positions (index)
   "Return all positions in INDEX."
-  (mapcan (lambda (card) (org-fc-index-flatten-card card)) index))
+  (mapcan (lambda (card) (oref card positions)) index))
 
 (defun org-fc-index-shuffled-positions (index)
   "Return all positions in INDEX in random order.
@@ -744,10 +755,10 @@ Positions are shuffled in a way that preserves the order of the
   (let ((positions
          (mapcan
           (lambda (card)
-            (let ((pos (org-fc-index-flatten-card card)))
+            (let ((positions (oref card positions)))
               (org-fc-zip
-               (org-fc-sorted-random (length pos))
-               pos)))
+               (org-fc-sorted-random (length positions))
+	       positions)))
           index)))
     (mapcar
      #'cdr
