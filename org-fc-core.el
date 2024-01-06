@@ -257,8 +257,7 @@ If point is not inside a flashcard entry, an error is raised."
     :initarg :cards
     :initform nil
     :type list
-    ;; TODO: re-add this when switching to class-based cards
-    ;; :custom (repeat org-fc-card)
+    :custom (repeat org-fc-card)
     :documentation "Flashcards in the file.")))
 
 (defclass org-fc-card ()
@@ -308,8 +307,7 @@ If point is not inside a flashcard entry, an error is raised."
     :initarg :positions
     :initform nil
     :type list
-    ;; TODO: Re-add this once there is a class for positions
-    ;; :custom (repeat org-fc-position)
+    :custom (repeat org-fc-position)
     :documentation "Positions of the card.")))
 
 (defclass org-fc-position ()
