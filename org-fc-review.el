@@ -219,7 +219,6 @@ same ID as the current card in the session."
                (position (oref pos name))
                (now (time-to-seconds (current-time)))
                (delta (- now org-fc-review--timestamp)))
-          (org-fc-review-add-rating org-fc-review--session rating)
           (org-fc-review-update-data path id position rating delta)
           (org-fc-review-reset)
 
@@ -423,17 +422,12 @@ removed."
   ((current-item :initform nil)
    (paused :initform nil :initarg :paused)
    (history :initform nil)
-   (ratings :initform nil :initarg :ratings)
    (cards :initform nil :initarg :cards)))
 
 (defun org-fc-make-review-session (cards)
   "Create a new review session with CARDS."
   (make-instance
    'org-fc-review-session
-   :ratings
-   (if-let ((stats (org-fc-awk-stats-reviews)))
-       (plist-get stats :day)
-     '(:total 0 :again 0 :hard 0 :good 0 :easy 0))
    :cards cards))
 
 (defun org-fc-review-history-add (elements)
@@ -458,16 +452,6 @@ removed."
 
 ;; Make sure the history is saved even if Emacs is killed
 (add-hook 'kill-emacs-hook #'org-fc-review-history-save)
-
-(defun org-fc-review-add-rating (session rating)
-  "Store RATING in the review history of SESSION."
-  (with-slots (ratings) session
-    (cl-case rating
-      (again (cl-incf (cl-getf ratings :again) 1))
-      (hard (cl-incf (cl-getf ratings :hard) 1))
-      (good (cl-incf (cl-getf ratings :good) 1))
-      (easy (cl-incf (cl-getf ratings :easy) 1)))
-    (cl-incf (cl-getf ratings :total 1))))
 
 ;;; Header Line
 
