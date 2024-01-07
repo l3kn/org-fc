@@ -22,20 +22,20 @@
   ;; 2. flatten the list
   ;; 3. sort by the random number
   ;; 4. remove the random numbers from the result
-  (let ((positions
+  (let ((positions-with-random
 	 (mapcan
 	  (lambda (card)
 	    (let ((positions (oref card positions)))
 	      (org-fc-zip
 	       (org-fc-sorted-random (length positions))
 	       positions)))
-	  index)))
+	  cards)))
     (oset
      scheduler
      positions
      (mapcar
       #'cdr
-      (sort positions (lambda (a b) (> (car a) (car b))))))))
+      (sort positions-with-random (lambda (a b) (> (car a) (car b))))))))
 
 (cl-defmethod org-fc-scheduler-next-position ((scheduler org-fc-scheduler))
   (pop (oref scheduler positions)))

@@ -12,7 +12,7 @@
     (c-cloze . "54625832-2d72-46f6-8f26-862eba4e4651")))
 
 (defun org-fc-test-compare-ids (index expected)
-  (let ((ids1 (mapcar (lambda (card) (oref card :id)) index))
+  (let ((ids1 (mapcar (lambda (card) (oref card id)) index))
         (ids2
          (mapcar
           (lambda (ex) (alist-get ex org-fc-filter-test-ids))

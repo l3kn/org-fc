@@ -1,6 +1,8 @@
-(require 'org-fc-core)
 (require 'cl-lib)
+(require 'eieio)
 (require 'ert)
+
+(require 'org-fc-core)
 
 (defun org-fc-test-fixture (name)
   "Return the full path of fixture file NAME."
@@ -29,7 +31,7 @@ everything else is checked for equality."
       (dolist (key keys)
         (org-fc-test-check-structure
          (plist-get expected key)
-         (if (object-p got)
+         (if (eieio-object-p got)
              (slot-value got key)
            (plist-get got key))))))
    ;; Normal list

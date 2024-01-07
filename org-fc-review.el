@@ -431,7 +431,9 @@ removed."
   ((current-item :initform nil)
    (paused :initform nil :initarg :paused)
    (history :initform nil)
-   (scheduler :initform nil :initarg :scheduler)))
+   (scheduler
+    :initform (org-fc-scheduler)
+    :initarg :scheduler)))
 
 (defun org-fc-make-review-session (scheduler)
   "Create a new review session with SCHEDULER."
