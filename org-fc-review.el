@@ -35,6 +35,7 @@
 (require 'eieio)
 
 (require 'org-fc-core)
+(require 'org-fc-scheduler)
 
 ;;; Hooks
 
@@ -98,15 +99,22 @@ Valid contexts:
       (when (yes-or-no-p "Flashcards are already being reviewed. Resume? ")
         (org-fc-review-resume))
     (let* ((index (org-fc-index context))
-           (cards (org-fc-index-filter-due index)))
-      (if org-fc-shuffle-positions
-          (setq cards (org-fc-index-shuffled-positions cards))
-        (setq cards (org-fc-index-positions cards)))
+           (cards (org-fc-index-filter-due index))
+	   (order
+	    (or
+	     (plist-get context :order)
+	    (if org-fc-shuffle-positions 'shuffled 'ordered)))
+	   (scheduler
+	    (cl-case order
+	      (ordered (org-fc-scheduler))
+	      (shuffled (org-fc-scheduler-shuffled))
+	      (t (error "Unknown review order %s" order)))))
       (if (null cards)
           (message "No cards due right now")
         (progn
+	  (org-fc-scheduler-init scheduler cards)
           (setq org-fc-review--session
-                (org-fc-make-review-session cards))
+                (org-fc-make-review-session scheduler))
           (run-hooks 'org-fc-before-review-hook)
           (org-fc-review-next-card))))))
 
@@ -134,11 +142,11 @@ Valid contexts:
 (defun org-fc-review-next-card (&optional resuming)
   "Review the next card of the current session.
 If RESUMING is non-nil, some parts of the buffer setup are skipped."
-  (if (not (null (oref org-fc-review--session cards)))
+  (if-let ((pos
+	    (org-fc-scheduler-next-position
+	     (oref org-fc-review--session scheduler))))
       (condition-case err
-	  ;; TODO: These are positions, not cards
-          (let* ((pos (pop (oref org-fc-review--session cards)))
-                 (path (oref (oref (oref pos card) file) path))
+          (let* ((path (oref (oref (oref pos card) file) path))
                  (id (oref (oref pos card) id))
                  (type (oref (oref pos card) type))
                  (position (oref pos name)))
@@ -223,8 +231,9 @@ same ID as the current card in the session."
           (org-fc-review-reset)
 
           (if (and (eq rating 'again) org-fc-append-failed-cards)
-              (with-slots (cards) org-fc-review--session
-                (setf cards (append cards (list card)))))
+	      (org-fc-scheduler-push-position
+	       (oref org-fc-review--session scheduler)
+	       pos))
 
           (save-buffer)
           (if org-fc-reviewing-existing-buffer
@@ -334,9 +343,9 @@ Pauses the review, unnarrows the buffer and activates
   (widen)
   (org-fc-remove-overlays)
   ;; Queue the current flashcard so it's reviewed a second time
-  (push
-   (oref org-fc-review--session current-item)
-   (oref org-fc-review--session cards))
+  (org-fc-scheduler-push-position
+   (oref org-fc-review--session scheduler)
+   (oref org-fc-review--session current-item))
   (setf (oref org-fc-review--session paused) t)
   (setf (oref org-fc-review--session current-item) nil)
   (org-fc-review-edit-mode 1))
@@ -422,13 +431,12 @@ removed."
   ((current-item :initform nil)
    (paused :initform nil :initarg :paused)
    (history :initform nil)
-   (cards :initform nil :initarg :cards)))
+   (scheduler :initform nil :initarg :scheduler)))
 
-(defun org-fc-make-review-session (cards)
-  "Create a new review session with CARDS."
-  (make-instance
-   'org-fc-review-session
-   :cards cards))
+(defun org-fc-make-review-session (scheduler)
+  "Create a new review session with SCHEDULER."
+  (org-fc-review-session
+   :scheduler scheduler))
 
 (defun org-fc-review-history-add (elements)
   "Add ELEMENTS to review history."
@@ -460,7 +468,10 @@ removed."
 
 (defun org-fc-set-header-line ()
   "Set the header-line for review."
-  (let* ((remaining (1+ (length (oref org-fc-review--session cards))))
+  (let* ((remaining (1+ (length
+			 (oref
+			  (oref org-fc-review--session scheduler)
+			  positions))))
          (current (oref org-fc-review--session current-item))
          (title
           (unless (or org-fc-review-hide-title-in-header-line
