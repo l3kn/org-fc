@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'org-fc-core)
+(require 'org-fc-review-data)
 
 (defvar org-fc-type-double--overlay '())
 

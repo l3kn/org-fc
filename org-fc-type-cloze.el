@@ -24,6 +24,7 @@
 (require 'thingatpt)
 
 (require 'org-fc-core)
+(require 'org-fc-review-data)
 
 (defcustom org-fc-type-cloze-type-property "FC_CLOZE_TYPE"
   "Property used to store the card's subtype for cloze cards."

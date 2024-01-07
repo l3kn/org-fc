@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'org-fc-core)
+(require 'org-fc-review-data)
 (require 'org-fc-type-cloze)
 
 ;;;; Shell wrappers

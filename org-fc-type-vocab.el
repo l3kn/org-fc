@@ -27,9 +27,10 @@
 ;;
 ;;; Code:
 
+(require 'org-fc-audio)
 (require 'org-fc-core)
 (require 'org-fc-diff)
-(require 'org-fc-audio)
+(require 'org-fc-review-data)
 
 (defcustom org-fc-type-vocab-slow-speed 0.7
   "Speed to use for slow playback."

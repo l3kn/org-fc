@@ -23,6 +23,7 @@
 
 (require 'org-fc-core)
 (require 'org-fc-diff)
+(require 'org-fc-review-data)
 
 (defun org-fc-text-input-content ()
   "Return the first line of a cards (back) contents.

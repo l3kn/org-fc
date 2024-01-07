@@ -103,11 +103,6 @@ types."
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-review-data-drawer "REVIEW_DATA"
-  "Name of the drawer used to store review data."
-  :type 'string
-  :group 'org-fc)
-
 (defcustom org-fc-drawer-whitelist '()
   "Drawers that are not hidden during review."
   :type 'list

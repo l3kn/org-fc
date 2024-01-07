@@ -34,6 +34,7 @@
 (require 'org-fc-core)
 (require 'org-fc-awk)
 (require 'org-fc-review)
+(require 'org-fc-review-data)
 
 ;;; Queue / Processing of Files
 

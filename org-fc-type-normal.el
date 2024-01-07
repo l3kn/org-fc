@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'org-fc-core)
+(require 'org-fc-review-data)
 
 (defun org-fc-type-normal-init ()
   "Mark headline as card of the normal type."
