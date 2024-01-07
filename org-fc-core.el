@@ -772,7 +772,7 @@ Positions are shuffled in a way that preserves the order of the
     (with-current-buffer (find-file path)
       ;; Prevent any changes to the demo file
       (read-only-mode 1)
-      (org-fc-review-buffer))))
+      (org-fc-review '(:paths buffer :order ordered)))))
 
 ;;; Contexts
 
