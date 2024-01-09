@@ -113,3 +113,21 @@ you need to implement three functions:
   hole is added to a cloze card
 
 All of these are called with ~(point)~ on the cards heading.
+* Alternative Titles of the Back Heading
+
+By default org-fc expects the heading for the back side of a card to
+be named “Back”.
+
+Custom names can be added via the ~org-fc-back-heading-titles~ variable.
+
+#+begin_src emacs-lisp
+(add-to-list
+ 'org-fc-back-heading-titles
+ "Answer")
+#+end_src
+
+#+begin_src emacs-lisp
+(add-to-list
+ 'org-fc-back-heading-titles
+ "Ответ")
+#+end_src

@@ -118,6 +118,11 @@ types."
   :type 'integer
   :group 'org-fc)
 
+(defcustom org-fc-back-heading-titles '("Back")
+  "Allowed titles for the back headings of flashcards."
+  :type '(list string)
+  :group 'org-fc)
+
 ;;;; Spacing Parameters
 
 (defcustom org-fc-algorithm 'sm2-v1
@@ -168,7 +173,7 @@ This is expected to be called on an card entry heading."
      (lambda ()
        (when (let ((comps (org-heading-components)))
                (and
-                (string= (cl-fifth comps) "Back")
+		(member (cl-fifth comps) org-fc-back-heading-titles)
                 (= (cl-first comps) (1+ level))))
          (setq found (point))))
      t 'tree)

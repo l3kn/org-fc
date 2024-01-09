@@ -5,6 +5,15 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.3.2
+
+*** Added
+
+- Custom titles for the back heading can be configured via the
+  ~org-fc-back-heading-titles~ variable.
+
+  See [[./docs/card_types.org]] for instructions on how to add new titles.
+
 ** 0.3.1
 
 *** Fixed
