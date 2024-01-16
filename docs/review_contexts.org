@@ -28,6 +28,11 @@ Filters can be combinations of the following expressions:
 - ~(tag "tag")~
 - ~(type card-type) or (type "card-type")~
 
+An optional ~:order~ property can be used to adjust the order cards
+are reviewed in for each context. Currently the two values ~ordered~
+and ~shuffled~ are supported. Their value overwrites the global
+~org-fc-shuffle-position~ setting.
+
 * Examples
 All double cards with tag "math":
 #+begin_src emacs-lisp
@@ -47,11 +52,11 @@ All cards in =~/combinatorics/= or =~/number_theory.org=:
     '(math-cards . (:paths ("~/combinatorics/" "~/number_theory.org"))))
 #+end_src
 
-All cards in =~/combinatorics/= with tag "theorem":
+All cards in =~/combinatorics/= with tag "theorem", in randomized order:
 #+begin_src emacs-lisp
   (add-to-list 'org-fc-custom-contexts
     '(combinatorics-theorems .
-      (:paths "~/combinatorics/" :filter (tag "theorem"))))
+      (:paths "~/combinatorics/" :filter (tag "theorem") :order shuffled)))
 #+end_src
 
 All double cards in the current buffer:
@@ -60,6 +65,14 @@ All double cards in the current buffer:
     '(current-double .
       (:paths buffer :filter (type double))))
 #+end_src
+
+All in current buffer, in order:
+#+begin_src emacs-lisp
+  (add-to-list 'org-fc-custom-contexts
+    '(current-ordered .
+      (:paths buffer :order ordered)))
+#+end_src
+
 * Note
 Because parsing of tags is done in AWK, tag filters don't work for
 tags defined in the =#+FILETAGS:= of a =#+SETUP_FILE:=.
