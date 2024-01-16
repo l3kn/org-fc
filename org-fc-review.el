@@ -140,6 +140,49 @@ Valid contexts:
   (interactive)
   (org-fc-review org-fc-context-all))
 
+(cl-defmethod org-fc-review-item ((position org-fc-position) resuming)
+  "Review logic for a POSITION of a card."
+  (let* ((card (oref position card))
+	 (path (oref (oref card file) path))
+	 (id (oref card id))
+	 (type (oref card type))
+	 (name (oref position name))
+	 (buffer (find-buffer-visiting path)))
+    (with-current-buffer (find-file path)
+      (unless resuming
+	;; If buffer was already open, don't kill it after rating the card
+	(if buffer
+	    (setq-local org-fc-reviewing-existing-buffer t)
+	  (setq-local org-fc-reviewing-existing-buffer nil))
+	(org-fc-set-header-line))
+
+      (goto-char (point-min))
+      (org-fc-id-goto id path)
+
+      (org-fc-indent)
+      ;; Make sure the headline the card is in is expanded
+      (org-reveal)
+      (org-fc-narrow)
+      (org-fc-hide-keyword-times)
+      (org-fc-hide-drawers)
+      (org-fc-show-latex)
+      (org-display-inline-images)
+      (run-hooks 'org-fc-before-setup-hook)
+
+      (setq org-fc-review--timestamp (time-to-seconds (current-time)))
+      (let ((step (funcall (org-fc-type-setup-fn type) name)))
+	(run-hooks 'org-fc-after-setup-hook)
+
+	;; If the card has a no-noop flip function,
+	;; skip to rate-mode
+	(let ((flip-fn (org-fc-type-flip-fn type)))
+	  (if (or
+	       (eq step 'rate)
+	       (null flip-fn)
+	       (eq flip-fn #'org-fc-noop))
+	      (org-fc-review-rate-mode 1)
+	    (org-fc-review-flip-mode 1)))))))
+
 (defun org-fc-review-next-card (&optional resuming)
   "Review the next card of the current session.
 If RESUMING is non-nil, some parts of the buffer setup are skipped."
@@ -147,49 +190,12 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
 	    (org-fc-scheduler-next-position
 	     (oref org-fc-review--session scheduler))))
       (condition-case err
-          (let* ((path (oref (oref (oref pos card) file) path))
-                 (id (oref (oref pos card) id))
-                 (type (oref (oref pos card) type))
-                 (position (oref pos name)))
-            (setf (oref org-fc-review--session current-item) pos)
-            (let ((buffer (find-buffer-visiting path)))
-              (with-current-buffer (find-file path)
-                (unless resuming
-                  ;; If buffer was already open, don't kill it after rating the card
-                  (if buffer
-                      (setq-local org-fc-reviewing-existing-buffer t)
-                    (setq-local org-fc-reviewing-existing-buffer nil))
-                  (org-fc-set-header-line))
-
-                (goto-char (point-min))
-                (org-fc-id-goto id path)
-
-                (org-fc-indent)
-                ;; Make sure the headline the card is in is expanded
-                (org-reveal)
-                (org-fc-narrow)
-                (org-fc-hide-keyword-times)
-                (org-fc-hide-drawers)
-                (org-fc-show-latex)
-                (org-display-inline-images)
-                (run-hooks 'org-fc-before-setup-hook)
-
-                (setq org-fc-review--timestamp (time-to-seconds (current-time)))
-                (let ((step (funcall (org-fc-type-setup-fn type) position)))
-                  (run-hooks 'org-fc-after-setup-hook)
-
-                  ;; If the card has a no-noop flip function,
-                  ;; skip to rate-mode
-                  (let ((flip-fn (org-fc-type-flip-fn type)))
-                    (if (or
-                         (eq step 'rate)
-                         (null flip-fn)
-                         (eq flip-fn #'org-fc-noop))
-                        (org-fc-review-rate-mode 1)
-                      (org-fc-review-flip-mode 1)))))))
-        (error
-         (org-fc-review-quit)
-         (signal (car err) (cdr err))))
+	  (progn
+	    (setf (oref org-fc-review--session current-item) pos)
+	    (org-fc-review-item pos resuming))
+	(error
+	 (org-fc-review-quit)
+	 (signal (car err) (cdr err))))
     (message "Review Done")
     (org-fc-review-quit)))
 
