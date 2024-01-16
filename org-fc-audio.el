@@ -54,20 +54,20 @@
 (defun org-fc-audio-set-before-setup (file)
   "Set the befor-setup audio property of the current card to FILE."
   (interactive "f")
-  (if (org-fc-entry-p)
-      (org-set-property org-fc-audio-before-setup-property file)))
+  (when (org-fc-entry-p)
+    (org-set-property org-fc-audio-before-setup-property file)))
 
 (defun org-fc-audio-set-after-setup (file)
   "Set the after-setup audio of the current card to FILE."
   (interactive "f")
-  (if (org-fc-entry-p)
-      (org-set-property org-fc-audio-after-setup-property file)))
+  (when (org-fc-entry-p)
+    (org-set-property org-fc-audio-after-setup-property file)))
 
 (defun org-fc-audio-set-after-flip (file)
   "Set the after-setup audio of the current card to FILE."
   (interactive "f")
-  (if (org-fc-entry-p)
-      (org-set-property org-fc-audio-after-flip-property file)))
+  (when (org-fc-entry-p)
+    (org-set-property org-fc-audio-after-flip-property file)))
 
 (defun org-fc-audio-play (property &optional speed)
   "Play the audio of the current card.

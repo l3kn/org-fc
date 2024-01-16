@@ -51,8 +51,8 @@
 
 (defun org-fc-type-double-flip ()
   "Flip a double card."
-  (if org-fc-type-double--overlay
-      (delete-overlay org-fc-type-double--overlay))
+  (when org-fc-type-double--overlay
+    (delete-overlay org-fc-type-double--overlay))
   (org-fold-show-entry)
   (org-fold-show-children)
   (org-fc-with-point-at-back-heading

@@ -83,9 +83,9 @@ the hole for the current position."
   (let (holes current-index)
     (while (re-search-forward org-fc-type-cloze-hole-re end t)
       (when (match-beginning 3)
-        (push (match-data) holes)
-        (if (= current-position (string-to-number (match-string 3)))
-            (setq current-index (1- (length holes))))))
+	(push (match-data) holes)
+	(when (= current-position (string-to-number (match-string 3)))
+	  (setq current-index (1- (length holes))))))
     (cons (reverse holes) current-index)))
 
 (defun org-fc-type-cloze--hole-visible-p (type i current-index)

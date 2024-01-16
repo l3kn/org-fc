@@ -138,14 +138,14 @@ are renamed or deleted."
  representation. This is especially relevant w.r.t a card's due
 date / suspension state before review."
   (org-fc-review-with-current-item cur
-    (if (org-fc-suspended-entry-p)
-        (error "Trying to review a suspended card"))
+    (when (org-fc-suspended-entry-p)
+      (error "Trying to review a suspended card"))
     (let* ((name (oref cur name))
-           (review-data (org-fc-review-data-parse))
+	   (review-data (org-fc-review-data-parse))
 	   (row (org-fc-review-data-get-row review-data name))
-           (due (parse-iso8601-time-string (plist-get row 'due))))
+	   (due (parse-iso8601-time-string (plist-get row 'due))))
       (unless (time-less-p due (current-time))
-        (error "Trying to review a non-due card")))))
+	(error "Trying to review a non-due card")))))
 
 ;;; Hashing
 

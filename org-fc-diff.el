@@ -63,22 +63,22 @@ Only parts of A in the range START1 to END1 and parts of B in the
 range START2 to END2 are considered.
 If there is no matching subsequence, nil is returned."
   (let ((best-length 0) (best-i 0) (best-j 0)
-        ;; Longest matching subsequence starting at index j of B,
-        ;; offset by one to handle the case j = 0
-        (lengths (make-vector (1+ (length b)) 0)))
+	;; Longest matching subsequence starting at index j of B,
+	;; offset by one to handle the case j = 0
+	(lengths (make-vector (1+ (length b)) 0)))
     (cl-loop for i from start1 to end1 do
-             (let ((new-lengths (make-vector (1+ (length b)) 0)))
-               (cl-loop for j from start2 to end2 do
-                        (if (eql (aref a i) (aref b j))
-                            (let ((length (+ 1 (aref lengths j))))
-                              (aset new-lengths (1+ j) length)
-                              (when (> length best-length)
-                                (setq best-length length)
-                                (setq best-i (1+ (- i length)))
-                                (setq best-j (1+ (- j length)))))))
-               (setq lengths new-lengths)))
-    (if (> best-length 0)
-        (list best-i best-j best-length))))
+	     (let ((new-lengths (make-vector (1+ (length b)) 0)))
+	       (cl-loop for j from start2 to end2 do
+			(if (eql (aref a i) (aref b j))
+			    (let ((length (+ 1 (aref lengths j))))
+			      (aset new-lengths (1+ j) length)
+			      (when (> length best-length)
+				(setq best-length length)
+				(setq best-i (1+ (- i length)))
+				(setq best-j (1+ (- j length)))))))
+	       (setq lengths new-lengths)))
+    (when (> best-length 0)
+      (list best-i best-j best-length))))
 
 (defun org-fc-diff-matching-blocks (a b start1 start2 end1 end2)
   "Find matching blocks of A and B.
@@ -86,10 +86,10 @@ Only parts of A in the range START1 to END1 and parts of B in the
 range START2 to END2 are considered."
   (if-let ((match (org-fc-diff-subseq a b start1 start2 end1 end2)))
       (cl-destructuring-bind (i j len) match
-        (append
-         (org-fc-diff-matching-blocks a b start1 start2 (1- i) (1- j))
-         (list match)
-         (org-fc-diff-matching-blocks a b (+ i len) (+ j len) end1 end2)))))
+	(append
+	 (org-fc-diff-matching-blocks a b start1 start2 (1- i) (1- j))
+	 (list match)
+	 (org-fc-diff-matching-blocks a b (+ i len) (+ j len) end1 end2)))))
 
 (defun org-fc-diff--propertize-got (got blocks expected-length)
   "Propertize the GOT answer given matching BLOCKS.
@@ -99,33 +99,33 @@ If it is shorter than EXPECTED-LENGTH, it is filled using
     ;; Prepend filler if text at start is missing
     (unless (null blocks)
       (cl-destructuring-bind (i j _len) (car blocks)
-        (if (> j i)
-            (setq res
-                  (propertize
-                   (make-string (- j i) org-fc-diff-filler)
-                   'face 'org-fc-diff-wrong)))))
+	(when (> j i)
+	  (setq res
+		(propertize
+		 (make-string (- j i) org-fc-diff-filler)
+		 'face 'org-fc-diff-wrong)))))
     (cl-loop for (i _ len) in blocks do
-             (setq res
-                   (concat
-                    res
-                    (propertize
-                     (cl-subseq got last i)
-                     'face 'org-fc-diff-wrong)
-                    (propertize
-                     (cl-subseq got i (+ i len))
-                     'face 'org-fc-diff-correct)))
-             (setq last (+ i len)))
+	     (setq res
+		   (concat
+		    res
+		    (propertize
+		     (cl-subseq got last i)
+		     'face 'org-fc-diff-wrong)
+		    (propertize
+		     (cl-subseq got i (+ i len))
+		     'face 'org-fc-diff-correct)))
+	     (setq last (+ i len)))
     (setq res
-          (concat
-           res
-           (propertize (cl-subseq got last) 'face 'org-fc-diff-wrong)))
+	  (concat
+	   res
+	   (propertize (cl-subseq got last) 'face 'org-fc-diff-wrong)))
     ;; Append filler if result is shorter than expected
     (if (< (length res) expected-length)
-        (concat
-         res
-         (propertize
-          (make-string (- expected-length (length res)) org-fc-diff-filler)
-          'face 'org-fc-diff-wrong))
+	(concat
+	 res
+	 (propertize
+	  (make-string (- expected-length (length res)) org-fc-diff-filler)
+	  'face 'org-fc-diff-wrong))
       res)))
 
 (defun org-fc-diff--propertize-expected (expected blocks)

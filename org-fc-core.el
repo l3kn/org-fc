@@ -190,10 +190,9 @@ Used to determine if a card uses the compact style."
 ;; File-scoped variant of `org-id-goto'
 (defun org-fc-id-goto (id file)
   "Go to the heading with ID in FILE."
-  (let ((position (org-id-find-id-in-file id file)))
-    (if position
-        (goto-char (cdr position))
-      (error "ID %s not found in %s" id file))))
+  (if-let ((position (org-id-find-id-in-file id file)))
+      (goto-char (cdr position))
+    (error "ID %s not found in %s" id file)))
 
 (defun org-fc-deemphasize (string)
   "Remove org emphasis markers from STRING.
@@ -217,11 +216,11 @@ Usually org-indent runs with a delay, so when reviewing a card in
 a new file, the cards contents jump to the right (are indented)
 during the review.  We can get around this by synchronously
 indenting the current heading."
-  (if org-indent-mode
-      (let ((el (org-element-at-point)))
-        (org-indent-add-properties
-         (org-element-property :begin el)
-         (org-element-property :end el)))))
+  (when org-indent-mode
+    (let ((el (org-element-at-point)))
+      (org-indent-add-properties
+       (org-element-property :begin el)
+       (org-element-property :end el)))))
 
 (defmacro org-fc-with-point-at-entry (&rest body)
   "Execute BODY with point at the card heading.
@@ -402,7 +401,7 @@ If point is not inside a flashcard entry, an error is raised."
 (defun org-fc--init-card (type)
   "Initialize the current card as a flashcard.
 Should only be used by the init functions of card TYPEs."
-  (if (org-fc-entry-p)
+  (when (org-fc-entry-p)
       (error "Headline is already a flashcard"))
   (org-back-to-heading)
   (org-set-property
@@ -432,24 +431,21 @@ Argument UPDATE-FN Function to update a card when it's contents have changed."
 
 (defun org-fc-type-setup-fn (type)
   "Get the review function for a card of TYPE."
-  (let ((entry (alist-get type org-fc-types nil nil #'string=)))
-    (if entry
-        (cl-first entry)
-      (error "No such flashcard type: %s" type))))
+  (if-let ((entry (alist-get type org-fc-types nil nil #'string=)))
+      (cl-first entry)
+    (error "No such flashcard type: %s" type)))
 
 (defun org-fc-type-flip-fn (type)
   "Get the flip function for a card of TYPE."
-  (let ((entry (alist-get type org-fc-types nil nil #'string=)))
-    (if entry
-        (cl-second entry)
-      (error "No such flashcard type: %s" type))))
+  (if-let ((entry (alist-get type org-fc-types nil nil #'string=)))
+      (cl-second entry)
+    (error "No such flashcard type: %s" type)))
 
 (defun org-fc-type-update-fn (type)
   "Get the update function for a card of TYPE."
-  (let ((entry (alist-get type org-fc-types nil nil #'string=)))
-    (if entry
-        (cl-third entry)
-      (error "No such flashcard type: %s" type))))
+  (if-let ((entry (alist-get type org-fc-types nil nil #'string=)))
+      (cl-third entry)
+    (error "No such flashcard type: %s" type)))
 
 ;;; Working with Overlays / Hiding Text
 ;;;; Showing / Hiding Overlays
@@ -468,11 +464,11 @@ make it bold."
   (let ((o (make-overlay from to nil 'front-advance)))
     (overlay-put o 'category 'org-fc)
     (overlay-put o 'evaporate t)
-    (if face (overlay-put o 'face face))
+    (when face (overlay-put o 'face face))
     (if (stringp text)
-        (progn
-          (overlay-put o 'invisible nil)
-          (overlay-put o 'display text))
+	(progn
+	  (overlay-put o 'invisible nil)
+	  (overlay-put o 'display text))
       (overlay-put o 'invisible t))
     o))
 
@@ -563,7 +559,7 @@ Only parent headings of the current heading remain visible."
       (outline-hide-subtree))
     ;; Show only the ancestors of the current card
     (org-fold-show-set-visibility org-fc-narrow-visibility)
-    (if (member "noheading" tags) (org-fc-hide-heading))))
+    (when (member "noheading" tags) (org-fc-hide-heading))))
 
 ;;; Updating Cards
 

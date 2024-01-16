@@ -127,16 +127,16 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
 (defun org-fc-awk-stats-reviews ()
   "Statistics for all card reviews.
 Return nil there is no history file."
-  (if (file-exists-p org-fc-review-history-file)
-      (let ((output
-             (shell-command-to-string
-              (org-fc-awk--command
-               "awk/stats_reviews.awk"
-               :input org-fc-review-history-file
-               :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
-        (if (string-prefix-p "(" output)
-            (read output)
-          (error "Org-fc shell error: %s" output)))))
+  (when (file-exists-p org-fc-review-history-file)
+    (let ((output
+	   (shell-command-to-string
+	    (org-fc-awk--command
+	     "awk/stats_reviews.awk"
+	     :input org-fc-review-history-file
+	     :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
+      (if (string-prefix-p "(" output)
+	  (read output)
+	(error "Org-fc shell error: %s" output)))))
 
 ;;; Footer
 

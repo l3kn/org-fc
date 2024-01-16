@@ -203,7 +203,7 @@ If RESUMING is non-nil, some parts of the buffer setup are skipped."
 Before evaluating BODY, check if the heading at point has the
 same ID as the current card in the session."
   (declare (indent defun))
-  `(if org-fc-review--session
+  `(when org-fc-review--session
        (if-let ((,var (oref org-fc-review--session current-item)))
            (if (string= (oref (oref ,var card) id) (org-id-get))
                (progn ,@body)
@@ -228,24 +228,24 @@ same ID as the current card in the session."
   (interactive)
   (condition-case err
       (org-fc-review-with-current-item pos
-        (let* ((path (oref (oref (oref pos card) file) path))
+	(let* ((path (oref (oref (oref pos card) file) path))
 	       (id (oref (oref pos card) id))
-               (position (oref pos name))
-               (now (time-to-seconds (current-time)))
-               (delta (- now org-fc-review--timestamp)))
-          (org-fc-review-update-data path id position rating delta)
-          (org-fc-review-reset)
+	       (position (oref pos name))
+	       (now (time-to-seconds (current-time)))
+	       (delta (- now org-fc-review--timestamp)))
+	  (org-fc-review-update-data path id position rating delta)
+	  (org-fc-review-reset)
 
-          (if (and (eq rating 'again) org-fc-append-failed-cards)
-	      (org-fc-scheduler-push-position
-	       (oref org-fc-review--session scheduler)
-	       pos))
+	  (when (and (eq rating 'again) org-fc-append-failed-cards)
+	    (org-fc-scheduler-push-position
+	     (oref org-fc-review--session scheduler)
+	     pos))
 
-          (save-buffer)
-          (if org-fc-reviewing-existing-buffer
-              (org-fc-review-reset)
-            (kill-buffer))
-          (org-fc-review-next-card)))
+	  (save-buffer)
+	  (if org-fc-reviewing-existing-buffer
+	      (org-fc-review-reset)
+	    (kill-buffer))
+	  (org-fc-review-next-card)))
     (error
      (org-fc-review-quit)
      (signal (car err) (cdr err)))))

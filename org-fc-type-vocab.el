@@ -79,22 +79,22 @@
   (save-excursion
     (org-fc-goto-entry-heading)
     (let ((case-fold-search nil))
-      (if (looking-at org-complex-heading-regexp)
-          (cons
-           (match-beginning 4)
-           (buffer-substring-no-properties (match-beginning 4) (match-end 4)))))))
+      (when (looking-at org-complex-heading-regexp)
+	(cons
+	 (match-beginning 4)
+	 (buffer-substring-no-properties (match-beginning 4) (match-end 4)))))))
 
 (defun org-fc-type-vocab-typing-setup ()
   "Prepare a text-input vocab card for review."
   (interactive)
   (org-fold-show-subtree)
   (let* ((pos-content (org-fc-vocab-content))
-         (content (cdr pos-content))
-         (start (car pos-content))
-         (end (+ start (length content)))
-         (ov (org-fc-hide-region start end "..."))
-         (deemph (org-fc-deemphasize content))
-         (diff (org-fc-diff (read-string "Answer: ") (cdr deemph))))
+	 (content (cdr pos-content))
+	 (start (car pos-content))
+	 (end (+ start (length content)))
+	 (ov (org-fc-hide-region start end "..."))
+	 (deemph (org-fc-deemphasize content))
+	 (diff (org-fc-diff (read-string "Answer: ") (cdr deemph))))
     (delete-overlay ov)
     ;; Overlay for user input
     (when (car deemph)
@@ -102,16 +102,16 @@
       (setq end (1- end)))
     (org-fc-hide-region start end (car diff))
     ;; Overlay for expected answer, using the newline after the answer
-    (if (cdr diff)
-        (org-fc-hide-region
-         end (1+ end)
-         (concat
-          "\n! "
-          (if (null (car deemph))
-              (cdr diff)
-            (org-fc-emphasize
-             (concat (car deemph) (cdr diff) (car deemph))))
-          "")))))
+    (when (cdr diff)
+      (org-fc-hide-region
+       end (1+ end)
+       (concat
+	"\n! "
+	(if (null (car deemph))
+	    (cdr diff)
+	  (org-fc-emphasize
+	   (concat (car deemph) (cdr diff) (car deemph))))
+	"")))))
 
 (org-fc-register-type
  'vocab

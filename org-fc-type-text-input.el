@@ -67,27 +67,27 @@ function is expected to be called with point on a heading."
     (org-fc-with-point-at-back-heading (org-fold-show-set-visibility 'minimal)))
   ;; Prompt user, create diff overlay
   (let* ((pos-content (org-fc-text-input-content))
-         (content (cdr pos-content))
-         (start (car pos-content))
-         (end (+ start (length content)))
-         (deemph (org-fc-deemphasize content))
-         (diff (org-fc-diff (read-string "Answer: ") (cdr deemph))))
+	 (content (cdr pos-content))
+	 (start (car pos-content))
+	 (end (+ start (length content)))
+	 (deemph (org-fc-deemphasize content))
+	 (diff (org-fc-diff (read-string "Answer: ") (cdr deemph))))
     ;; Overlay for user input
     (when (car deemph)
       (setq start (1+ start))
       (setq end (1- end)))
     (org-fc-hide-region start end (car diff))
     ;; Overlay for expected answer, using the newline after the answer
-    (if (cdr diff)
-        (org-fc-hide-region
-         end (1+ end)
-         (concat
-          " (expected: "
-          (if (null (car deemph))
-              (cdr diff)
-            (org-fc-emphasize
-             (concat (car deemph) (cdr diff) (car deemph))))
-          ")\n"))))
+    (when (cdr diff)
+      (org-fc-hide-region
+       end (1+ end)
+       (concat
+	" (expected: "
+	(if (null (car deemph))
+	    (cdr diff)
+	  (org-fc-emphasize
+	   (concat (car deemph) (cdr diff) (car deemph))))
+	")\n"))))
   ;; Reveal answer & diff
   (save-excursion
     (org-fold-show-entry)
