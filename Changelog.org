@@ -5,6 +5,37 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.4.0
+
+*** Added
+
+Review-context definitions can now include an optional
+~:order~ property. Currently two orders are supported:
+
+- ~'ordered~
+  cards are reviewed file by file, in the order they appear within the
+  file
+- ~'shuffled~
+  cards are reviewed in a randomized order
+
+This corresponds to setting the existing ~org-fc-shuffle-positions~
+variable to ~nil~ or ~t~ respectively, the only change being that this
+can now be customized for each review context.
+
+*** Internal
+
+The internal data structures representing files, cards and positions
+of cards have now use ~eieio~ classes.
+
+The way org-fc reads and writes the contents of the ~:REVIEW_DATA:~
+drawer has been changed as a first step towards supporting alternative
+spacing algorithms.
+
+To reduce the chance that bugs are introduced by this and future
+changes of the code, end-to-end tests have been added to ensure
+different functions of org-fc correctly change the org-mode contents
+of flashcards.
+
 ** 0.3.1
 
 *** Fixed
