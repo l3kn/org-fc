@@ -1,0 +1,20 @@
+Name: Case 1
+
+=-=
+* Front
+Back
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  double
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+| back     |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+:END:
+Back
+=-=-=

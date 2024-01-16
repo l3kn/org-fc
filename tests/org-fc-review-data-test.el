@@ -1,6 +1,25 @@
 (require 'org-fc)
 (require 'org-fc-test-helper)
 (require 'ert)
+(require 'el-mock)
+
+(ert-deftest org-fc-test-review-data-init ()
+  (let ((review-data
+	 (org-fc-review-data :headers (org-fc-review-data-default-headers))))
+
+    (should (equal (org-fc-review-data-names review-data) nil))
+
+    (org-fc-review-data-ensure-rows review-data '("front" "back"))
+    (should (equal (org-fc-review-data-names review-data) '("front" "back")))))
+
+(ert-deftest org-fc-test-review-data-update ()
+  (ert-test-erts-file
+   (org-fc-test-fixture "erts/review_data_update.erts")
+   (lambda ()
+     (with-mock
+       (mock (time-to-seconds) => 0)
+       (org-mode)
+       (org-fc-review-data-update '("front" "back"))))))
 
 (ert-deftest org-fc-test-review-data ()
   (org-fc-test-check-structure

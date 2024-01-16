@@ -1,0 +1,58 @@
+Name: Case 1
+
+=-=
+* Test Card
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+:END:
+=-=
+* Test Card
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+| back     |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+:END:
+=-=-=
+
+Name: Case 2
+
+=-=
+* Test Card
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+| back     |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+:END:
+=-=
+* Test Card
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+| back     |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+:END:
+=-=-=
+
+Name: Case 3
+
+=-=
+* Test Card
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| foo      |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+| bar      |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+| baz      |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+:END:
+=-=
+* Test Card
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+| back     |  2.5 |   0 |        0 | 1970-01-01T00:00:00Z |
+:END:
+=-=-=
