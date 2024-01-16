@@ -278,7 +278,7 @@ same ID as the current card in the session."
   (org-fc-review-reset)
   (org-fc-review-next-card))
 
-(defun org-fc-review-update-data (path id position rating delta)
+(defun org-fc-review-update-data (path id name rating delta)
   "Update the review data of the card.
 Also add a new entry in the review history file.  PATH, ID,
 POSITION identify the position that was reviewed, RATING is a
@@ -288,19 +288,19 @@ rating the card."
    ;; If the card is marked as a demo card, don't log its reviews and
    ;; don't update its review data
    (unless (member org-fc-demo-tag (org-get-tags))
-     (let* ((data (org-fc-review-data-get))
-            (current (assoc position data #'string=)))
+     (let* ((review-data (org-fc-review-data-parse (org-fc-review-data-default-headers)))
+	    (current (org-fc-review-data-get-row review-data name)))
        (unless current
-         (error "No review data found for this position"))
-       (let ((ease (string-to-number (cl-second current)))
-             (box (string-to-number (cl-third current)))
-             (interval (string-to-number (cl-fourth current))))
+         (error "No review data row found for this position"))
+       (let ((ease (string-to-number (plist-get current 'ease)))
+             (box (string-to-number (plist-get current 'box)))
+             (interval (string-to-number (plist-get current 'interval))))
          (org-fc-review-history-add
           (list
            (org-fc-timestamp-in 0)
            path
            id
-           position
+           name
            (format "%.2f" ease)
            (format "%d" box)
            (format "%.2f" interval)
@@ -309,13 +309,12 @@ rating the card."
            (symbol-name org-fc-algorithm)))
          (cl-destructuring-bind (next-ease next-box next-interval)
              (org-fc-algo-sm2-next-parameters ease box interval rating)
-           (setcdr
-            current
-            (list (format "%.2f" next-ease)
-                  (number-to-string next-box)
-                  (format "%.2f" next-interval)
-                  (org-fc-timestamp-in next-interval)))
-           (org-fc-review-data-set data)))))))
+	   (setq current (plist-put current 'ease (format "%.2f" next-ease)))
+	   (setq current (plist-put current 'box (format "%d" next-box)))
+	   (setq current (plist-put current 'interval (format "%.2f" next-interval)))
+	   (setq current (plist-put current 'due (org-fc-timestamp-in next-interval)))
+	   (org-fc-review-data-set-row review-data name current)
+           (org-fc-review-data-write review-data)))))))
 
 (defun org-fc-review-reset ()
   "Reset the buffer to its state before the review."

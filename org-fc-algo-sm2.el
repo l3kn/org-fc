@@ -166,7 +166,12 @@ EASE, BOX and INTERVAL are the current parameters of the card."
          (ease (org-fc-algo-sm2-ease-initial))
          (interval 0)
          (due (org-fc-timestamp-in interval)))
-    (list position ease box interval due)))
+    (list
+     'position position
+     'ease ease
+     'box box
+     'interval interval
+     'due due)))
 
 ;;; Footer
 
