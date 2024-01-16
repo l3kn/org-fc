@@ -44,4 +44,13 @@
   (with-slots (positions) scheduler
     (setf positions (append positions (list position)))))
 
+(cl-defmethod org-fc-scheduler-remove-siblings ((scheduler org-fc-scheduler) position)
+  "Given one POSITION, remove all other positions that belong to the same card."
+  (let ((id (oref (oref position card) id)))
+    (with-slots (positions) scheduler
+      (setf positions
+	    (cl-remove-if
+	     (lambda (other) (string= (oref (oref other card) id) id))
+	     positions)))))
+
 (provide 'org-fc-scheduler)

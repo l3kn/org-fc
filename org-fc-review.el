@@ -275,6 +275,9 @@ same ID as the current card in the session."
   "Suspend card and proceed to next."
   (interactive)
   (org-fc-suspend-card)
+  (org-fc-review-with-current-item pos
+    (org-fc-scheduler-remove-siblings
+     (oref org-fc-review--session scheduler) pos))
   (org-fc-review-reset)
   (org-fc-review-next-card))
 

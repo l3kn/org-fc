@@ -602,15 +602,7 @@ If there is an active review session, all positions of
 the now suspended card are removed from it."
   (interactive)
   (org-fc-with-point-at-entry
-   (org-fc--add-tag org-fc-suspended-tag)
-
-   (when org-fc-review--session
-     (let ((id (org-id-get)))
-       (with-slots (cards) org-fc-review--session
-         (setf cards
-               (cl-remove-if
-                (lambda (card)
-                  (string= id (oref card id))) cards)))))))
+   (org-fc--add-tag org-fc-suspended-tag)))
 
 ;;;###autoload
 (defun org-fc-suspend-tree ()
