@@ -156,7 +156,6 @@ Valid contexts:
 	  (setq-local org-fc-reviewing-existing-buffer nil))
 	(org-fc-set-header-line))
 
-      (goto-char (point-min))
       (org-fc-id-goto id path)
 
       (org-fc-indent)
