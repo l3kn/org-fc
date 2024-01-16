@@ -720,42 +720,18 @@ Cards with no positions are removed from the index."
   (let (res (now (current-time)))
     (dolist (card index)
       (unless (oref card suspended)
-	(let ((due
-	       (cl-remove-if-not
-		(lambda (pos)
-		  (time-less-p (oref pos due) now))
-		(oref card positions))))
-	  (unless (null due)
-	    (oset card positions
-		  (if (or (not org-fc-bury-siblings)
-			  (member (oref card cloze-type) '(single enumeration)))
-		      due (list (car due))))
-	    (push card res)))))
-    res))
-
-(defun org-fc-index-positions (index)
-  "Return all positions in INDEX."
-  (mapcan (lambda (card) (oref card positions)) index))
-
-(defun org-fc-index-shuffled-positions (index)
-  "Return all positions in INDEX in random order.
-Positions are shuffled in a way that preserves the order of the
-  positions for each card."
-  ;; 1. assign each position a random number
-  ;; 2. flatten the list
-  ;; 3. sort by the random number
-  ;; 4. remove the random numbers from the result
-  (let ((positions
-         (mapcan
-          (lambda (card)
-            (let ((positions (oref card positions)))
-              (org-fc-zip
-               (org-fc-sorted-random (length positions))
-	       positions)))
-          index)))
-    (mapcar
-     #'cdr
-     (sort positions (lambda (a b) (> (car a) (car b)))))))
+        (let ((due
+               (cl-remove-if-not
+                (lambda (pos)
+                  (time-less-p (oref pos due) now))
+                (oref card positions))))
+          (unless (null due)
+            (oset card positions
+                  (if (or (not org-fc-bury-siblings)
+                          (member (oref card cloze-type) '(single enumeration)))
+                      due (list (car due))))
+            (push card res)))))
+    (reverse res)))
 
 ;;; Demo Mode
 
