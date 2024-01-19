@@ -10,11 +10,145 @@
 :REVIEW_DATA:
 | position | ease | box | interval | due                  |
 |----------+------+-----+----------+----------------------|
-| front    | 2.50 |   7 |   203.25 | 2000-01-01T00:00:00Z |
+| front    |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
 :END:
-Front of the card
+
+Welcome to the org-fc demo!
+This demo is implemented as a review session.
+
+If you want to stop the demo at any point, you can do so by pressing
+the =q= key or via the =M-x org-fc-review-quit= command.
+
+What you're seeing right now is the front side a card of the *normal*
+type. Think of it as a question (front) - answer (back) pair.
+
+You can flip the card and reveal the back side by pressing the =n= key
+or by using the =M-x org-fc-review-flip= command.
+
+Note how the current state as displayed in the top left corner of the
+buffer switches between “Flip” and “Rate” during the review.
+
 ** Back
-Back of the card
+
+This is the back side of the card. It was hidden a moment ago.
+
+In a real review session, you would now rate how well you remembered
+the card by giving it one of the following ratings:
+
+- again :: key =a= or =M-x org-fc-review-rate-again=
+- hard  :: key =h= or =M-x org-fc-review-rate-hard=
+- good  :: key =g= or =M-x org-fc-review-rate-good=
+- easy  :: key =e= or =M-x org-fc-review-rate-easy=
+
+Give it one of these ratings to continue to the next card.
+
+* Another Normal Card                                                    :fc:
+:PROPERTIES:
+:FC_CREATED: 2000-01-01T00:00:00Z
+:FC_TYPE:  normal
+:ID:       af18545c-e87c-48a2-9df3-9483cfcec7f6
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
+:END:
+
+Cards in this format are great for simple question-answer pairs.
+Let's try a more realistic example with this card.
+
+What's written on the “Back” side of a normal flashcard?
+
+Flip this card to reveal the answer.
+
+** Back
+
+The “Back” side of a normal flashcard can contain the answer of a
+question answer pair.
+
+Instead of having an extra “Back” heading to store the answer,
+flashcards can also be written in a *compact* style
+where the text of the main heading contains the question
+and the contents of the heading contain the answer.
+
+Rate this card to continue see an example for such a compact card.
+
+* Question: What's the name for this style of card?                      :fc:
+:PROPERTIES:
+:FC_CREATED: 2000-01-01T00:00:00Z
+:FC_TYPE:  normal
+:ID:       9ecfadf9-2823-49d6-a65c-cca19d0c4a4c
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
+:END:
+
+This card uses the *compact* style.
+
+It can be used e.g. for learning words of a foreign language, where
+the heading title contains the word and the “body” of the heading
+contains a definition.
+
+* Double Card                                                            :fc:
+:PROPERTIES:
+:FC_CREATED: 2000-01-01T00:00:00Z
+:FC_TYPE:  double
+:ID:       855253c7-ed09-4b7c-a878-b7b890d140c2
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
+| back     |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
+:END:
+
+For other kinds of knowledge, we'd like to learn not just one
+“Front” -> “Back“ direction but also the reverse.
+
+While it looks just like a normal flashcard right now,
+this card uses the *double* type.
+
+Flip it to continue.
+
+** Back
+
+Here's the back side!
+
+Now when you rate this card, instead of seeing a new card,
+you'll be see this back side again and flipping the card
+will reveal the front side.
+
+Note how you're first seeing this side in the “Rate” mode,
+then in the “Flip” mode.
+
+Often reviewing the same card in a different direction will be much
+easier because the answer has been spoiled during a previous review.
+
+Following the terminology used by Anki, the two directions are called
+*siblings* and setting the variable ~org-fc-bury-siblings~ to ~t~ will
+exclude reviews of the same card from the current review session.
+
+* Cloze Cards
+
+
+
+* Outline
+
+this is the next card. Let's try a real question-answer pair.
+
+What's the type used for this card and the previous one?
+
+Back
+Normal card type
+
+Another form the normal card type can take is the *compact*
+where the heading is used for the front side
+and the contents below the heading as the back side.
+
+Let's try that next.
+
 * Compact Double Card                                                    :fc:
 :PROPERTIES:
 :ID:       d3e290c2-a7f0-4d10-9a0a-6c1ecec3c29e
