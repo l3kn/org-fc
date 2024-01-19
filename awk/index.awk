@@ -29,7 +29,7 @@ BEGIN {
     #
     # Treating whitespace as part of the field separator instead of
     # stripping it from the fields afterwards is a bit faster.
-    FS="[ \t]*|[ \t]*";
+    FS="[ \t]*\\|[ \t]*";
 
     now = strftime("%FT%TZ", systime(), 1);
 
