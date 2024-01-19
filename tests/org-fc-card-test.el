@@ -26,8 +26,7 @@
 
        (org-mode)
        (goto-char (point-min))
-       (org-fc-review-update-data "" "" "front" 'good 0)
-       ))))
+       (org-fc-review-update-data "" "" "front" 'good 0)))))
 
 (ert-deftest org-fc-test-card-init-double ()
   (ert-test-erts-file
@@ -53,5 +52,3 @@
        (org-mode)
        (goto-char (point-min))
        (org-fc-review-update-data "" "" "front" 'easy 0)))))
-
-       ;; (message (buffer-substring (point-min) (point-max)))

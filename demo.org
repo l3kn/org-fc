@@ -130,39 +130,6 @@ Following the terminology used by Anki, the two directions are called
 *siblings* and setting the variable ~org-fc-bury-siblings~ to ~t~ will
 exclude reviews of the same card from the current review session.
 
-* Cloze Cards
-
-
-
-* Outline
-
-this is the next card. Let's try a real question-answer pair.
-
-What's the type used for this card and the previous one?
-
-Back
-Normal card type
-
-Another form the normal card type can take is the *compact*
-where the heading is used for the front side
-and the contents below the heading as the back side.
-
-Let's try that next.
-
-* Compact Double Card                                                    :fc:
-:PROPERTIES:
-:ID:       d3e290c2-a7f0-4d10-9a0a-6c1ecec3c29e
-:FC_CREATED: 2000-01-01T00:00:00Z
-:FC_TYPE:  double
-:END:
-:REVIEW_DATA:
-| position | ease | box | interval | due                  |
-|----------+------+-----+----------+----------------------|
-| front    | 2.50 |   7 |   219.03 | 2000-01-01T00:00:00Z |
-| back     | 2.50 |   6 |    94.52 | 2000-01-01T00:00:00Z |
-:END:
-For cards without a "Back" heading, the headings main text is
-considered as the back side.
 * Cloze Deletion                                                         :fc:
 :PROPERTIES:
 :ID:       2ffc8b34-b2b5-4472-9295-714b5422679d

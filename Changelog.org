@@ -24,6 +24,8 @@ can now be customized for each review context.
 
 *** Internal
 
+**** Use of ~eieio
+
 The internal data structures representing files, cards and positions
 of cards have now use ~eieio~ classes.
 
@@ -35,6 +37,13 @@ To reduce the chance that bugs are introduced by this and future
 changes of the code, end-to-end tests have been added to ensure
 different functions of org-fc correctly change the org-mode contents
 of flashcards.
+
+**** AWK
+
+Incorrect quoting in the field separator used for parsing
+~:REVIEW_DATA:~ tables caused the inclusion of an extra field for each
+"|" character between cells of the table. This did not affect the
+normal use of org-fc.
 
 ** 0.3.2
 
