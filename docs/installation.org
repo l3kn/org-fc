@@ -121,3 +121,15 @@ just put this in your =.spacemacs=:
     ;; ...
     )
 #+END_SRC
+
+* Sharing Cards Between Windows and Linux/UNIX
+
+If you're switching between operating systems when editing and
+reviewing flashcards, there's a chance that org-fc won't correctly
+find files created under one OS when reviewing them on the other
+because the format of line-endings differs.
+
+Setting the variable ~org-fc-awk-mixed-line-endings~ to a non-nil
+value should alleviate at least some of this problem by configuring
+the AWK indexer to recognize both =\n= and =\r\n= as valid line
+endings.

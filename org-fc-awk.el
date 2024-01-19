@@ -27,6 +27,15 @@
 (require 'org-fc-review-data)
 (require 'org-fc-type-cloze)
 
+;;; Custom
+
+(defcustom org-fc-awk-mixed-line-endings nil
+  "Support both LF and CRLF line endings in AWK.
+This is useful when edit and review the same files under Windows
+and Linux/UNIX."
+  :type 'boolean
+  :group 'org-fc)
+
 ;;;; Shell wrappers
 
 (defun org-fc-awk--find (paths)
@@ -47,7 +56,9 @@ With the `-L' option, `find' follows symlinks."
     ("type_property" . ,org-fc-type-property)
     ("cloze_type_property" . ,org-fc-type-cloze-type-property)
     ("created_property" . ,org-fc-created-property)
-    ("review_data_drawer" . ,org-fc-review-data-drawer)))
+    ("review_data_drawer" . ,org-fc-review-data-drawer)
+    ,@(when org-fc-awk-mixed-line-endings
+	'(("RS" . "\"\\r?\\n\"")))))
 
 (cl-defun org-fc-awk--command (file &optional &key variables input)
   "Generate the shell command for calling awk.

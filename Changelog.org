@@ -9,6 +9,8 @@ entry with updating instructions.
 
 *** Added
 
+**** Review Orders
+
 Review-context definitions can now include an optional
 ~:order~ property. Currently two orders are supported:
 
@@ -22,9 +24,19 @@ This corresponds to setting the existing ~org-fc-shuffle-positions~
 variable to ~nil~ or ~t~ respectively, the only change being that this
 can now be customized for each review context.
 
-*** Internal
+**** Mixed Line Endings
 
-**** Use of ~eieio
+Some operating systems differ in how they mark line endings, using
+either =\n= or =\r\n=. Usually =gawk= will use the correct ending for
+the current OS but files moved from one OS to the other might not get
+parsed correctly.
+
+A new configuration variable ~org-fc-awk-mixed-line-endings~ can now
+be set to a non-nil value to change the row-separator used by AWK to
+support both kinds of line endings.
+
+*** Internal
+**** Use of ~eieio~
 
 The internal data structures representing files, cards and positions
 of cards have now use ~eieio~ classes.
