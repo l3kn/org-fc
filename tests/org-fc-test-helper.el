@@ -42,4 +42,29 @@ everything else is checked for equality."
    ;; Anything else
    (t (should (equal expected got)))))
 
+;;; Minimal Mocking Mechanism
+
+(defvar org-fc-test--allow-overwrite nil)
+
+(defmacro org-fc-test-with-overwrites (&rest body)
+  `(let (org-fc-test--overwritten-functions
+	 (org-fc-test--allow-overwrite t))
+     (unwind-protect
+	 (progn ,@body)
+       ;; Undo overwrites
+       (dolist (name org-fc-test--overwritten-functions)
+	 (if-let ((func (function-get name 'org-fc-test-original-function)))
+	     (fset name func)
+	   (fmakunbound name))))))
+
+(defmacro org-fc-test-overwrite-fun (name fun)
+  `(progn
+     (unless org-fc-test--allow-overwrite
+       (error "Can't overwrite functions outside of `org-fc-test-with-overwrites'"))
+     (when (fboundp ',name)
+       (function-put ',name 'org-fc-test-original-function (symbol-function ',name)))
+     (push ',name org-fc-test--overwritten-functions)
+     (fset ',name ,fun)))
+
+
 (provide 'org-fc-test-helper)
