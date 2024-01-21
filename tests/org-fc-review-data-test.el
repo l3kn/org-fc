@@ -5,8 +5,9 @@
 (require 'el-mock)
 
 (ert-deftest org-fc-test-review-data-init ()
-  (let ((review-data
-	 (org-fc-review-data :headers (org-fc-review-data-default-headers))))
+  (let* ((algo (org-fc-algo-sm2))
+	 (review-data
+	  (org-fc-review-data :headers (org-fc-algo-headers algo))))
 
     (should (equal (org-fc-review-data-names review-data) nil))
 

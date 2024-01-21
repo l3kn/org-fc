@@ -161,20 +161,16 @@ END is the start of the line with :END: on it."
 
 (defun org-fc-review-data-default (position)
   "Default review data for position POSITION."
-  (cl-case org-fc-algorithm
-    (sm2-v1 (org-fc-algo-sm2-initial-review-data position))
-    (sm2-v2 (org-fc-algo-sm2-initial-review-data position))))
-
-(defun org-fc-review-data-default-headers ()
-  "Default review data headers."
-  '(position ease box interval due))
+  (let ((algo (org-fc-algo-sm2)))
+    (org-fc-algo-initial-review-data algo position)))
 
 (defun org-fc-review-data-update (names)
   "Update the review data drawer so it contains rows for NAMES.
 If a doesn't exist already, it is initialized with default
 values. Entries in the table not contained in NAMES are
 removed."
-  (let ((review-data (org-fc-review-data-parse (org-fc-review-data-default-headers))))
+  (let* ((algo (org-fc-algo-sm2))
+	 (review-data (org-fc-review-data-parse (org-fc-algo-headers algo))))
     (org-fc-review-data-ensure-rows review-data names)
     (org-fc-review-data-write review-data)))
 

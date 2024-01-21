@@ -296,7 +296,8 @@ rating the card."
    ;; If the card is marked as a demo card, don't log its reviews and
    ;; don't update its review data
    (unless (member org-fc-demo-tag (org-get-tags))
-     (let* ((review-data (org-fc-review-data-parse (org-fc-review-data-default-headers)))
+     (let* ((algo (org-fc-algo-sm2))
+	    (review-data (org-fc-review-data-parse (org-fc-algo-headers algo)))
 	    (current (org-fc-review-data-get-row review-data name)))
        (unless current
          (error "No review data row found for this position"))
@@ -315,14 +316,10 @@ rating the card."
            (symbol-name rating)
            (format "%.2f" delta)
            (symbol-name org-fc-algorithm)))
-         (cl-destructuring-bind (next-ease next-box next-interval)
-             (org-fc-algo-sm2-next-parameters ease box interval rating)
-	   (setq current (plist-put current 'ease (format "%.2f" next-ease)))
-	   (setq current (plist-put current 'box (format "%d" next-box)))
-	   (setq current (plist-put current 'interval (format "%.2f" next-interval)))
-	   (setq current (plist-put current 'due (org-fc-timestamp-in next-interval)))
-	   (org-fc-review-data-set-row review-data name current)
-           (org-fc-review-data-write review-data)))))))
+	 (org-fc-review-data-update-row
+	  review-data name
+	  (org-fc-algo-next-review-data algo current rating))
+	 (org-fc-review-data-write review-data))))))
 
 (defun org-fc-review-reset ()
   "Reset the buffer to its state before the review."
