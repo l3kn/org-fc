@@ -22,6 +22,33 @@
        (org-mode)
        (org-fc-review-data-update '("front" "back"))))))
 
+(ert-deftest org-fc-test-review-data-update-row ()
+  (let ((review-data
+	 (org-fc-review-data
+	  :headers '(a b c)
+	  ;; Note: The test will randomly fail if we use a quoted
+	  ;; expression, probably because the same object is reused
+	  ;; between tests. The main org-fc code never does this so we
+	  ;; only need to be careful to work around it here.
+	  :rows (list (cons "1" '(a 1 b 2 c 3))))))
+    (should (equal (org-fc-review-data-get-row review-data "1")
+		   '(a 1 b 2 c 3)))
+
+    ;; Update of existing single column
+    (org-fc-review-data-update-row review-data "1" '(a 4))
+    (should (equal (org-fc-review-data-get-row review-data "1")
+		   '(a 4 b 2 c 3)))
+
+    ;; Update of non-existing column
+    (org-fc-review-data-update-row review-data "1" '(x 4))
+    (should (equal (org-fc-review-data-get-row review-data "1")
+		   '(a 4 b 2 c 3)))
+
+    ;; Update of multiple columns
+    (org-fc-review-data-update-row review-data "1" '(a 8 b 9 c 10 d 11))
+    (should (equal (org-fc-review-data-get-row review-data "1")
+		   '(a 8 b 9 c 10)))))
+
 (ert-deftest org-fc-test-review-data ()
   (let* ((result
 	  (org-fc-awk-index

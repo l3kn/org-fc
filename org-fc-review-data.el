@@ -92,6 +92,21 @@
       (setcdr cell value)
     (error "no entry found for row name %s" name)))
 
+(cl-defmethod org-fc-review-data-update-row ((review-data org-fc-review-data) name update-plist)
+  (if-let ((cell (assoc name (oref review-data rows) #'string=)))
+      (let* ((old-plist (cdr cell))
+	     (new-plist
+	      (cl-loop
+	       for header in (oref review-data headers)
+	       nconc
+	       (list
+		header
+		(or
+		 (plist-get update-plist header)
+		 (plist-get old-plist header))))))
+	(setcdr cell new-plist))
+    (error "no entry found for row name %s" name)))
+
 (cl-defmethod org-fc-review-data-ensure-rows ((review-data org-fc-review-data) names)
   "Ensure REVIEW-DATA has entries for all position NAMES.
 Rows with a name not contained in NAMES are removed
