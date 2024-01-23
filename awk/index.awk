@@ -122,6 +122,8 @@ match($0, /^(\*+)[ \t]+(.*)$/, a) {
     if (state == state_card) {
         state = state_properties;
         delete properties;
+	# NOTE: For compatibility reasons, cards are not required to
+	# have an algorithm property.
         properties[algo_property] = "nil";
     }
     next;

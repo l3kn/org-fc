@@ -276,14 +276,14 @@ If point is not inside a flashcard entry, an error is raised."
     :initarg :title
     :type string
     :documentation "Title of the card.")
+   (algo
+    :initarg :algo
+    :type symbol
+    :documentation "Algorithm of the card.")
    (type
     :initarg :type
     :type symbol
     :documentation "Type of the card.")
-   (algo
-    :initarg :algo
-    :type (or null symbol)
-    :documentation "Algorithm of the card.")
    ;; TODO: Can both types be combined?
    (cloze-type
     :initarg :cloze-type
@@ -338,15 +338,18 @@ If point is not inside a flashcard entry, an error is raised."
 (defun org-fc-card-from-plist (plist file)
   (let* ((card
           (org-fc-card
-           :file file
-           :id (plist-get plist :id)
-           :title (plist-get plist :title)
-           :algo (plist-get plist :algo)
-           :type (plist-get plist :type)
-           :cloze-type (plist-get plist :cloze-type)
-           :created (plist-get plist :created)
-           :suspended (plist-get plist :suspended)
-           :tags (plist-get plist :tags)))
+	   :file file
+	   :id (plist-get plist :id)
+	   :title (plist-get plist :title)
+	   ;; NOTE: For compatibility with older versions of org-fc, a
+	   ;; card with no algorithm property set is assumed to use
+	   ;; the SM2 algorithm.
+	   :algo (or (plist-get plist :algo) 'sm2)
+	   :type (plist-get plist :type)
+	   :cloze-type (plist-get plist :cloze-type)
+	   :created (plist-get plist :created)
+	   :suspended (plist-get plist :suspended)
+	   :tags (plist-get plist :tags)))
          (positions
           (mapcar (lambda (plist) (org-fc-position-from-plist plist card))
                   (plist-get plist :positions))))

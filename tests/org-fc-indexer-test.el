@@ -35,11 +35,14 @@
    '((:cards
       ((:id "edee8940-5c9a-4c70-b1c4-f45c194c0c97"
 	    :tags ("fc" "tag1")
-	    :title "Headline")
+	    :title "Headline"
+	    :algo sm2)
        (:id "59b3b102-aebd-44ba-a1fd-6dc912c34fcf"
 	    :tags ("fc" "tag2")
-            :title "Headline 2")
+            :title "Headline 2"
+	    :algo sm2)
        (:id "a7ed2686-73e6-4780-825d-78cf4b2e5374"
 	    :tags ("fc" "tag3")
-            :title "Headline 3:not_a_tag:"))))
+            :title "Headline 3:not_a_tag:"
+	    :algo sm2))))
    (org-fc-awk-index (list (org-fc-test-fixture "index/test.org")))))
