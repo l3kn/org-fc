@@ -21,14 +21,13 @@
 ;;
 ;;; Code:
 
+(require 'cl-lib)
+(require 'eieio)
 (require 'outline)
-
 (require 'org-id)
 (require 'org-indent)
 (require 'org-element)
-
 (require 'subr-x)
-(require 'cl-lib)
 
 ;;; Customization
 
