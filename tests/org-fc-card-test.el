@@ -67,3 +67,62 @@
       (org-mode)
       (goto-char (point-min))
       (org-fc-review-update-data "" "" "front" 'easy 0)))))
+
+(ert-deftest org-fc-test-card-history ()
+  (let* ((org-file (make-temp-file "org-fc-" nil ".org"))
+	 (log-file (make-temp-file "org-fc-" nil ".tsv"))
+	 (org-fc-directories (list org-file))
+	 (org-fc-review-history-file log-file)
+	 (org-fc-append-failed-cards nil)
+	 (mock-id 0)
+	 (mock-time 0)
+	 (buffer-string ""))
+
+    (org-fc-test-with-overwrites
+     (org-fc-test-overwrite-fun
+      time-to-seconds
+      (lambda (&rest _args) (cl-incf mock-time 1)))
+     (org-fc-test-overwrite-fun
+      org-id-get
+      (lambda (&rest _args)
+	(let ((cur-id (org-entry-get nil "ID"))
+	      (new-id (format "dummy-id-%d" mock-id)))
+	  (if cur-id
+	      cur-id
+	    (cl-incf mock-id 1)
+	    (org-entry-put (point) "ID" new-id)
+	    new-id))))
+
+     (with-current-buffer (find-file-noselect org-file)
+       (erase-buffer)
+       (org-mode)
+
+       (insert-file-contents
+	(org-fc-test-fixture "card/before_review.org"))
+
+       (save-buffer)
+
+       (org-fc-review '(:paths buffer :order ordered))
+       (org-fc-review-flip)
+       (org-fc-review-rate-easy)
+       (org-fc-review-flip)
+       (org-fc-review-rate-good)
+       (org-fc-review-flip)
+       (org-fc-review-rate-again)
+       (setq
+	buffer-string
+	(buffer-substring-no-properties (point-min) (point-max)))
+       (save-buffer)
+       (kill-buffer)))
+
+    (should (equal
+	     buffer-string
+	     (org-file-contents
+	      (org-fc-test-fixture "card/after_review.org"))))
+    (should (equal
+	     (org-file-contents log-file)
+	     (string-replace
+	      "<path>"
+	      org-file
+	      (org-file-contents
+	       (org-fc-test-fixture "card/after_review.tsv")))))))

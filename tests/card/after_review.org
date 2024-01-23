@@ -1,0 +1,29 @@
+* Card 1                                                                 :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:ID:       dummy-id-0
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    | 2.65 |   3 |     6.00 | 1970-01-07T00:00:04Z |
+:END:
+front text
+** Back
+back text
+* Card 2                                                                 :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  double
+:ID:       dummy-id-1
+:END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    | 2.50 |   2 |     1.00 | 1970-01-02T00:00:08Z |
+| back     | 2.50 |   0 |     0.00 | 1970-01-01T00:00:12Z |
+:END:
+front text
+** Back
+back text
