@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'eieio)
 
 (require 'org-fc-core)
 
@@ -130,13 +131,33 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
         (max (org-fc-algo-sm2-fuzz-max)))
     (* interval (+ min (cl-random (- max min))))))
 
-;;;; Main Algorithm
+;;;; Main Algorithm Interface
 
-(defun org-fc-algo-sm2-next-parameters (ease box interval rating)
-  "Calculate the next parameters of a card, based on the review RATING.
-EASE, BOX and INTERVAL are the current parameters of the card."
-  (let* ((intervals (org-fc-algo-sm2-intervals))
+(defclass org-fc-algo-sm2 (eieio-singleton) ())
+
+(cl-defmethod org-fc-algo-headers ((_algo org-fc-algo-sm2))
+  '(position ease box interval due))
+
+(cl-defmethod org-fc-algo-initial-review-data ((_algo org-fc-algo-sm2) name)
+  "Initial SM2 review data for position NAME."
+  (list
+   'position name
+   'ease (org-fc-algo-sm2-ease-initial)
+   'box 0
+   'interval 0
+   'due (org-fc-timestamp-in 0)))
+
+(cl-defmethod org-fc-algo-next-review-data ((_algo org-fc-algo-sm2) current rating)
+  "Calculate the next parameters, given the CURRENT parameters and a RATING."
+  (let* ((ease (string-to-number (plist-get current 'ease)))
+	 (box (string-to-number (plist-get current 'box)))
+	 (interval (string-to-number (plist-get current 'interval)))
+
+	 ;; Configurable settings
+	 (intervals (org-fc-algo-sm2-intervals))
          (changes (org-fc-algo-sm2-changes))
+
+	 ;; New parameters
          (next-ease
           (if (< box 2)
               ease
@@ -158,39 +179,11 @@ EASE, BOX and INTERVAL are the current parameters of the card."
                  (nth next-box intervals))
                 ((and (eq org-fc-algorithm 'sm2-v2) (eq rating 'hard)) (* 1.2 interval))
                 (t (org-fc-algo-sm2-fuzz (* next-ease interval))))))
-    (list next-ease next-box next-interval)))
-
-;;; Class Interface
-
-(defclass org-fc-algo-sm2 (eieio-singleton) ())
-
-(cl-defmethod org-fc-algo-headers ((_algo org-fc-algo-sm2))
-  '(position ease box interval due))
-
-(cl-defmethod org-fc-algo-initial-review-data ((_algo org-fc-algo-sm2) name)
-  "Initial SM2 review data for position NAME."
-  (let* ((box 0)
-	 (ease (org-fc-algo-sm2-ease-initial))
-	 (interval 0)
-	 (due (org-fc-timestamp-in interval)))
     (list
-     'position name
-     'ease ease
-     'box box
-     'interval interval
-     'due due)))
-
-(cl-defmethod org-fc-algo-next-review-data ((_algo org-fc-algo-sm2) current rating)
-  (let ((ease (string-to-number (plist-get current 'ease)))
-	(box (string-to-number (plist-get current 'box)))
-	(interval (string-to-number (plist-get current 'interval))))
-    (cl-destructuring-bind (next-ease next-box next-interval)
-	(org-fc-algo-sm2-next-parameters ease box interval rating)
-      (list
-       'ease (format "%.2f" next-ease)
-       'box (format "%d" next-box)
-       'interval (format "%.2f" next-interval)
-       'due (org-fc-timestamp-in next-interval)))))
+     'ease (format "%.2f" next-ease)
+     'box (format "%d" next-box)
+     'interval (format "%.2f" next-interval)
+     'due (org-fc-timestamp-in next-interval))))
 
 ;;; Footer
 

@@ -44,10 +44,6 @@
   'org-fc-sm2-fuzz
   'org-fc-algo-sm2-fuzz "0.0.1")
 
-(define-obsolete-function-alias
-  'org-fc-sm2-next-parameters
-  'org-fc-algo-sm2-next-parameters "0.0.1")
-
 (define-obsolete-variable-alias
   'org-fc-sm2-changes
   'org-fc-algo-sm2-changes "0.0.1")
