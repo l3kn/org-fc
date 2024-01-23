@@ -44,5 +44,5 @@
        (:id "a7ed2686-73e6-4780-825d-78cf4b2e5374"
 	    :tags ("fc" "tag3")
             :title "Headline 3:not_a_tag:"
-	    :algo sm2))))
+	    :algo fsrs))))
    (org-fc-awk-index (list (org-fc-test-fixture "index/test.org")))))
