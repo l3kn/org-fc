@@ -292,35 +292,20 @@ rating the card."
    ;; If the card is marked as a demo card, don't log its reviews and
    ;; don't update its review data
    (unless (member org-fc-demo-tag (org-get-tags))
-     (let* ((card (oref position card))
-	    (file (oref card file))
+     (let* ((algo (org-fc-algo-sm2))
 	    (name (oref position name))
-
-	    (algo (org-fc-algo-sm2))
 	    (review-data (org-fc-review-data-parse (org-fc-algo-headers algo)))
 	    (current (org-fc-review-data-get-row review-data name)))
 
        (unless current
-         (error "No review data row found for this position"))
-       (let ((ease (string-to-number (plist-get current 'ease)))
-             (box (string-to-number (plist-get current 'box)))
-             (interval (string-to-number (plist-get current 'interval))))
-         (org-fc-review-history-add
-          (list
-           (org-fc-timestamp-in 0)
-           (oref file path)
-           (oref card id)
-           name
-           (format "%.2f" ease)
-           (format "%d" box)
-           (format "%.2f" interval)
-           (symbol-name rating)
-           (format "%.2f" delta)
-           (symbol-name org-fc-algorithm)))
-	 (org-fc-review-data-update-row
-	  review-data name
-	  (org-fc-algo-next-review-data algo current rating))
-	 (org-fc-review-data-write review-data))))))
+	 (error "No review data row found for this position"))
+
+       (org-fc-algo-log-review algo position current rating delta)
+
+       (org-fc-review-data-update-row
+	review-data name
+	(org-fc-algo-next-review-data algo current rating))
+       (org-fc-review-data-write review-data)))))
 
 (defun org-fc-review-reset ()
   "Reset the buffer to its state before the review."

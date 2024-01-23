@@ -185,6 +185,29 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
      'interval (format "%.2f" next-interval)
      'due (org-fc-timestamp-in next-interval))))
 
+;; NOTE: There's some duplication here as the position object already
+;; contains the review data. Working on the review data parsed
+;; directly from the file seems safer though.
+(cl-defmethod org-fc-algo-log-review ((_algo org-fc-algo-sm2) (position org-fc-position) current rating delta)
+  (let* ((card (oref position card))
+	 (file (oref card file))
+	 (elements
+	  (list
+	   (org-fc-timestamp-in 0)
+	   (oref file path)
+	   (oref card id)
+	   (oref position name)
+	   (format (plist-get current 'ease))
+	   (format (plist-get current 'box))
+	   (format (plist-get current 'interval))
+	   (symbol-name rating)
+	   (format "%.2f" delta)
+	   (symbol-name org-fc-algorithm))))
+    (append-to-file
+     (format "%s\n" (mapconcat #'identity elements "\t"))
+     nil
+     org-fc-review-history-file)))
+
 ;;; Footer
 
 (provide 'org-fc-algo-sm2)
