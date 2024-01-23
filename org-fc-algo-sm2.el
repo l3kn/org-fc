@@ -142,9 +142,9 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
   "Initial SM2 review data for position NAME."
   (list
    'position name
-   'ease (org-fc-algo-sm2-ease-initial)
-   'box 0
-   'interval 0
+   'ease (format "%.2f" (org-fc-algo-sm2-ease-initial))
+   'box (format "%d" 0)
+   'interval (format "%.2f" 0)
    'due (org-fc-timestamp-in 0)))
 
 (cl-defmethod org-fc-algo-next-review-data ((_algo org-fc-algo-sm2) current rating)
