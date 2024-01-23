@@ -53,6 +53,7 @@ With the `-L' option, `find' follows symlinks."
   "Variables to pass to indexer scripts."
   `(("fc_tag" . ,org-fc-flashcard-tag)
     ("suspended_tag" . ,org-fc-suspended-tag)
+    ("algo_property" . ,org-fc-algo-property)
     ("type_property" . ,org-fc-type-property)
     ("cloze_type_property" . ,org-fc-type-cloze-type-property)
     ("created_property" . ,org-fc-created-property)

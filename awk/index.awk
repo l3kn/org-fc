@@ -36,6 +36,7 @@ BEGIN {
     fc_tag = ":" or_default(fc_tag, "fc") ":";
     suspended_tag = ":" or_default(suspended_tag, "suspended") ":";
     review_data_drawer = ":" or_default(review_data_drawer, "REVIEW_DATA") ":";
+    algo_property = or_default(algo_property, "FC_ALGO");
     type_property = or_default(type_property, "FC_TYPE");
     cloze_type_property = or_default(cloze_type_property, "FC_CLOZE_TYPE");
     created_property = or_default(created_property, "FC_CREATED");
@@ -121,6 +122,7 @@ match($0, /^(\*+)[ \t]+(.*)$/, a) {
     if (state == state_card) {
         state = state_properties;
         delete properties;
+        properties[algo_property] = "nil";
     }
     next;
 }
@@ -158,6 +160,7 @@ $0 ~ review_data_drawer {
         print "    (" \
             ":id " escape_string(properties["ID"])  \
             " :title " escape_string(title)  \
+            " :algo " properties[algo_property]     \
             " :type " properties[type_property]     \
             cloze_type                                            \
             " :created " parse_time(properties[created_property]) \

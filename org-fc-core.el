@@ -69,6 +69,11 @@ Used to generate absolute paths to the awk scripts.")
 
 ;;;; Org Tags / Properties
 
+(defcustom org-fc-algo-property "FC_ALGO"
+  "Property used to store the cards repetition spacing algorithm."
+  :type 'string
+  :group 'org-fc)
+
 (defcustom org-fc-type-property "FC_TYPE"
   "Property used to store the cards type."
   :type 'string
