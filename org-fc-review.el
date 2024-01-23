@@ -228,13 +228,10 @@ same ID as the current card in the session."
   (interactive)
   (condition-case err
       (org-fc-review-with-current-item pos
-	(let* ((path (oref (oref (oref pos card) file) path))
-	       (id (oref (oref pos card) id))
-	       (position (oref pos name))
-	       (now (time-to-seconds (current-time)))
+	(let* ((now (time-to-seconds (current-time)))
 	       (delta (- now org-fc-review--timestamp)))
-	  (org-fc-review-update-data path id position rating delta)
-	  (org-fc-review-reset)
+
+	  (org-fc-review-update-data pos rating delta)
 
 	  (when (and (eq rating 'again) org-fc-append-failed-cards)
 	    (org-fc-scheduler-push-position
@@ -286,19 +283,23 @@ same ID as the current card in the session."
   (org-fc-review-reset)
   (org-fc-review-next-card))
 
-(defun org-fc-review-update-data (path id name rating delta)
-  "Update the review data of the card.
-Also add a new entry in the review history file.  PATH, ID,
-POSITION identify the position that was reviewed, RATING is a
+(defun org-fc-review-update-data (position rating delta)
+  "Update the review data of a POSITION.
+Also add a new entry in the review history file. RATING is a
 review rating and DELTA the time in seconds between showing and
 rating the card."
   (org-fc-with-point-at-entry
    ;; If the card is marked as a demo card, don't log its reviews and
    ;; don't update its review data
    (unless (member org-fc-demo-tag (org-get-tags))
-     (let* ((algo (org-fc-algo-sm2))
+     (let* ((card (oref position card))
+	    (file (oref card file))
+	    (name (oref position name))
+
+	    (algo (org-fc-algo-sm2))
 	    (review-data (org-fc-review-data-parse (org-fc-algo-headers algo)))
 	    (current (org-fc-review-data-get-row review-data name)))
+
        (unless current
          (error "No review data row found for this position"))
        (let ((ease (string-to-number (plist-get current 'ease)))
@@ -307,8 +308,8 @@ rating the card."
          (org-fc-review-history-add
           (list
            (org-fc-timestamp-in 0)
-           path
-           id
+           (oref file path)
+           (oref card id)
            name
            (format "%.2f" ease)
            (format "%d" box)
