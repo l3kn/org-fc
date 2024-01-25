@@ -5,22 +5,40 @@
 Org-fc comes with a number of extensions that are not enabled by default.
 
 * ~org-fc-audio~
+
 Can be enabled with ~(require 'org-fc-audio)~.
 
-Adds audio attachments for cards that are played during review,
-either before or after a card is set up.
-(This distinction is relevant for text-input cards).
+Audio files can be attached to a card or individual positions of a
+card by setting the =:FC_AUDIO_BEFORE_SETUP:=,
+=:FC_AUDIO_AFTER_SETUP:= or =:FC_AUDIO_AFTER_FLIP:= property of an
+org-mode heading to the path of an audio. This file will be played for
+*every* position of the card.
 
-When transitioning to a different step of the review loop, either
-flipping a card, reviewing a new card or quitting the review,
-the audio playback is stopped.
+When suffixed with the (case-insensitive) name of a position of the
+current card, the file will only play when reviewing that position.
+The format of these suffixed properties should look like this:
 
-Files are played using the ~mpv~ media player.
+- =:FC_AUDIO_AFTER_SETUP_0:=
+- =:FC_AUDIO_AFTER_FLIP_FRONT:=
 
-Commands:
+The following commands can be used to attach audio files to a card and
+will prompt the user for a file and a position on of the current card.
+
 - ~org-fc-audio-set-before-setup~
 - ~org-fc-audio-set-after-setup~
 - ~org-fc-audio-set-after-flip~
+
+For most card types, =AFTER_SETUP= and =AFTER_FLIP= are sufficient.
+The only exception are text-input cards as those prompt the user for an answer
+as part of their setup phase, so to play audio before that,
+the =BEFORE_SETUP= property should be used.
+
+Files are played using the ~mpv~ media player.
+
+When transitioning to a different step of the review loop, either
+flipping a card, reviewing a new card or quitting the review, the
+audio playback is stopped. Audio playback can be stopped at any time
+using ~org-fc-audio-stop~.
 
 Each time an audio file is played, it's path is stored in
 ~org-fc-audio-last-file~ and can be replayed using
@@ -29,7 +47,6 @@ Each time an audio file is played, it's path is stored in
 When browsing cards outside of a review,
 their audio files can be played with ~org-fc-audio-play~.
 
-Audio playback can be stopped at any time using ~org-fc-audio-stop~.
 
 * ~org-fc-keymap-hint~
 Can be enabled with ~(require 'org-fc-keymap-hint)~.

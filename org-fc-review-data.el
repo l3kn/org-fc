@@ -1,3 +1,26 @@
+;;; org-fc-review-data.el --- Parsing and writing of review-data drawers -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2020-2024  Leon Rische
+
+;; Author: Leon Rische <emacs@leonrische.me>
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;;
+;;; Code:
+
 (require 'cl-lib)
 (require 'eieio)
 (require 'org)
@@ -174,4 +197,8 @@ removed."
     (org-fc-review-data-ensure-rows review-data names)
     (org-fc-review-data-write review-data)))
 
+;;; Footer
+
 (provide 'org-fc-review-data)
+
+;;; org-fc-review-data.el ends here

@@ -32,7 +32,10 @@
 ;;
 ;;; Code:
 
+(require 'cl-lib)
 (require 'org-fc-core)
+(require 'org-fc-review)
+(require 'org-fc-review-data)
 
 (defcustom org-fc-audio-before-setup-property "FC_AUDIO_BEFORE_SETUP"
   "Name of the property to use for storing before-setup audio files."
@@ -49,44 +52,111 @@
   :type 'string
   :group 'org-fc)
 
+(defcustom org-fc-audio-before-setup-prefix "FC_AUDIO_BEFORE_SETUP"
+  "Prefix of the property to use for storing before-setup audio files."
+  :type 'string
+  :group 'org-fc)
+
+(defcustom org-fc-audio-after-setup-prefix "FC_AUDIO_AFTER_SETUP"
+  "Prefix of the property to use for storing after-setup audio files."
+  :type 'string
+  :group 'org-fc)
+
+(defcustom org-fc-audio-after-flip-prefix "FC_AUDIO_AFTER_FLIP"
+  "Prefix of the property to use for storing after-flip audio files."
+  :type 'string
+  :group 'org-fc)
+
 (defvar org-fc-audio-last-file nil)
 
 (defvar org-fc-audio--process nil)
 
-(defun org-fc-audio-set-before-setup (file)
-  "Set the befor-setup audio property of the current card to FILE."
-  (interactive "f")
-  (when (org-fc-entry-p)
-    (org-set-property org-fc-audio-before-setup-property file)))
+(defun org-fc-audio--read-position-name ()
+  (completing-read
+   "Position: "
+   (org-fc-review-data-names (org-fc-review-data-parse '()))))
 
-(defun org-fc-audio-set-after-setup (file)
-  "Set the after-setup audio of the current card to FILE."
-  (interactive "f")
+(defun org-fc-audio-set-before-setup (file &optional position)
+  "Set the before-setup audio property of POSITION of the current card to FILE.
+When POSITION is nil, the file will be used for all positions of
+the card."
+  (interactive
+   (list
+    (read-file-name "File: ")
+    (org-fc-audio--read-position-name)))
   (when (org-fc-entry-p)
-    (org-set-property org-fc-audio-after-setup-property file)))
+    (if (or (null position) (string= position ""))
+        (org-set-property org-fc-audio-before-setup-property file)
+      (org-set-property
+       (format "%s_%s" org-fc-audio-before-setup-prefix (upcase position))
+       file))))
 
-(defun org-fc-audio-set-after-flip (file)
-  "Set the after-setup audio of the current card to FILE."
-  (interactive "f")
+(defun org-fc-audio-set-after-setup (file &optional position)
+  "Set the after-setup audio of POSITION of the current card to FILE.
+When POSITION is nil, the file will be used for all positions of
+the card."
+  (interactive
+   (list
+    (read-file-name "File: ")
+    (org-fc-audio--read-position-name)))
   (when (org-fc-entry-p)
-    (org-set-property org-fc-audio-after-flip-property file)))
+    (if (or (null position) (string= position ""))
+        (org-set-property org-fc-audio-after-setup-property file)
+      (org-set-property
+       (format "%s_%s" org-fc-audio-after-setup-prefix (upcase position))
+       file))))
+
+(defun org-fc-audio-set-after-flip (file &optional position)
+  "Set the after-flip audio of POSITION of the current card to FILE.
+When POSITION is nil, the file will be used for all positions of
+the card."
+  (interactive
+   (list
+    (read-file-name "File: ")
+    (org-fc-audio--read-position-name)))
+  (when (org-fc-entry-p)
+    (if (or (null position) (string= position ""))
+        (org-set-property org-fc-audio-after-flip-property file)
+      (org-set-property
+       (format "%s_%s" org-fc-audio-after-flip-prefix (upcase position))
+       file))))
 
 (defun org-fc-audio-play (property &optional speed)
   "Play the audio of the current card.
 Look up the file from PROPERTY. If SPEED is non-nil, play back
-the file at the given speed."
+the file at the given speed.  When used interactively, the user
+is prompted for one of he audio files attached to the current
+flashcard.
+"
   (interactive
    (list
     (completing-read
      "Type: "
-     `(,org-fc-audio-before-setup-property
-       ,org-fc-audio-after-setup-property
-       ,org-fc-audio-after-flip-property))))
+     (let ((props (mapcar #'car (org-entry-properties))))
+       (cl-remove-if-not
+        (lambda (prop)
+          (or
+           (string= org-fc-audio-before-setup-property prop)
+           (string= org-fc-audio-after-setup-property prop)
+           (string= org-fc-audio-after-flip-property prop)
+           (string-prefix-p org-fc-audio-before-setup-prefix prop)
+           (string-prefix-p org-fc-audio-after-setup-prefix prop)
+           (string-prefix-p org-fc-audio-after-flip-prefix prop)))
+        props)))))
   (if-let ((file (org-entry-get (point) property)))
       (org-fc-audio-play-file file (or speed 1.0))))
 
+(defun org-fc-audio-play-position (prefix)
+  "Play the audio file for PREFIX and the current position."
+  (org-fc-review-with-current-item current-item
+    (when current-item
+      (let* ((pos (oref current-item name))
+             (property (format "%s_%s" prefix (upcase pos))))
+        (org-fc-audio-play property)))))
+
 (defun org-fc-audio-play-file (file speed)
   "Play the audio FILE at SPEED."
+  (org-fc-audio-stop)
   (setq org-fc-audio-last-file file)
   (setq org-fc-audio--process
 	(start-process-shell-command
@@ -104,19 +174,22 @@ the file at the given speed."
  'org-fc-before-setup-hook
  (lambda ()
    (org-fc-audio-stop)
-   (org-fc-audio-play org-fc-audio-before-setup-property)))
+   (org-fc-audio-play org-fc-audio-before-setup-property)
+   (org-fc-audio-play-position org-fc-audio-before-setup-prefix)))
 
 (add-hook
  'org-fc-after-setup-hook
  (lambda ()
    (org-fc-audio-stop)
-   (org-fc-audio-play org-fc-audio-after-setup-property)))
+   (org-fc-audio-play org-fc-audio-after-setup-property)
+   (org-fc-audio-play-position org-fc-audio-after-setup-prefix)))
 
 (add-hook
  'org-fc-after-flip-hook
  (lambda ()
    (org-fc-audio-stop)
-   (org-fc-audio-play org-fc-audio-after-flip-property)))
+   (org-fc-audio-play org-fc-audio-after-flip-property)
+   (org-fc-audio-play-position org-fc-audio-after-flip-prefix)))
 
 (add-hook 'org-fc-after-review-hook #'org-fc-audio-stop)
 
