@@ -51,6 +51,8 @@
 
 (defvar org-fc-audio-last-file nil)
 
+(defvar org-fc-audio--process nil)
+
 (defun org-fc-audio-set-before-setup (file)
   "Set the befor-setup audio property of the current card to FILE."
   (interactive "f")
@@ -86,22 +88,37 @@ the file at the given speed."
 (defun org-fc-audio-play-file (file speed)
   "Play the audio FILE at SPEED."
   (setq org-fc-audio-last-file file)
-  (start-process-shell-command
-   "org-fc audio"
-   nil
-   (format "mpv %s --speed=%f" file speed)))
+  (setq org-fc-audio--process
+	(start-process-shell-command
+	 "org-fc audio"
+	 nil
+	 (format "mpv %s --speed=%f" file speed))))
+
+(defun org-fc-audio-stop ()
+  "Stop org-fc audio playback."
+  (interactive)
+  (when (process-live-p org-fc-audio--process)
+    (kill-process org-fc-audio--process)))
 
 (add-hook
  'org-fc-before-setup-hook
- (lambda () (org-fc-audio-play org-fc-audio-before-setup-property)))
+ (lambda ()
+   (org-fc-audio-stop)
+   (org-fc-audio-play org-fc-audio-before-setup-property)))
 
 (add-hook
  'org-fc-after-setup-hook
- (lambda () (org-fc-audio-play org-fc-audio-after-setup-property)))
+ (lambda ()
+   (org-fc-audio-stop)
+   (org-fc-audio-play org-fc-audio-after-setup-property)))
 
 (add-hook
  'org-fc-after-flip-hook
- (lambda () (org-fc-audio-play org-fc-audio-after-flip-property)))
+ (lambda ()
+   (org-fc-audio-stop)
+   (org-fc-audio-play org-fc-audio-after-flip-property)))
+
+(add-hook 'org-fc-after-review-hook #'org-fc-audio-stop)
 
 (defun org-fc-audio-replay ()
   (interactive)

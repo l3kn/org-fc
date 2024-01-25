@@ -14,8 +14,9 @@ either before or after a card is set up.
 Files are played using the ~mpv~ media player.
 
 Commands:
-- ~org-fc-audio-set-before~
-- ~org-fc-audio-set-after~
+- ~org-fc-audio-set-before-setup~
+- ~org-fc-audio-set-after-setup~
+- ~org-fc-audio-set-after-flip~
 
 Each time an audio file is played, it's path is stored in
 ~org-fc-audio-last-file~ and can be replayed using
