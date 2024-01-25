@@ -11,6 +11,10 @@ Adds audio attachments for cards that are played during review,
 either before or after a card is set up.
 (This distinction is relevant for text-input cards).
 
+When transitioning to a different step of the review loop, either
+flipping a card, reviewing a new card or quitting the review,
+the audio playback is stopped.
+
 Files are played using the ~mpv~ media player.
 
 Commands:
@@ -24,6 +28,8 @@ Each time an audio file is played, it's path is stored in
 
 When browsing cards outside of a review,
 their audio files can be played with ~org-fc-audio-play~.
+
+Audio playback can be stopped at any time using ~org-fc-audio-stop~.
 
 * ~org-fc-keymap-hint~
 Can be enabled with ~(require 'org-fc-keymap-hint)~.
