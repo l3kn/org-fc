@@ -5,6 +5,41 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.5.0
+
+*** Added
+
+- =org-fc-audio= now allows attaching audio files to single positions
+  of a card. Please refer to [[file:docs/extensions.org]] for more
+  information.
+
+- A new command ~org-fc-audio-stop~ can be used to stop
+  audio playback.
+
+- Flashcards can now use a new optional =FC_ALGO= property. When
+  unset, this defaults to the original SM2 algorithm. Currently now
+  alternative algorithms have been implemented but this will make it
+  easier to support those in the future.
+
+*** Changed
+
+- =org-fc-audio= playback now stops when flipping the card, reviewing
+  a new card or quitting the review.
+
+*** Internal
+
+- The initial SM2 parameters are now formatted the same way as the
+  parameters written after a review. This does not affect the behavior
+  of org-fc but is more consistent.
+
+- The review history file is written to after each review, not once at
+  the end of the review session. Again this should make no difference
+  for users of org-fc while making it easier to implement alternative
+  spacing algorithms
+
+- Tests use a custom set of macros for mocking function calls to avoid
+  a dependency on =el-mock=
+
 ** 0.4.0
 
 *** Added
