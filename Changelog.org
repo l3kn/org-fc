@@ -5,6 +5,10 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.5.1
+
+Added missing import for ~eieio-base~.
+
 ** 0.5.0
 
 *** Added

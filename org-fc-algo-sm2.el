@@ -25,6 +25,7 @@
 
 (require 'cl-lib)
 (require 'eieio)
+(require 'eieio-base)
 
 (require 'org-fc-core)
 
