@@ -212,7 +212,7 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
 
 (cl-defmethod org-fc-algo-review-stats ((_algo org-fc-algo-sm2))
   "Statistics for all card reviews.
-Return nil if there is no history file."
+Returns nil if there is no history file."
   (when (file-exists-p org-fc-review-history-file)
     (let ((output
            (shell-command-to-string
@@ -220,6 +220,21 @@ Return nil if there is no history file."
              "awk/review_stats_sm2.awk"
              :input org-fc-review-history-file
 	     :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
+      (if (string-prefix-p "(" output)
+          (read output)
+        (error "Org-fc shell error: %s" output)))))
+
+(cl-defmethod org-fc-algo-review-history ((_algo org-fc-algo-sm2) card-id position-name)
+  "Review history for a given CARD-ID and POSITION name.
+Returns nil if there is no history file."
+  (when (file-exists-p org-fc-review-history-file)
+    (let ((output
+           (shell-command-to-string
+            (org-fc-awk--command
+             "awk/review_history_sm2.awk"
+             :input org-fc-review-history-file
+	     :variables `(("filter_card_id" . ,(or card-id "any"))
+			  ("filter_position_name" . ,(or position-name "any")))))))
       (if (string-prefix-p "(" output)
           (read output)
         (error "Org-fc shell error: %s" output)))))
