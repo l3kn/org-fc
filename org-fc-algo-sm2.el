@@ -217,7 +217,7 @@ Return nil if there is no history file."
     (let ((output
            (shell-command-to-string
             (org-fc-awk--command
-             "awk/stats_reviews.awk"
+             "awk/review_stats_sm2.awk"
              :input org-fc-review-history-file
 	     :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
       (if (string-prefix-p "(" output)
