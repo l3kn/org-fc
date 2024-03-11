@@ -243,6 +243,11 @@ If point is not inside a flashcard entry, an error is raised."
 
 ;;; Classes
 
+(defclass org-fc-algo ()
+  ()
+  "Spacing algorithm interface."
+  :abstract t)
+
 (defclass org-fc-file ()
   ((path
     :initarg :path

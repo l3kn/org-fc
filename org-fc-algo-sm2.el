@@ -135,7 +135,7 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
 
 ;;;; Main Algorithm Interface
 
-(defclass org-fc-algo-sm2 (eieio-singleton) ())
+(defclass org-fc-algo-sm2 (eieio-singleton org-fc-algo) ())
 
 (cl-defmethod org-fc-algo-headers ((_algo org-fc-algo-sm2))
   '(position ease box interval due))
