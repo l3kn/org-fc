@@ -1,16 +1,16 @@
 #+TITLE: Org-Flashcards Demo File
-#+FILETAGS: fc-demo
 
 * Normal Card                                                            :fc:
 :PROPERTIES:
 :ID:       9f80ab65-dbff-41b3-902f-0e8e177debbe
 :FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  normal
+:FC_ALGO:  noop
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                  |
-|----------+------+-----+----------+----------------------|
-| front    |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
+| position | due                  |
+|----------+----------------------|
+| front    | 2000-01-01T00:00:00Z |
 :END:
 
 Welcome to the org-fc demo!
@@ -46,12 +46,13 @@ Give it one of these ratings to continue to the next card.
 :PROPERTIES:
 :FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  normal
+:FC_ALGO:  noop
 :ID:       af18545c-e87c-48a2-9df3-9483cfcec7f6
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                  |
-|----------+------+-----+----------+----------------------|
-| front    |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
+| position | due                  |
+|----------+----------------------|
+| front    | 2000-01-01T00:00:00Z |
 :END:
 
 Cards in this format are great for simple question-answer pairs.
@@ -77,12 +78,13 @@ Rate this card to continue see an example for such a compact card.
 :PROPERTIES:
 :FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  normal
+:FC_ALGO:  noop
 :ID:       9ecfadf9-2823-49d6-a65c-cca19d0c4a4c
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                  |
-|----------+------+-----+----------+----------------------|
-| front    |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
+| position | due                  |
+|----------+----------------------|
+| front    | 2000-01-01T00:00:00Z |
 :END:
 
 This card uses the *compact* style.
@@ -95,13 +97,14 @@ contains a definition.
 :PROPERTIES:
 :FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  double
+:FC_ALGO:  noop
 :ID:       855253c7-ed09-4b7c-a878-b7b890d140c2
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                  |
-|----------+------+-----+----------+----------------------|
-| front    |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
-| back     |  2.5 |   0 |        0 | 2000-01-01T00:00:00Z |
+| position | due                  |
+|----------+----------------------|
+| front    | 2000-01-01T00:00:00Z |
+| back     | 2000-01-01T00:00:00Z |
 :END:
 
 For other kinds of knowledge, we'd like to learn not just one
@@ -135,15 +138,16 @@ exclude reviews of the same card from the current review session.
 :ID:       2ffc8b34-b2b5-4472-9295-714b5422679d
 :FC_CREATED: 2021-11-30T01:46:02Z
 :FC_TYPE:  cloze
+:FC_ALGO:  noop
 :FC_CLOZE_MAX: 1
 :FC_CLOZE_TYPE: deletion
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                  |
-|----------+------+-----+----------+----------------------|
-|        0 |  2.5 |   0 |        0 | 2021-11-30T01:46:02Z |
-|        1 |  2.5 |   0 |        0 | 2021-11-30T01:46:02Z |
-|        2 |  2.5 |   0 |        0 | 2021-11-30T01:46:02Z |
+| position | due                  |
+|----------+----------------------|
+|        0 | 2000-01-01T00:00:00Z |
+|        1 | 2000-01-01T00:00:00Z |
+|        2 | 2000-01-01T00:00:00Z |
 :END:
 A {{cloze deletion}@0} can have multiple {{holes}@1}. And each hole can
 have {{hints}{Synonym for suggestion}@2} too.
@@ -151,17 +155,18 @@ have {{hints}{Synonym for suggestion}@2} too.
 :PROPERTIES:
 :FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  cloze
+:FC_ALGO:  noop
 :ID:       5eac5801-0ef5-4957-a818-e3f9f08a7d59
 :FC_CLOZE_MAX: 3
 :FC_CLOZE_TYPE: enumeration
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                  |
-|----------+------+-----+----------+----------------------|
-|        0 | 2.50 |   6 |    80.76 | 2000-01-01T00:00:00Z |
-|        1 | 2.50 |   6 |    72.76 | 2000-01-01T00:00:00Z |
-|        2 | 2.50 |   6 |    91.28 | 2000-01-01T00:00:00Z |
-|        3 | 2.50 |   6 |    95.75 | 2000-01-01T00:00:00Z |
+| position | due                  |
+|----------+----------------------|
+|        0 | 2000-01-01T00:00:00Z |
+|        1 | 2000-01-01T00:00:00Z |
+|        2 | 2000-01-01T00:00:00Z |
+|        3 | 2000-01-01T00:00:00Z |
 :END:
 
 Enumerations are useful for
@@ -174,16 +179,17 @@ Enumerations are useful for
 :PROPERTIES:
 :FC_CREATED: 2000-01-01T00:00:00Z
 :FC_TYPE:  cloze
+:FC_ALGO:  noop
 :FC_CLOZE_MAX: 2
 :FC_CLOZE_TYPE: single
 :ID:       ae675e11-e003-4057-b6b1-1f4702837502
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                  |
-|----------+------+-----+----------+----------------------|
-|        0 | 2.50 |   3 |     6.00 | 2000-01-01T00:00:00Z |
-|        1 | 2.50 |   2 |     1.00 | 2000-01-01T00:00:00Z |
-|        2 | 2.50 |   3 |     6.00 | 2000-01-01T00:00:00Z |
+| position | due                  |
+|----------+----------------------|
+|        0 | 2000-01-01T00:00:00Z |
+|        1 | 2000-01-01T00:00:00Z |
+|        2 | 2000-01-01T00:00:00Z |
 :END:
 #+begin_src awk
   # Set up variables for new file

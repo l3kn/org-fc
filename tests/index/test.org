@@ -27,12 +27,12 @@ body
 :PROPERTIES:
 :FC_CREATED: 2020-07-08T12:18:45Z
 :FC_TYPE:  normal
-:FC_ALGO: sm2
+:FC_ALGO: noop
 :ID:       a7ed2686-73e6-4780-825d-78cf4b2e5374
 :END:
 :REVIEW_DATA:
-| position | ease | box | interval | due                  |
-|----------+------+-----+----------+----------------------|
-| front    |  2.5 |   0 |        0 | 2020-07-08T12:18:46Z |
+| position | due                  |
+|----------+----------------------|
+| front    | 2020-07-08T12:18:46Z |
 :END:
 body

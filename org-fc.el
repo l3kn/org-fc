@@ -30,6 +30,7 @@
 (require 'org-fc-compat)
 
 (require 'org-fc-awk)
+(require 'org-fc-algo-none)
 (require 'org-fc-algo-sm2)
 
 (require 'org-fc-review-data)

@@ -99,14 +99,6 @@ Used to generate absolute paths to the awk scripts.")
   :type 'string
   :group 'org-fc)
 
-(defcustom org-fc-demo-tag "fc-demo"
-  "Tag for marking headlines as demo flashcards.
-When demo flashcards are reviewed, their review data is not
-updated.  This is used for the `org-fc-demo' and for testing card
-types."
-  :type 'string
-  :group 'org-fc)
-
 (defcustom org-fc-drawer-whitelist '()
   "Drawers that are not hidden during review."
   :type 'list
