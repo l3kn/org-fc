@@ -11,7 +11,7 @@
 
     (should (equal (org-fc-review-data-names review-data) nil))
 
-    (org-fc-review-data-ensure-rows review-data '("front" "back"))
+    (org-fc-review-data-ensure-rows review-data '("front" "back") algo)
     (should (equal (org-fc-review-data-names review-data) '("front" "back")))))
 
 (ert-deftest org-fc-test-review-data-update ()
