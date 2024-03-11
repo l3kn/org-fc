@@ -344,7 +344,7 @@ environment without svg support."
     (insert "\n")))
 
 (defun org-fc-dashboard-insert-review-stats ()
-  (let ((reviews-stats (org-fc-awk-stats-reviews)))
+  (let ((reviews-stats (org-fc-algo-review-stats (org-fc-algo-sm2))))
     (insert "\n")
     (if reviews-stats
 	(progn

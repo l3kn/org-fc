@@ -28,6 +28,7 @@
 (require 'eieio-base)
 
 (require 'org-fc-core)
+(require 'org-fc-awk)
 
 (defmacro org-fc-property (symbol standard doc &rest args)
   (let (defcustom-args property)
@@ -208,6 +209,20 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
      (format "%s\n" (mapconcat #'identity elements "\t"))
      nil
      org-fc-review-history-file)))
+
+(cl-defmethod org-fc-algo-review-stats ((_algo org-fc-algo-sm2))
+  "Statistics for all card reviews.
+Return nil if there is no history file."
+  (when (file-exists-p org-fc-review-history-file)
+    (let ((output
+           (shell-command-to-string
+            (org-fc-awk--command
+             "awk/stats_reviews.awk"
+             :input org-fc-review-history-file
+	     :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
+      (if (string-prefix-p "(" output)
+          (read output)
+        (error "Org-fc shell error: %s" output)))))
 
 ;;; Footer
 
