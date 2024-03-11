@@ -283,7 +283,7 @@ If point is not inside a flashcard entry, an error is raised."
     :documentation "Title of the card.")
    (algo
     :initarg :algo
-    :type symbol
+    :type org-fc-algo
     :documentation "Algorithm of the card.")
    (type
     :initarg :type
@@ -349,7 +349,9 @@ If point is not inside a flashcard entry, an error is raised."
 	   ;; NOTE: For compatibility with older versions of org-fc, a
 	   ;; card with no algorithm property set is assumed to use
 	   ;; the SM2 algorithm.
-	   :algo (or (plist-get plist :algo) 'sm2)
+	   :algo
+	   (funcall (org-fc-algo-constructor
+		     (or (plist-get plist :algo) 'sm2)) ())
 	   :type (plist-get plist :type)
 	   :cloze-type (plist-get plist :cloze-type)
 	   :created (plist-get plist :created)

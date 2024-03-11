@@ -292,7 +292,7 @@ showing and rating the card."
    ;; If the card is marked as a demo card, don't log its reviews and
    ;; don't update its review data
    (unless (member org-fc-demo-tag (org-get-tags))
-     (let ((algo (org-fc-algo-sm2)))
+     (let ((algo (oref (oref position card) algo)))
        (org-fc-algo-update-review-data algo position rating delta)))))
 
 (defun org-fc-review-reset ()
