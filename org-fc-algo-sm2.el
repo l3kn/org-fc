@@ -258,6 +258,9 @@ Returns nil if there is no history file."
           (read output)
         (error "Org-fc shell error: %s" output)))))
 
+
+(org-fc-register-algo 'sm2 org-fc-algo-sm2)
+
 ;;; Footer
 
 (provide 'org-fc-algo-sm2)

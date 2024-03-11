@@ -408,6 +408,23 @@ If point is not inside a flashcard entry, an error is raised."
   (org-set-tags
    (remove tag (org-get-tags nil 'local))))
 
+;;; Spacing Algorithms
+
+(defvar org-fc-algos '()
+  "Alist for registering spacing algorithms.
+Entries should be lists (name constructor).
+Use `org-fc-register-algo' for adding algorithms.")
+
+(defun org-fc-register-algo (name constructor)
+  "Register a new spacing algorithm NAME using CONSTRUCTOR."
+  (push (list name constructor) org-fc-algos))
+
+(defun org-fc-algo-constructor (name)
+  "Get the constructor for spacing algorithm NAME."
+  (if-let ((entry (alist-get name org-fc-algos nil nil #'string=)))
+      (cl-first entry)
+    (error "No such spacing algorithm: %s" name)))
+
 ;;; Card Initialization
 
 (defun org-fc--init-card (type)
