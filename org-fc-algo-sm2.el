@@ -210,6 +210,25 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
      nil
      org-fc-review-history-file)))
 
+(cl-defmethod org-fc-algo-update-review-data ((algo org-fc-algo-sm2) (position org-fc-position) rating delta)
+  "Update the review data of a POSITION.
+Also add a new entry in the review history file. RATING is a
+review rating and DELTA the time in seconds between showing and
+rating the card."
+  (let* ((name (oref position name))
+	 (review-data (org-fc-review-data-parse (org-fc-algo-headers algo)))
+	 (current (org-fc-review-data-get-row review-data name)))
+
+    (unless current
+      (error "No review data row found for this position"))
+
+    (org-fc-algo-log-review algo position current rating delta)
+
+    (org-fc-review-data-update-row
+     review-data name
+     (org-fc-algo-next-review-data algo current rating))
+    (org-fc-review-data-write review-data)))
+
 (cl-defmethod org-fc-algo-review-stats ((_algo org-fc-algo-sm2))
   "Statistics for all card reviews.
 Returns nil if there is no history file."

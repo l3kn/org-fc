@@ -284,28 +284,16 @@ same ID as the current card in the session."
   (org-fc-review-next-card))
 
 (defun org-fc-review-update-data (position rating delta)
-  "Update the review data of a POSITION.
-Also add a new entry in the review history file. RATING is a
-review rating and DELTA the time in seconds between showing and
-rating the card."
+  "Use the card's spacing algorithm to update the review data of a
+POSITION.
+RATING is a review rating and DELTA the time in seconds between
+showing and rating the card."
   (org-fc-with-point-at-entry
    ;; If the card is marked as a demo card, don't log its reviews and
    ;; don't update its review data
    (unless (member org-fc-demo-tag (org-get-tags))
-     (let* ((algo (org-fc-algo-sm2))
-	    (name (oref position name))
-	    (review-data (org-fc-review-data-parse (org-fc-algo-headers algo)))
-	    (current (org-fc-review-data-get-row review-data name)))
-
-       (unless current
-	 (error "No review data row found for this position"))
-
-       (org-fc-algo-log-review algo position current rating delta)
-
-       (org-fc-review-data-update-row
-	review-data name
-	(org-fc-algo-next-review-data algo current rating))
-       (org-fc-review-data-write review-data)))))
+     (let ((algo (org-fc-algo-sm2)))
+       (org-fc-algo-update-review-data algo position rating delta)))))
 
 (defun org-fc-review-reset ()
   "Reset the buffer to its state before the review."
