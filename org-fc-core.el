@@ -733,6 +733,13 @@ Cards with no positions are removed from the index."
             (push card res)))))
     (reverse res)))
 
+;;;###autoload
+(defun org-fc-help ()
+  "Open the org-fc documentation."
+  (interactive)
+  (let ((path (expand-file-name "docs/index.org" org-fc-source-path)))
+    (find-file path)))
+
 ;;; Demo Mode
 
 ;;;###autoload

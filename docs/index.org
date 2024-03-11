@@ -8,6 +8,8 @@
 
 [[file:images/review.png]]
 
+You can view this documentation in Emacs with ~M-x org-fc-help~.
+
 * Introduction
 Org-fc is a spaced-repetition system for Emacs' org-mode.
 
