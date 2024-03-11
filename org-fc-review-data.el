@@ -130,7 +130,7 @@
 	(setcdr cell new-plist))
     (error "no entry found for row name %s" name)))
 
-(cl-defmethod org-fc-review-data-ensure-rows ((review-data org-fc-review-data) names)
+(cl-defmethod org-fc-review-data-ensure-rows ((review-data org-fc-review-data) names algo)
   "Ensure REVIEW-DATA has entries for all position NAMES.
 Rows with a name not contained in NAMES are removed
 and missing entries are set to default values."
@@ -145,7 +145,7 @@ and missing entries are set to default values."
 	 (alist-get
 	  name
 	  rows
-	  (org-fc-review-data-default name)
+	  (org-fc-algo-initial-review-data algo name)
 	  nil
 	  #'string=)))
       names))))
@@ -182,19 +182,20 @@ END is the start of the line with :END: on it."
           (line-beginning-position 0)
           (line-beginning-position 0)))))))
 
-(defun org-fc-review-data-default (position)
-  "Default review data for position POSITION."
-  (let ((algo (org-fc-algo-sm2)))
-    (org-fc-algo-initial-review-data algo position)))
-
 (defun org-fc-review-data-update (names)
   "Update the review data drawer so it contains rows for NAMES.
 If a doesn't exist already, it is initialized with default
 values. Entries in the table not contained in NAMES are
 removed."
-  (let* ((algo (org-fc-algo-sm2))
+  (let* ((algo-name
+	  (if-let ((name (org-entry-get (point) org-fc-algo-property)))
+	      (intern name)
+	    ;; Cards in org-fc version <0.6.0 didn't have an algorithm property
+	    ;; and used the SM2 algorithm.
+	    'sm2))
+	 (algo (funcall (org-fc-algo-constructor algo-name) '()))
 	 (review-data (org-fc-review-data-parse (org-fc-algo-headers algo))))
-    (org-fc-review-data-ensure-rows review-data names)
+    (org-fc-review-data-ensure-rows review-data names algo)
     (org-fc-review-data-write review-data)))
 
 ;;; Footer
