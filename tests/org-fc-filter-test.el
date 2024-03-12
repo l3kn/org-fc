@@ -20,61 +20,55 @@
     (equal (sort ids1 #'string-lessp)
            (sort ids2 #'string-lessp))))
 
-(defun org-fc-test-filter-index (index filter)
-  (cl-remove-if-not
-   (org-fc--compile-filter filter)
-   index))
-
 (ert-deftest org-fc-filter-test ()
-  (let* ((index
-          (org-fc-index-flatten-file
-           (org-fc-awk-index (list (org-fc-test-fixture "filter/"))))))
+  (let* ((paths (list (org-fc-test-fixture "filter/")))
+	 (org-fc-index-function #'org-fc-awk-index))
     ;; Index of all cards
     (should (org-fc-test-compare-ids
-             index
+	     (org-fc-index `(:paths ,paths))
              '(a-normal a-double b-normal1 b-normal2 c-double c-cloze)))
 
     ;; Filter by type
     (should
      (org-fc-test-compare-ids
-      (org-fc-test-filter-index index '(type double))
+      (org-fc-index `(:paths ,paths :filter (type double)))
       '(a-double c-double)))
 
     ;; Filter by type, or
     (should
      (org-fc-test-compare-ids
-      (org-fc-test-filter-index index '(or (type cloze) (type double)))
+      (org-fc-index `(:paths ,paths :filter (or (type cloze) (type double))))
       '(a-double c-double c-cloze)))
 
     ;; Filter by tag, direct
     (should
      (org-fc-test-compare-ids
-      (org-fc-test-filter-index index '(tag "tag1"))
+      (org-fc-index `(:paths ,paths :filter (tag "tag1")))
       '(a-normal a-double)))
 
     ;; Filter by tag, inherited
     (should
      (org-fc-test-compare-ids
-      (org-fc-test-filter-index index '(tag "tag2"))
+      (org-fc-index `(:paths ,paths :filter (tag "tag2")))
       '(a-double b-normal1)))
 
     ;; Filter by tag, filetag
     (should
      (org-fc-test-compare-ids
-      (org-fc-test-filter-index index '(and (tag "file1")
-                                            (tag "file2")
-                                            (tag "file3")))
+      (org-fc-index `(:paths ,paths :filter (and (tag "file1")
+						 (tag "file2")
+						 (tag "file3"))))
       '(c-double c-cloze)))
 
     ;; Negation
     (should
      (org-fc-test-compare-ids
-      (org-fc-test-filter-index index '(not (type normal)))
+      (org-fc-index `(:paths ,paths :filter (not (type normal))))
       '(a-double c-double c-cloze)))
 
     ;; Combined
     (should
      (org-fc-test-compare-ids
-      (org-fc-test-filter-index index '(and (not (type normal))
-                                            (tag "file1")))
+      (org-fc-index `(:paths ,paths :filter (and (not (type normal))
+						 (tag "file1"))))
       '(c-double c-cloze)))))
