@@ -8,6 +8,9 @@
    (lambda ()
      (org-fc-test-with-overwrites
       (org-fc-test-overwrite-fun
+       org-fc-select-algo
+       (lambda () "sm2"))
+      (org-fc-test-overwrite-fun
        time-to-seconds
        (lambda () 0))
       (org-fc-test-overwrite-fun
@@ -43,6 +46,9 @@
    (org-fc-test-fixture "erts/card_init_double.erts")
    (lambda ()
      (org-fc-test-with-overwrites
+      (org-fc-test-overwrite-fun
+       org-fc-select-algo
+       (lambda () "sm2"))
       (org-fc-test-overwrite-fun
        time-to-seconds
        (lambda () 0))

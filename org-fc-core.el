@@ -419,20 +419,36 @@ Use `org-fc-register-algo' for adding algorithms.")
       (cl-first entry)
     (error "No such spacing algorithm: %s" name)))
 
+(defun org-fc-select-algo ()
+  "Select a spacing algorithm."
+  (let* ((choice (completing-read
+                  "Algorithm: "
+                  (mapcar (lambda (c) (car c)) org-fc-algos)
+                  nil
+                  :require-match)))
+    choice))
+
 ;;; Card Initialization
 
 (defun org-fc--init-card (type)
   "Initialize the current card as a flashcard.
 Should only be used by the init functions of card TYPEs."
   (when (org-fc-entry-p)
-      (error "Headline is already a flashcard"))
-  (org-back-to-heading)
-  (org-set-property
-   org-fc-created-property
-   (org-fc-timestamp-in 0))
-  (org-set-property org-fc-type-property type)
-  (org-id-get-create)
-  (org-fc--add-tag org-fc-flashcard-tag))
+    (error "Headline is already a flashcard"))
+
+  (let ((algo (org-fc-select-algo)))
+    (when (null algo)
+        (error "No algorithm selected"))
+    (org-back-to-heading)
+    (org-set-property
+     org-fc-created-property
+     (org-fc-timestamp-in 0))
+    (org-set-property org-fc-type-property type)
+    (when algo
+      (org-set-property org-fc-algo-property algo))
+    (org-id-get-create)
+    (org-fc--add-tag org-fc-flashcard-tag)
+    (run-hooks 'org-fc-after-init-card-hook)))
 
 ;;; Card Types
 ;;;; Type Management

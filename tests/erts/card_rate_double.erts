@@ -5,6 +5,7 @@ Name: Case 1
 :PROPERTIES:
 :FC_CREATED: 1970-01-01T00:00:00Z
 :FC_TYPE:  double
+:FC_ALGO:  sm2
 :ID:       dummy-id
 :END:
 :REVIEW_DATA:
@@ -19,6 +20,7 @@ Back
 :PROPERTIES:
 :FC_CREATED: 1970-01-01T00:00:00Z
 :FC_TYPE:  double
+:FC_ALGO:  sm2
 :ID:       dummy-id
 :END:
 :REVIEW_DATA:
