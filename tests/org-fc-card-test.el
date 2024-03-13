@@ -4,7 +4,7 @@
 
 (ert-deftest org-fc-test-card-init-normal ()
   (ert-test-erts-file
-   (org-fc-test-fixture "erts/card_init_normal.erts")
+   (org-fc-test-fixture "erts/card_init_normal_sm2.erts")
    (lambda ()
      (org-fc-test-with-overwrites
       (org-fc-test-overwrite-fun
@@ -24,7 +24,7 @@
 
 (ert-deftest org-fc-test-card-rate-normal ()
   (ert-test-erts-file
-   (org-fc-test-fixture "erts/card_rate_normal.erts")
+   (org-fc-test-fixture "erts/card_rate_normal_sm2.erts")
    (lambda ()
      (let* ((file (org-fc-file :path "mock-path"))
 	    (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-sm2)))
@@ -43,7 +43,7 @@
 
 (ert-deftest org-fc-test-card-init-double ()
   (ert-test-erts-file
-   (org-fc-test-fixture "erts/card_init_double.erts")
+   (org-fc-test-fixture "erts/card_init_double_sm2.erts")
    (lambda ()
      (org-fc-test-with-overwrites
       (org-fc-test-overwrite-fun
@@ -63,7 +63,7 @@
 
 (ert-deftest org-fc-test-card-rate-double ()
   (ert-test-erts-file
-   (org-fc-test-fixture "erts/card_rate_double.erts")
+   (org-fc-test-fixture "erts/card_rate_double_sm2.erts")
    (lambda ()
      (let* ((file (org-fc-file :path "mock-path"))
 	    (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-sm2)))
