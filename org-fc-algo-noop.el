@@ -31,7 +31,11 @@
 (defclass org-fc-algo-noop (eieio-singleton org-fc-algo) ())
 
 (cl-defmethod org-fc-algo-headers ((_algo org-fc-algo-noop))
-  '())
+  '(position))
+
+(cl-defmethod org-fc-algo-initial-review-data ((_algo org-fc-algo-noop) name)
+  "Initial no-op review data for position NAME."
+  (list 'position name))
 
 (cl-defmethod org-fc-algo-update-review-data
   ((algo org-fc-algo-noop)
