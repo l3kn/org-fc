@@ -45,4 +45,6 @@
 
 (org-fc-register-algo 'noop org-fc-algo-noop)
 
+(provide 'org-fc-algo-noop)
+
 ;;; org-fc-algo-noop.el ends here
