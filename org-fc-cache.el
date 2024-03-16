@@ -141,7 +141,7 @@ date / suspension state before review."
     (when (org-fc-suspended-entry-p)
       (error "Trying to review a suspended card"))
     (let* ((name (oref cur name))
-	   (review-data (org-fc-review-data-parse))
+	   (review-data (org-fc-review-data-parse '(due)))
 	   (row (org-fc-review-data-get-row review-data name))
 	   (due (parse-iso8601-time-string (plist-get row 'due))))
       (unless (time-less-p due (current-time))
