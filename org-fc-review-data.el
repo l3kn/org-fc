@@ -25,8 +25,6 @@
 (require 'eieio)
 (require 'org)
 
-(require 'org-fc-algo-sm2)
-
 (defcustom org-fc-review-data-drawer "REVIEW_DATA"
   "Name of the drawer used to store review data."
   :type 'string
