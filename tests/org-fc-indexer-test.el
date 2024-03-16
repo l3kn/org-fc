@@ -4,15 +4,16 @@
 
 (ert-deftest org-fc-test-index-malformed ()
   (let ((files
-         '("malformed/no_review_data.org"
-           "malformed/no_properties.org"
-           "malformed/normal_swapped_drawers.org"
-           "malformed/unclosed_drawer1.org"
-           "malformed/unclosed_drawer2.org")))
+	 (mapcar
+	  #'org-fc-test-fixture
+	  '("malformed/no_review_data.org"
+	    "malformed/no_properties.org"
+	    "malformed/normal_swapped_drawers.org"
+	    "malformed/unclosed_drawer1.org"
+	    "malformed/unclosed_drawer2.org"))))
     (dolist (file files)
-      (org-fc-test-check-structure
-       '((:cards ()))
-       (org-fc-awk-index (list (org-fc-test-fixture file)))))))
+      (org-fc-test-check-structure '()
+       (org-fc-awk-index (list file))))))
 
 (ert-deftest org-fc-test-escaping ()
   (org-fc-test-check-structure

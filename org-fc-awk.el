@@ -110,27 +110,28 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
     ;; p(file|card) for the plist-based output of AWK
     ;; o(file|card) for eieio objects
     (if (string-prefix-p "(" output)
-        (mapcar
-         (lambda (pfile)
-           (let* ((ofile
-		   (org-fc-file
-		    :path (plist-get pfile :path)
-		    :title (plist-get pfile :title)))
-		  (ocards
-                   (mapcar
-                    (lambda (pcard)
-		      (org-fc-card-from-plist
-                       (plist-put
-			pcard :tags
-			(org-fc-awk-combine-tags
-			 (plist-get pcard :inherited-tags)
-			 (plist-get pcard :local-tags)))
-		       ofile))
-                    (plist-get pfile :cards))))
-	     (oset ofile cards
-		   (if filter (cl-remove-if-not filter ocards) ocards))
-	     ofile))
-         (read (concat "(" output ")")))
+	(let (files)
+	  (dolist (pfile (read (concat "(" output ")")))
+	    (let* ((ofile
+		    (org-fc-file
+		     :path (plist-get pfile :path)
+		     :title (plist-get pfile :title)))
+		   (ocards
+		    (mapcar
+		     (lambda (pcard)
+		       (org-fc-card-from-plist
+			(plist-put
+			 pcard :tags
+			 (org-fc-awk-combine-tags
+			  (plist-get pcard :inherited-tags)
+			  (plist-get pcard :local-tags)))
+			ofile))
+		     (plist-get pfile :cards)))
+		   (fcards (if filter (cl-remove-if-not filter ocards) ocards)))
+	      (when fcards
+		(oset ofile cards fcards)
+		(push ofile files))))
+	  (reverse files))
       (error "Org-fc shell error: %s" output))))
 
 ;;; Footer
