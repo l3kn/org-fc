@@ -5,6 +5,42 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.6.0
+
+This version of org-fc adds support for multiple spacing algorithms
+(as long as they provide a due date to schedule cards by)
+with a minimal amount of user-facing changes.
+
+*** Changed
+
+New cards are now initialized with a new ~FC-ALGO~ property,
+defaulting to ~sm2~.
+
+When creating new cards and if there is more than one algorithm
+besides the internal ~noop~ algorithm, the user is prompted for the
+spacing algorithm to use.
+
+*** Added
+
+Inside Emacs, ~M-x org-fc-help~ opens a buffer with the org-fc
+documentation.
+
+A new ~noop~ spacing algorithm has been implemented. It is used in the
+~org-fc-demo~ so the demo cards stay due and their histories are not
+logged. This algorithm is intended only for internal use but its
+implementation can serve a simple point for users intending to
+implement new spacing algorithms.
+
+*** Fixed
+
+Review-context filters now work correctly with the AWK indexer.
+
+*** Internal
+
+The functions for computing review statistics have been moved to the
+algorithm implementation and a new function has been added that
+allows reading the review history of a card or position.
+
 ** 0.5.1
 
 Added missing import for ~eieio-base~.

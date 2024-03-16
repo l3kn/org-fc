@@ -5,7 +5,7 @@
 ;; Author: Leon Rische <emacs@leonrische.me>
 ;; Url: https://www.leonrische.me/pages/org_flashcards.html
 ;; Package-requires: ((emacs "26.3") (org "9.6"))
-;; Version: 0.5.1
+;; Version: 0.6.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
