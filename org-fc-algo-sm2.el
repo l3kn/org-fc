@@ -29,6 +29,7 @@
 
 (require 'org-fc-core)
 (require 'org-fc-awk)
+(require 'org-fc-dashboard)
 
 (defmacro org-fc-property (symbol standard doc &rest args)
   (let (defcustom-args property)
@@ -187,9 +188,6 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
      'interval (format "%.2f" next-interval)
      'due (org-fc-timestamp-in next-interval))))
 
-;; NOTE: There's some duplication here as the position object already
-;; contains the review data. Working on the review data parsed
-;; directly from the file seems safer though.
 (cl-defmethod org-fc-algo-log-review ((_algo org-fc-algo-sm2) (position org-fc-position) current rating delta)
   (let* ((card (oref position card))
 	 (file (oref card file))
@@ -210,6 +208,9 @@ INTERVAL is by a random factor between `org-fc-algo-sm2-fuzz-min' and
      nil
      org-fc-review-history-file)))
 
+;; NOTE: There's some duplication here as the position object already
+;; contains the review data. Working on the review data parsed
+;; directly from the file seems safer though.
 (cl-defmethod org-fc-algo-update-review-data ((algo org-fc-algo-sm2) (position org-fc-position) rating delta)
   "Update the review data of a POSITION.
 Also add a new entry in the review history file. RATING is a
@@ -229,20 +230,6 @@ rating the card."
      (org-fc-algo-next-review-data algo current rating))
     (org-fc-review-data-write review-data)))
 
-(cl-defmethod org-fc-algo-review-stats ((_algo org-fc-algo-sm2))
-  "Statistics for all card reviews.
-Returns nil if there is no history file."
-  (when (file-exists-p org-fc-review-history-file)
-    (let ((output
-           (shell-command-to-string
-            (org-fc-awk--command
-             "awk/review_stats_sm2.awk"
-             :input org-fc-review-history-file
-	     :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
-      (if (string-prefix-p "(" output)
-          (read output)
-        (error "Org-fc shell error: %s" output)))))
-
 (cl-defmethod org-fc-algo-review-history ((_algo org-fc-algo-sm2) card-id position-name)
   "Review history for a given CARD-ID and POSITION name.
 Returns nil if there is no history file."
@@ -258,6 +245,70 @@ Returns nil if there is no history file."
           (read output)
         (error "Org-fc shell error: %s" output)))))
 
+(defun org-fc-algo-sm2-dashboard-parameters (cards)
+  (let* ((pos-count 0)
+         (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0))
+    (dolist (card cards)
+      (unless (or (oref card suspended)
+		  (not (eq (oref card algo) 'sm2)))
+        (dolist (pos (oref card positions))
+          (cl-incf pos-count 1)
+          (cl-incf avg-ease (plist-get (oref pos data) :ease))
+          (cl-incf avg-box (plist-get (oref pos data) :box))
+          (cl-incf avg-interval (plist-get (oref pos data) :interval)))))
+
+    (insert "\n")
+    (if (cl-plusp pos-count)
+	(progn
+	  (insert (format "  %6.2f avg. ease\n" (/ avg-ease pos-count)))
+	  (insert (format "  %6.2f avg. box\n" (/ avg-box pos-count)))
+	  (insert (format "  %6.2f avg. interval (days)\n\n" (/ avg-interval pos-count))))
+      (insert "  No positions yet\n\n"))))
+
+(defun org-fc-algo-sm2-review-stats ()
+  "Statistics for all card reviews.
+Returns nil if there is no history file."
+  (when (file-exists-p org-fc-review-history-file)
+    (let ((output
+           (shell-command-to-string
+            (org-fc-awk--command
+             "awk/review_stats_sm2.awk"
+             :input org-fc-review-history-file
+	     :variables `(("min_box" . ,org-fc-stats-review-min-box))))))
+      (if (string-prefix-p "(" output)
+          (read output)
+        (error "Org-fc shell error: %s" output)))))
+
+(defun org-fc-algo-sm2-dashboard-review-history (_cards)
+  (let ((reviews-stats (org-fc-algo-sm2-review-stats)))
+    (insert "\n")
+    (if reviews-stats
+	(progn
+	  (dolist (scope '((:day . "day")
+			   (:week . "week")
+			   (:month . "month")
+			   (:all . "all")))
+	    (when-let (stat (plist-get reviews-stats (car scope)))
+	      (when (cl-plusp (plist-get stat :total))
+		(insert "  ")
+		(if (and (display-graphic-p)
+			 (memq 'svg (and (boundp 'image-types) image-types)))
+		    (insert-image (org-fc-dashboard-bar-chart stat))
+		  (insert (org-fc-dashboard-text-bar-chart stat)))
+		(insert (propertize (format " %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1)))))
+	  (insert "\n"))
+      (insert "  No reviews yet\n\n"))))
+
+(org-fc-dashboard-add-section
+ (org-fc-dashboard-section
+  :title "SM2 Parameters"
+  :inserter #'org-fc-algo-sm2-dashboard-parameters))
+
+(org-fc-dashboard-add-section
+ (org-fc-dashboard-section
+  :title "SM2 Review History (All Cards)"
+  :start-visible t
+  :inserter #'org-fc-algo-sm2-dashboard-review-history))
 
 (org-fc-register-algo 'sm2 org-fc-algo-sm2)
 

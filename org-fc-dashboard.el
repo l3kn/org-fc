@@ -29,7 +29,6 @@
 (require 'svg)
 
 (require 'org-fc-core)
-(require 'org-fc-awk)
 (require 'org-fc-review)
 
 ;;; Customization
@@ -169,7 +168,7 @@ environment without svg support."
 	(save-excursion
 	  (goto-char (car (oref section content-bounds)))
 	  (let ((cur (point)))
-	    (funcall (oref section inserter))
+	    (funcall (oref section inserter) org-fc-dashboard-cards)
 	    (oset section content-bounds (cons cur (point)))
 	    (oset section expanded t)
 	    (oset section visible t)
@@ -210,14 +209,11 @@ environment without svg support."
     :inserter #'org-fc-dashboard-insert-overview)
    (org-fc-dashboard-section
     :title "Cards by Type"
-    :inserter #'org-fc-dashboard-insert-cards-by-type)
-   (org-fc-dashboard-section
-    :title "SM2 Parameters"
-    :inserter #'org-fc-dashboard-insert-sm2-stats)
-   (org-fc-dashboard-section
-    :title "Review History (All Cards)"
-    :start-visible t
-    :inserter #'org-fc-dashboard-insert-review-stats)))
+    :inserter #'org-fc-dashboard-insert-cards-by-type)))
+
+(defun org-fc-dashboard-add-section (section)
+  (setq org-fc-dashboard-sections
+	(append org-fc-dashboard-sections (list section))))
 
 ;;; Bar Chart Generation
 
@@ -268,13 +264,13 @@ environment without svg support."
 
 ;;; Section Definitions
 
-(defun org-fc-dashboard-insert-hotkeys ()
+(defun org-fc-dashboard-insert-hotkeys (_cards)
   (insert "\n")
   (insert "  [r] review [q] quit\n")
   (insert "  [n] next section [p] previous section [Tab] open/close section\n\n"))
 
-(defun org-fc-dashboard-insert-overview ()
-  (let* ((card-count (length org-fc-dashboard-cards)) (suspended 0) (pos-count 0)
+(defun org-fc-dashboard-insert-overview (cards)
+  (let* ((card-count (length cards)) (suspended 0) (pos-count 0)
 	 (created (list :day 0 :week 0 :month 0))
 	 (due (list :now 0 :day 0 :week 0 :month 0))
 	 (now (current-time))
@@ -284,7 +280,7 @@ environment without svg support."
 	 (plus-day (time-add now (* 24 60 60)))
 	 (plus-week (time-add now (* 7 24 60 60)))
 	 (plus-month (time-add now (* 30 24 60 60))))
-    (dolist (card org-fc-dashboard-cards)
+    (dolist (card cards)
       (if (oref card suspended)
 	  (cl-incf suspended 1)
 	(let ((card-created (oref card created)))
@@ -330,10 +326,10 @@ environment without svg support."
 		      (plist-get due :month))))
     (insert "\n")))
 
-(defun org-fc-dashboard-insert-cards-by-type ()
+(defun org-fc-dashboard-insert-cards-by-type (cards)
   (insert "\n")
   (let* ((by-type (make-hash-table)))
-    (dolist (card org-fc-dashboard-cards)
+    (dolist (card cards)
       (unless (oref card suspended)
 	(cl-incf (gethash (oref card type) by-type 0) 1)))
 
@@ -342,45 +338,6 @@ environment without svg support."
 	  (insert (format "  %6d %s\n" (cdr pair) (car pair))))
       (insert "  No cards yet\n"))
     (insert "\n")))
-
-(defun org-fc-dashboard-insert-review-stats ()
-  (let ((reviews-stats (org-fc-algo-review-stats (org-fc-algo-sm2))))
-    (insert "\n")
-    (if reviews-stats
-	(progn
-	  (dolist (scope '((:day . "day")
-			   (:week . "week")
-			   (:month . "month")
-			   (:all . "all")))
-	    (when-let (stat (plist-get reviews-stats (car scope)))
-	      (when (cl-plusp (plist-get stat :total))
-		(insert "  ")
-		(if (and (display-graphic-p)
-			 (memq 'svg (and (boundp 'image-types) image-types)))
-		    (insert-image (org-fc-dashboard-bar-chart stat))
-		  (insert (org-fc-dashboard-text-bar-chart stat)))
-		(insert (propertize (format " %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1)))))
-	  (insert "\n"))
-      (insert "  No reviews yet\n\n"))))
-
-(defun org-fc-dashboard-insert-sm2-stats ()
-  (let* ((pos-count 0)
-         (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0))
-    (dolist (card org-fc-dashboard-cards)
-      (unless (oref card suspended)
-        (dolist (pos (oref card positions))
-          (cl-incf pos-count 1)
-          (cl-incf avg-ease (plist-get (oref pos data) :ease))
-          (cl-incf avg-box (plist-get (oref pos data) :box))
-          (cl-incf avg-interval (plist-get (oref pos data) :interval)))))
-
-    (insert "\n")
-    (if (cl-plusp pos-count)
-	(progn
-	  (insert (format "  %6.2f avg. ease\n" (/ avg-ease pos-count)))
-	  (insert (format "  %6.2f avg. box\n" (/ avg-box pos-count)))
-	  (insert (format "  %6.2f avg. interval (days)\n\n" (/ avg-interval pos-count))))
-      (insert "  No positions yet\n\n"))))
 
 ;;; Main View
 

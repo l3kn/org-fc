@@ -421,12 +421,13 @@ Use `org-fc-register-algo' for adding algorithms.")
 
 (defun org-fc-select-algo ()
   "Select a spacing algorithm."
-  (let* ((choice (completing-read
-                  "Algorithm: "
-                  (mapcar (lambda (c) (car c)) org-fc-algos)
-                  nil
-                  :require-match)))
-    choice))
+  (let ((choices
+	 (cl-remove-if
+	  (lambda (name) (eq name 'noop))
+	  (mapcar #'car org-fc-algos))))
+    (if (= (length choices) 1)
+	(car choices)
+      (completing-read "Algorithm: " choices nil :require-match))))
 
 ;;; Card Initialization
 
