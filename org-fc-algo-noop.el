@@ -28,6 +28,12 @@
 ;;
 ;;; Code:
 
+(require 'cl-lib)
+(require 'eieio)
+(require 'eieio-base)
+
+(require 'org-fc-core)
+
 (defclass org-fc-algo-noop (eieio-singleton org-fc-algo) ())
 
 (cl-defmethod org-fc-algo-headers ((_algo org-fc-algo-noop))
