@@ -111,7 +111,7 @@ ITAGS and LTAGS are strings `\":tag1:tag2:\"'"
     ;; o(file|card) for eieio objects
     (if (string-prefix-p "(" output)
 	(let (files)
-	  (dolist (pfile (read (concat "(" output ")")))
+	  (dolist (pfile (mapcan #'identity (read (concat "(" output ")"))))
 	    (let* ((ofile
 		    (org-fc-file
 		     :path (plist-get pfile :path)
