@@ -44,10 +44,11 @@ Matches all .org files ignoring ones with names don't start with
 a `.' to exclude temporary / backup files.
 With the `-L' option, `find' follows symlinks."
   (format
-   "find -L %s -type f -name \"*.org\" -not -name \".*\" -print0"
+   "find -L %s -name \".*\" -prune -o -name \"[^.]*.org\" -type f -exec grep -l --null \"^:%s:\" {} \\+"
    (mapconcat
     (lambda (path) (shell-quote-argument (expand-file-name path)))
-    paths " ")))
+    paths " ")
+   org-fc-created-property))
 
 (defun org-fc-awk--indexer-variables ()
   "Variables to pass to indexer scripts."
