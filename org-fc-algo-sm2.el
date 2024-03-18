@@ -250,7 +250,7 @@ Returns nil if there is no history file."
          (avg-ease 0.0) (avg-box 0.0) (avg-interval 0.0))
     (dolist (card cards)
       (unless (or (oref card suspended)
-		  (not (eq (oref card algo) 'sm2)))
+		  (not (equal (eieio-object-class (oref card algo)) 'org-fc-algo-sm2)))
         (dolist (pos (oref card positions))
           (cl-incf pos-count 1)
           (cl-incf avg-ease (plist-get (oref pos data) :ease))
