@@ -62,3 +62,19 @@
        (cdr expectation)
        (org-fc-cache-index files))
       (setq org-fc-cache org-fc-test-cache))))
+
+(ert-deftest org-fc-test-cache-hashes-empty ()
+  (should (equal (hash-table-keys (org-fc-cache-hashes '())) '())))
+
+(ert-deftest org-fc-test-cache-hashes-index ()
+  (let ((hashes
+	 (org-fc-cache-hashes (list (org-fc-test-fixture "index"))))
+	(expected
+	 '(("index/review_data.org" . "eb36df0667b132c50e0e9536371a57c79260ca3b")
+	   ("index/test.org" . "01e1017d7de5dc08b740f43cbb3e42d1477357dd")
+	   ("index/uppercase.org" . "41fea85ec0451c7e68510f9e60164cb42117ccba")
+	   ("index/lowercase.org" . "7d15fe8692cc585f2fd4fb7cd6e947d939cc781c"))))
+    (should (equal (hash-table-count hashes) 4))
+    (dolist (expectation expected)
+      (should (equal (gethash (org-fc-test-fixture (car expectation)) hashes)
+		     (cdr expectation))))))
