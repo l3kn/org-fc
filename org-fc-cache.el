@@ -42,6 +42,17 @@
   (make-hash-table :test #'equal)
   "Cache mapping filenames to card lists.")
 
+(defun org-fc-cache-build ()
+  "Build initial cache."
+  (let* ((hashes (org-fc-cache-hashes org-fc-directories))
+         (table (make-hash-table :test #'equal)))
+    (dolist (entry (org-fc-awk-index org-fc-directories))
+      (let* ((path (oref entry path))
+             (hash (gethash path hashes)))
+        (setf (oref entry hash) hash)
+        (puthash path entry table)))
+    (setq org-fc-cache table)))
+
 (defun org-fc-cache-update ()
   "Make sure the cache is up to date."
   (let* ((hashes (org-fc-cache-hashes org-fc-directories))
@@ -101,7 +112,7 @@ as its input."
   "Enable org-fc-cache.
 Initializes the cache and adds hooks."
   (message "building org-fc cache...")
-  (org-fc-cache-update)
+  (org-fc-cache-build)
   (add-hook 'org-fc-before-setup-hook #'org-fc-cache-coherence-check)
   (setq org-fc-index-function #'org-fc-cache-index)
   (message "org-fc cache enabled"))
