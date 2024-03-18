@@ -158,7 +158,8 @@ date / suspension state before review."
         (table (make-hash-table :test #'equal)))
     (dolist (line (split-string output "\n" t))
       (let ((parts (split-string line "  ")))
-        (puthash (cadr parts) (car parts) table)))
+	(unless (string= (cadr parts) "-")
+          (puthash (cadr parts) (car parts) table))))
     table))
 
 ;;; Footer
