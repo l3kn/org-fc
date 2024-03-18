@@ -5,6 +5,26 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.6.1
+
+*** Fixed
+
+- The overview of SM2 parameters in the dashboard works again.
+- The ~org-fc-cache~ is now initialized from the ~org-fc-directories~
+  rather than computing a list of changed files that potentially
+  exceeds the number of arguments we can pass to the AWK indexer.
+
+*** Changed
+
+Org-fc only searches for files containing flashcards, improving the
+indexing performance if the ~org-fc-directories~ contain many files
+without flashcards.
+
+*** Internal
+
+Both the AWK and cache indexers filter out files without any
+flashcards from their results.
+
 ** 0.6.0
 
 This version of org-fc adds support for multiple spacing algorithms
