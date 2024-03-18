@@ -180,9 +180,9 @@ $0 ~ review_data_drawer {
                 col = review_data_columns[j];
                 val = review_data[i][col];
 
-                # TODO: extract values as strings, parse in Emacs when
-                # necessary.
-                if (col == "due") {
+                # To speed up processing inside Emacs, parse
+                # values that match the ISO-8601 format in AWK.
+                if (val ~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/) {
                     val = parse_time(val);
                 } else if (col == "position") {
                     val = escape_string(val);
