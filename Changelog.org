@@ -5,6 +5,14 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.6.2
+
+*** Fixed
+
+When using =grep= to find files that contain flashcards, org-fc now
+also finds files where the property drawer or single properties are
+indented (preceded by spaces or tabs).
+
 ** 0.6.1
 
 *** Fixed
