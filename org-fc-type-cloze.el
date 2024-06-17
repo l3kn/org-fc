@@ -44,6 +44,7 @@
 (defcustom org-fc-type-cloze-hint-prefix
   "..."
   "Prefix for cloze hints."
+  :type 'string
   :group 'org-fc)
 
 (defvar org-fc-type-cloze-types
