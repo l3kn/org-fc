@@ -44,7 +44,7 @@ Matches all .org files ignoring ones with names don't start with
 a `.' to exclude temporary / backup files.
 With the `-L' option, `find' follows symlinks."
   (format
-   "find -L %s -name \".*\" -prune -o -name \"[^.]*.org\" -type f -exec grep -l --null \"^[ \\t]*:%s:\" {} \\+"
+   "find -L %s -name \".*\" -prune -o -name \"[^.]*.org\" -type f -exec grep -l --null \"^[ \\t]*:%s:\" {} +"
    (mapconcat
     (lambda (path) (shell-quote-argument (expand-file-name path)))
     paths " ")
