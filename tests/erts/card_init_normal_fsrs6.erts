@@ -1,0 +1,20 @@
+Name: Case 1
+
+=-=
+* Front
+Back
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review |
+|----------+-------+------+-----------+------------+----------------------+-------------|
+| front    |     1 |    0 | nil       | nil        | 1970-01-01T00:00:00Z | nil         |
+:END:
+Back
+=-=-=

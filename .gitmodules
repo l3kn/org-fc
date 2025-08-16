@@ -1,0 +1,3 @@
+[submodule "python/py-fsrs"]
+	path = python/py-fsrs
+	url = https://github.com/open-spaced-repetition/py-fsrs
