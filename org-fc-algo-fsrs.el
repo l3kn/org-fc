@@ -106,14 +106,12 @@ then return the parsed json response."
          (return-data
           (with-temp-buffer
             (insert (json-encode request))
-            (message (json-encode request))
             (save-excursion
               (apply
                #'call-process-region
                (point-min) (point-max)
                "python" nil t nil "algo_fsrs6.py"
                args))
-            (message (buffer-string))
             (json-read))))
     return-data))
 
@@ -247,4 +245,4 @@ Returns nil if there is no history file."
 
 (provide 'org-fc-algo-fsrs)
 
-;;; org-fc-algo-sm2.el ends here
+;;; org-fc-algo-fsrs.el ends here
