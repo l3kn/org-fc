@@ -100,7 +100,7 @@ together with the time of review and the review rating."
             (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-fsrs6)))
             (position (org-fc-position :card card :name "front"))
             (now (time-to-seconds (date-to-time "2000-01-01T12:34:56Z")))
-            (org-fc-algo-fsrs6-desired-retention 0.9)
+            (org-fc-algo-fsrs6-desired-retention 0.8)
             (org-fc-algo-fsrs6-enable-fuzzing nil))
        (org-fc-test-with-overwrites
         (org-fc-test-overwrite-fun
