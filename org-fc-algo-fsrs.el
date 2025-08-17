@@ -122,7 +122,7 @@ then return the parsed json response."
    nil
    (list "initial" "--now" (org-fc-timestamp-in 0))))
 
-(defun org-fc-algo-fsrs6--cli-get-next (current rating)
+(defun org-fc-algo-fsrs6--cli-get-next (current rating now)
   ;; Note: json-encode expects alists while other parts of org-fc use
   ;; plists, so we need to convert here.
   ;; When reading json, this can be configured but apparently not when
@@ -138,7 +138,7 @@ then return the parsed json response."
        (enable-fuzzing . ,org-fc-algo-fsrs6-enable-fuzzing)))
      (card . ,current)
      (rating . ,rating))
-   (list "review" "--now" (org-fc-timestamp-in 0))))
+   (list "review" "--now" now)))
 
 ;;;; Main Algorithm Interface
 
@@ -164,20 +164,22 @@ then return the parsed json response."
   ((_algo org-fc-algo-fsrs6) current rating)
   "Calculate the next parameters, given the CURRENT parameters and a RATING."
   (let ((next-data (org-fc-algo-fsrs6--cli-get-next
-               `((state . ,(string-to-number (plist-get current 'state)))
-                 (step . ,(org-fc-algo-fsrs--parse-optional-number (plist-get current 'step)))
-                 (stability . ,(org-fc-algo-fsrs--parse-optional-number (plist-get current 'stability)))
-                 (difficulty . ,(org-fc-algo-fsrs--parse-optional-number (plist-get current 'difficulty)))
-                 (due . ,(plist-get current 'due))
-                 (last-review . ,(org-fc-algo-fsrs--parse-optional-str (plist-get current 'last-review))))
-               rating)))
+                    `((state . ,(string-to-number (plist-get current 'state)))
+                      (step . ,(org-fc-algo-fsrs--parse-optional-number (plist-get current 'step)))
+                      (stability . ,(org-fc-algo-fsrs--parse-optional-number (plist-get current 'stability)))
+                      (difficulty . ,(org-fc-algo-fsrs--parse-optional-number (plist-get current 'difficulty)))
+                      (due . ,(plist-get current 'due))
+                      (last-review . ,(org-fc-algo-fsrs--parse-optional-str (plist-get current 'last-review))))
+                    rating
+                    (org-fc-timestamp-in 0))))
     (list
      'state (format "%d" (plist-get next-data 'state))
      'step (format "%s" (plist-get next-data 'step))
-     'stability (format "%f" (plist-get next-data 'stability))
-     'difficulty (format "%f" (plist-get next-data 'difficulty))
+     'stability (format "%.6f" (plist-get next-data 'stability))
+     'difficulty (format "%.6f" (plist-get next-data 'difficulty))
      'due (plist-get next-data 'due)
      'last-review (plist-get next-data 'last-review))))
+
 
 (cl-defmethod org-fc-algo-log-review ((_algo org-fc-algo-fsrs6) (position org-fc-position) current rating delta)
   (let* ((card (oref position card))

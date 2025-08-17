@@ -18,17 +18,17 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+from pathlib import Path
+from datetime import datetime, timezone
 import sys
 import logging
 import json
-from pathlib import Path
+import argparse
 
 # Load the fsrs code shipped with org-fc
 base = Path(__file__).resolve().parent
 sys.path.insert(0, str(base / "py_fsrs"))
 from py_fsrs import fsrs
-import argparse
-from datetime import datetime, timezone
 
 logging.basicConfig(
     level=logging.INFO,
@@ -110,7 +110,7 @@ def review():
             # Parse ISO formatted string to datetime and back to ISO string
             now = datetime.fromisoformat(args.now)
         except ValueError:
-            logging.error("Invalid date format for --now. Use ISO format (YYYY-MM-DDTHH:MM:SS).")
+            logging.error("Invalid date format for --now. Use ISO format (YYYY-MM-DDTHH:MM:SSZ).")
             sys.exit(1)
 
     json_str = sys.stdin.read()
