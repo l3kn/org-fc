@@ -93,23 +93,28 @@ together with the time of review and the review rating."
       (org-fc-type-normal-init)))))
 
 (ert-deftest org-fc-algo-fsrs6-test-card-rate-normal ()
-  (ert-test-erts-file
-   (org-fc-test-fixture "erts/card_rate_normal_fsrs6.erts")
-   (lambda ()
-     (let* ((file (org-fc-file :path "mock-path"))
-            (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-fsrs6)))
-            (position (org-fc-position :card card :name "front"))
-            (now (time-to-seconds (date-to-time "2000-01-01T12:34:56Z")))
-            (org-fc-algo-fsrs6-desired-retention 0.8)
-            (org-fc-algo-fsrs6-enable-fuzzing nil))
-       (org-fc-test-with-overwrites
-        (org-fc-test-overwrite-fun
-         time-to-seconds
-         (lambda () now))
-        (org-fc-test-overwrite-fun
-         org-fc-review-history-add
-         (lambda (data) nil))
+  (let ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv")))
+    (ert-test-erts-file
+     (org-fc-test-fixture "erts/card_rate_normal_fsrs6.erts")
+     (lambda ()
+       (let* ((file (org-fc-file :path "mock-path"))
+              (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-fsrs6)))
+              (position (org-fc-position :card card :name "front"))
+              (now (time-to-seconds (date-to-time "2000-01-01T12:34:56Z")))
+              (org-fc-algo-fsrs6-desired-retention 0.8)
+              (org-fc-algo-fsrs6-enable-fuzzing nil))
+         (org-fc-test-with-overwrites
+          (org-fc-test-overwrite-fun time-to-seconds (lambda () now))
+          (org-mode)
+          (goto-char (point-min))
+          (org-fc-review-update-data position 'good 0)))))
 
-        (org-mode)
-        (goto-char (point-min))
-        (org-fc-review-update-data position 'good 0))))))
+    (assert
+     (equal
+      (mapcar (lambda (l) (split-string l "\t")) (split-string (org-file-contents org-fc-review-history-file) "\n"))
+      '(("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
+        ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
+        ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
+        ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
+        ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
+        (""))))))
