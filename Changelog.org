@@ -5,6 +5,14 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.6.3
+
+*** Fixed
+
+Properties implemented using the ~org-fc-property~ macro now check if
+org-mode is active in the current buffer before trying to read the
+value from org heading properties.
+
 ** 0.6.2
 
 *** Fixed
