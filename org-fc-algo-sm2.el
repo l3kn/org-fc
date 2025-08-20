@@ -62,7 +62,8 @@
            :group ,(plist-get defcustom-args :group))
          (defun ,symbol ()
            ,(format "Getter for `%s'" symbol)
-           (if-let ((value (org-entry-get (point) ,property-symbol t)))
+           (if-let ((value (and (eq major-mode 'org-mode)
+                                (org-entry-get (point) ,property-symbol t))))
                ;; TODO: Switch on possible types
                (read value)
              ;; ,(case (plist-get defcustom-args :type)

@@ -48,23 +48,23 @@
   "Parse the review-data drawer of the card at point."
   (if-let ((position (org-fc-review-data-position)))
       (org-with-point-at (car position)
-	(let* ((table (org-table-to-lisp))
+	      (let* ((table (org-table-to-lisp))
                (headers
-		(mapcar #'intern (car table)))
-	       (plist-rows
-		(mapcar
-		 (lambda (row)
-		   (cl-loop
-		    for header in headers
-		    for cell in row
-		    nconc (list header cell)))
-		 (cddr table))))
+		            (mapcar #'intern (car table)))
+	             (plist-rows
+		            (mapcar
+		             (lambda (row)
+		               (cl-loop
+		                for header in headers
+		                for cell in row
+		                nconc (list header cell)))
+		             (cddr table))))
           (org-fc-review-data
            :headers headers
            :rows
-	   (mapcar
-	    (lambda (row) (cons (plist-get row 'position) row))
-	    plist-rows))))
+	         (mapcar
+	          (lambda (row) (cons (plist-get row 'position) row))
+	          plist-rows))))
     (org-fc-review-data :headers default-headers)))
 
 (cl-defmethod org-fc-review-data-write ((review-data org-fc-review-data))
@@ -116,16 +116,16 @@
 (cl-defmethod org-fc-review-data-update-row ((review-data org-fc-review-data) name update-plist)
   (if-let ((cell (assoc name (oref review-data rows) #'string=)))
       (let* ((old-plist (cdr cell))
-	     (new-plist
-	      (cl-loop
-	       for header in (oref review-data headers)
-	       nconc
-	       (list
-		header
-		(or
-		 (plist-get update-plist header)
-		 (plist-get old-plist header))))))
-	(setcdr cell new-plist))
+	           (new-plist
+	            (cl-loop
+	             for header in (oref review-data headers)
+	             nconc
+	             (list
+		            header
+		            (or
+		             (plist-get update-plist header)
+		             (plist-get old-plist header))))))
+	      (setcdr cell new-plist))
     (error "no entry found for row name %s" name)))
 
 (cl-defmethod org-fc-review-data-ensure-rows ((review-data org-fc-review-data) names algo)
@@ -138,14 +138,14 @@ and missing entries are set to default values."
      rows
      (mapcar
       (lambda (name)
-	(cons
-	 name
-	 (alist-get
-	  name
-	  rows
-	  (org-fc-algo-initial-review-data algo name)
-	  nil
-	  #'string=)))
+	      (cons
+	       name
+	       (alist-get
+	        name
+	        rows
+	        (org-fc-algo-initial-review-data algo name)
+	        nil
+	        #'string=)))
       names))))
 
 ;; Based on `org-log-beginning'
@@ -186,13 +186,13 @@ If a doesn't exist already, it is initialized with default
 values. Entries in the table not contained in NAMES are
 removed."
   (let* ((algo-name
-	  (if-let ((name (org-entry-get (point) org-fc-algo-property)))
-	      (intern name)
-	    ;; Cards in org-fc version <0.6.0 didn't have an algorithm property
-	    ;; and used the SM2 algorithm.
-	    'sm2))
-	 (algo (funcall (org-fc-algo-constructor algo-name) '()))
-	 (review-data (org-fc-review-data-parse (org-fc-algo-headers algo))))
+	        (if-let ((name (org-entry-get (point) org-fc-algo-property)))
+	            (intern name)
+	          ;; Cards in org-fc version <0.6.0 didn't have an algorithm property
+	          ;; and used the SM2 algorithm.
+	          'sm2))
+	       (algo (funcall (org-fc-algo-constructor algo-name) '()))
+	       (review-data (org-fc-review-data-parse (org-fc-algo-headers algo))))
     (org-fc-review-data-ensure-rows review-data names algo)
     (org-fc-review-data-write review-data)))
 
