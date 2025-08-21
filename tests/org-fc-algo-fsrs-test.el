@@ -111,10 +111,9 @@ together with the time of review and the review rating."
 
     (assert
      (equal
-      (mapcar (lambda (l) (split-string l "\t")) (split-string (org-file-contents org-fc-review-history-file) "\n"))
+      (mapcar (lambda (l) (split-string l "\t")) (split-string (org-file-contents org-fc-review-history-file) "\n" 'omit-nulls))
       '(("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
         ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
         ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
         ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
-        ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
-        (""))))))
+        ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6"))))))
