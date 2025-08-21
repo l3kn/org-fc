@@ -25,6 +25,9 @@ import logging
 import json
 import argparse
 
+from models import Indentifier, Review
+from review_history import TSVReader
+
 # Load the fsrs code shipped with org-fc
 base = Path(__file__).resolve().parent
 sys.path.insert(0, str(base / "py_fsrs"))
@@ -148,10 +151,62 @@ def review():
 
     print(json.dumps(card_to_dict(new_card), indent=2))
 
+def replay_reviews(targets: list[Indentifier], reviews: list[Review], scheduler: fsrs.Scheduler) -> dict[Indentifier, fsrs.Card]:
+    fsrs_cards = {}
+    targets = set(targets)
+
+    for identifier in targets:
+        fsrs_cards[identifier] = fsrs.Card()
+
+    for review in reviews:
+        if review.identifier in targets:
+            fsrs_cards[review.identifier], _revlog = scheduler.review_card(
+                card=fsrs_cards[review.identifier],
+                rating=RATINGS[review.rating],
+                review_datetime=review.datetime.astimezone(tz=timezone.utc),
+            )
+
+    return fsrs_cards
+
+def from_history():
+    parser = argparse.ArgumentParser(description="Recompute FSRS card from history")
+    parser.add_argument("--history_file", type=str, help="TSV review history file", required=True)
+
+    args, _ = parser.parse_known_args(sys.argv[2:])
+
+    reader = TSVReader(args.history_file)
+
+    json_str = sys.stdin.read()
+    try:
+        request = json.loads(json_str)
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to parse JSON: {e}")
+        sys.exit(1)
+
+    scheduler_dict = request["scheduler"]
+    scheduler_dict = keys_from_emacs(scheduler_dict)
+    scheduler = fsrs.Scheduler.from_dict(scheduler_dict)
+
+    target_id = request.get("card-id")
+    if target_id is None:
+        logging.error("Missing 'card-id' in request.")
+        sys.exit(1)
+
+    positions = request.get("positions", [])
+    if not positions:
+        logging.error("No positions provided in request.")
+        sys.exit(1)
+
+    targets = [Indentifier(card_id=target_id, name=pos) for pos in positions]
+    cards = replay_reviews(targets, reader.read_reviews(), scheduler)
+
+    print(
+        json.dumps([card_to_dict(cards[ident], position=ident.name) for ident in targets], indent=2)
+    )
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        logging.error("Usage: python algo_fsrs6.py [initial|review]")
+        logging.error("Usage: python algo_fsrs6.py [initial|review|from_history]")
         sys.exit(1)
 
     command = sys.argv[1]
@@ -159,7 +214,9 @@ if __name__ == "__main__":
         initial()
     elif command == "review":
         review()
+    elif command == "from_history":
+        from_history()
     else:
         logging.error(f"Unknown command: {command}")
-        logging.info("Available commands: initial, review")
+        logging.info("Available commands: initial, review, from_history")
         sys.exit(1)
