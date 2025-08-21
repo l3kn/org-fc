@@ -117,3 +117,55 @@ together with the time of review and the review rating."
         ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
         ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
         ("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6"))))))
+
+;; TODO: Ideally this should work for multiple cards so we can be sure
+;; the history is filtered correctly
+(ert-deftest org-fc-algo-fsrs6-test-from-history ()
+  (let* ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
+         (org-fc-algo-fsrs6-enable-fuzzing nil)
+         (org-fc-algo-fsrs6-desired-retention 0.9)
+         (mock-now 0)
+         ;; We need to create these manually because we can't index the temp file here
+         (file (org-fc-file :path "mock-path"))
+         (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-fsrs6)))
+         (position (org-fc-position :card card :name "front"))
+         ;; Make all calls to `time-to-seconds' now because we will overwrite it
+         (reviews
+          (cl-loop
+           for (plist alist date rating) in org-fc-algo-fsrs-test--data collect
+           (list (time-to-seconds (date-to-time date)) rating))))
+
+    (with-temp-buffer
+      (org-fc-test-with-overwrites
+       (org-fc-test-overwrite-fun time-to-seconds (lambda () mock-now))
+       (org-fc-test-overwrite-fun org-fc-select-algo (lambda () "fsrs6"))
+       (org-fc-test-overwrite-fun org-id-get (lambda (&rest _args) (org-entry-put (point) "ID" "dummy-id") "dummy-id"))
+
+       ;; Create a fresh card
+       (org-mode)
+       (insert "* Front")
+       (org-fc-type-normal-init)
+
+       ;; Replay all reviews except the last
+       (cl-loop
+        for (new-now rating) in (butlast reviews) do
+        (setq mock-now new-now)
+        (org-fc-review-update-data position (intern rating) 0))))
+
+    ;; Make sure the review history looks like we would expect
+    (assert
+     (equal
+      (mapcar
+       (lambda (l) (split-string l "\t"))
+       (split-string (org-file-contents org-fc-review-history-file) "\n" 'omit-nulls))
+      (mapcar
+       (lambda (l) (list (nth 2 l) "mock-path" "mock-id" "front" "" "" "" (nth 3 l) "0.00" "fsrs6"))
+       (butlast org-fc-algo-fsrs-test--data))))
+
+    ;; Try to recompute the card state from the review history,
+    ;; then compare it against the last reference data entry
+    (let ((output (aref (org-fc-algo-fsrs6--cli-from-history "mock-id" '("front")) 0)))
+      ;; The CLI output includes an extra position entry not present in the data
+      ;; so we need to do a bit of cleaning up before comparing
+      (cl-remf output 'position)
+      (assert (equalp (caar (last org-fc-algo-fsrs-test--data)) output)))))
