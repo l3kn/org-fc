@@ -60,7 +60,8 @@ RATINGS = {
     "easy": fsrs.Rating.Easy,
 }
 
-def _print_card(card: fsrs.Card):
+def card_to_dict(card: fsrs.Card, position: str | None = None) -> dict:
+    """Convert a fsrs.Card to a dictionary suitable for serialization."""
     card_dict = card.to_dict()
     # Org-fc does not make use of the card_id, so we remove it
     del card_dict["card_id"]
@@ -70,9 +71,11 @@ def _print_card(card: fsrs.Card):
     if card.last_review is not None:
         card_dict["last_review"] = card.last_review.isoformat().replace("+00:00", "Z")
 
-    card_dict = keys_to_emacs(card_dict)
-    print(json.dumps(card_dict, indent=2))
+    if position is not None:
+        card_dict["position"] = position
 
+    card_dict = keys_to_emacs(card_dict)
+    return card_dict
 
 def initial():
     """Generate an initial FSRS card and print it in Emacs-friendly format.
@@ -94,7 +97,7 @@ def initial():
             logging.error("Invalid date format for --now. Use ISO format (YYYY-MM-DDTHH:MM:SS).")
             sys.exit(1)
 
-    _print_card(card)
+    print(json.dumps(card_to_dict(card), indent=2))
 
 def review():
     """Process a review and print the updated FSRS card in Emacs-friendly format."""
@@ -141,9 +144,10 @@ def review():
     except KeyError:
         logging.error(f"Invalid or missing rating: %s", request.get("rating"))
 
-    new_card, _revlog = scheduler.review_card(card, rating, review_datetime=now, review_duration=request.get("duration", None))
+    new_card, _revlog = scheduler.review_card(card, rating, review_datetime=now)
 
-    _print_card(new_card)
+    print(json.dumps(card_to_dict(new_card), indent=2))
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
