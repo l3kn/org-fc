@@ -168,6 +168,15 @@ then return the parsed json response."
 (defun org-fc-algo-fsrs--parse-optional-number (v)
   (if (equalp v "nil") nil (string-to-number v)))
 
+(defun org-fc-algo-fsrs--format-review-data (data)
+  (list
+   'state (format "%d" (plist-get data 'state))
+   'step (format "%s" (plist-get data 'step))
+   'stability (format "%.6f" (plist-get data 'stability))
+   'difficulty (format "%.6f" (plist-get data 'difficulty))
+   'due (plist-get data 'due)
+   'last-review (plist-get data 'last-review)))
+
 (cl-defmethod org-fc-algo-next-review-data
   ((_algo org-fc-algo-fsrs6) current rating)
   "Calculate the next parameters, given the CURRENT parameters and a RATING."
@@ -180,14 +189,7 @@ then return the parsed json response."
                       (last-review . ,(org-fc-algo-fsrs--parse-optional-str (plist-get current 'last-review))))
                     rating
                     (org-fc-timestamp-in 0))))
-    (list
-     'state (format "%d" (plist-get next-data 'state))
-     'step (format "%s" (plist-get next-data 'step))
-     'stability (format "%.6f" (plist-get next-data 'stability))
-     'difficulty (format "%.6f" (plist-get next-data 'difficulty))
-     'due (plist-get next-data 'due)
-     'last-review (plist-get next-data 'last-review))))
-
+    (org-fc-algo-fsrs--format-review-data next-data)))
 
 (cl-defmethod org-fc-algo-log-review ((_algo org-fc-algo-fsrs6) (position org-fc-position) current rating delta)
   (let* ((card (oref position card))
