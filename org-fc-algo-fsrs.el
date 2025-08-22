@@ -95,6 +95,14 @@
 
 ;;;; Python CLI Interaction
 
+(defun org-fc-algo-fsrs6--scheduler-alist ()
+  `((parameters . ,(vconcat org-fc-algo-fsrs6-parameters))
+    (desired-retention . ,org-fc-algo-fsrs6-desired-retention)
+    (relearning-steps . ,(vconcat org-fc-algo-fsrs6-relearning-steps))
+    (learning-steps . ,(vconcat org-fc-algo-fsrs6-learning-steps))
+    (maximum-interval . ,org-fc-algo-fsrs6-maximum-interval)
+    (enable-fuzzing . ,org-fc-algo-fsrs6-enable-fuzzing)))
+
 (defun org-fc-algo-fsrs6--cli-wrap-json (request args)
   "Run the python interface with json-encoded REQUEST as stdin,
 then return the parsed json response."
@@ -126,17 +134,17 @@ then return the parsed json response."
   ;; When reading json, this can be configured but apparently not when
   ;; writing.
   (org-fc-algo-fsrs6--cli-wrap-json
-   `((scheduler
-      .
-      ((parameters . ,(vconcat org-fc-algo-fsrs6-parameters))
-       (desired-retention . ,org-fc-algo-fsrs6-desired-retention)
-       (relearning-steps . ,(vconcat org-fc-algo-fsrs6-relearning-steps))
-       (learning-steps . ,(vconcat org-fc-algo-fsrs6-learning-steps))
-       (maximum-interval . ,org-fc-algo-fsrs6-maximum-interval)
-       (enable-fuzzing . ,org-fc-algo-fsrs6-enable-fuzzing)))
+   `((scheduler . ,(org-fc-algo-fsrs6--scheduler-alist))
      (card . ,current)
      (rating . ,rating))
    (list "review" "--now" now)))
+
+(defun org-fc-algo-fsrs6--cli-from-history (card-id positions)
+  (org-fc-algo-fsrs6--cli-wrap-json
+   `((scheduler . ,(org-fc-algo-fsrs6--scheduler-alist))
+     (card-id . ,card-id)
+     (positions . ,positions))
+   (list "from_history" "--history_file" org-fc-review-history-file)))
 
 ;;;; Main Algorithm Interface
 
