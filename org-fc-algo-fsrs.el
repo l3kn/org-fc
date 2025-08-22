@@ -144,7 +144,9 @@ then return the parsed json response."
    `((scheduler . ,(org-fc-algo-fsrs6--scheduler-alist))
      (card-id . ,card-id)
      (positions . ,positions))
-   (list "from_history" "--history_file" org-fc-review-history-file)))
+   (list
+    "from_history" "--history_file"
+    (expand-file-name org-fc-review-history-file))))
 
 ;;;; Main Algorithm Interface
 
