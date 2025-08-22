@@ -70,9 +70,9 @@ def card_to_dict(card: fsrs.Card, position: str | None = None) -> dict:
     del card_dict["card_id"]
 
     if card.due is not None:
-        card_dict["due"] = card.due.isoformat().replace("+00:00", "Z")
+        card_dict["due"] = card.due.isoformat(timespec="seconds").replace("+00:00", "Z")
     if card.last_review is not None:
-        card_dict["last_review"] = card.last_review.isoformat().replace("+00:00", "Z")
+        card_dict["last_review"] = card.last_review.isoformat(timespec="seconds").replace("+00:00", "Z")
 
     if position is not None:
         card_dict["position"] = position
