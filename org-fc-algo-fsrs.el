@@ -139,14 +139,15 @@ then return the parsed json response."
      (rating . ,rating))
    (list "review" "--now" now)))
 
-(defun org-fc-algo-fsrs6--cli-from-history (card-id positions)
+(defun org-fc-algo-fsrs6--cli-from-history (card-id positions &optional quantize)
   (org-fc-algo-fsrs6--cli-wrap-json
    `((scheduler . ,(org-fc-algo-fsrs6--scheduler-alist))
      (card-id . ,card-id)
      (positions . ,positions))
-   (list
-    "from_history" "--history_file"
-    (expand-file-name org-fc-review-history-file))))
+   `("from_history"
+     "--history_file"
+     ,(expand-file-name org-fc-review-history-file)
+     ,@(if quantize '("--quantize")))))
 
 ;;;; Main Algorithm Interface
 
@@ -168,14 +169,17 @@ then return the parsed json response."
 (defun org-fc-algo-fsrs--parse-optional-number (v)
   (if (equalp v "nil") nil (string-to-number v)))
 
-(defun org-fc-algo-fsrs--format-review-data (data)
-  (list
-   'state (format "%d" (plist-get data 'state))
-   'step (format "%s" (plist-get data 'step))
-   'stability (format "%.6f" (plist-get data 'stability))
-   'difficulty (format "%.6f" (plist-get data 'difficulty))
-   'due (plist-get data 'due)
-   'last-review (plist-get data 'last-review)))
+(defun org-fc-algo-fsrs--format-review-data (data &optional include-position)
+  (let ((result (list
+                 'state (format "%d" (plist-get data 'state))
+                 'step (format "%s" (plist-get data 'step))
+                 'stability (format "%.6f" (plist-get data 'stability))
+                 'difficulty (format "%.6f" (plist-get data 'difficulty))
+                 'due (plist-get data 'due)
+                 'last-review (plist-get data 'last-review))))
+    (if include-position
+        (list* 'position (plist-get data 'position) result)
+      result)))
 
 (cl-defmethod org-fc-algo-next-review-data
   ((_algo org-fc-algo-fsrs6) current rating)
@@ -252,6 +256,24 @@ Returns nil if there is no history file."
         (error "Org-fc shell error: %s" output)))))
 
 (org-fc-register-algo 'fsrs6 org-fc-algo-fsrs6)
+
+;;; Card Migration
+
+(defun org-fc-algo-fsrs6-migrate ()
+  (interactive)
+  (unless (org-fc-entry-p)
+    (error "Only flashcard entries can be migrated"))
+  (let* ((card-id (org-id-get))
+         (review-data (org-fc-review-data-parse (org-fc-algo-headers (org-fc-algo-fsrs6))))
+         (position-names
+          (mapcar (lambda (r) (car r)) (oref review-data rows)))
+         (next-data (org-fc-algo-fsrs6--cli-from-history card-id position-names 'quantize))
+         (formatted-data (mapcar (lambda (row) (org-fc-algo-fsrs--format-review-data row 'include-position)) next-data))
+         (review-data (org-fc-review-data
+                       :headers (org-fc-algo-headers (org-fc-algo-fsrs6))
+                       :rows (mapcar (lambda (row) (cons (plist-get row 'position) row)) formatted-data))))
+    (org-set-property org-fc-algo-property "fsrs6")
+    (org-fc-review-data-write review-data)))
 
 ;;; Footer
 

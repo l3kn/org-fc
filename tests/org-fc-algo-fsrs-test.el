@@ -144,3 +144,38 @@
        ;; so we need to do a bit of cleaning up before comparing
        (cl-remf output 'position)
        (should (equalp card-plist output))))))
+
+(ert-deftest org-fc-algo-fsrs6-test-migration ()
+  (let* ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
+         (org-fc-algo-fsrs6-enable-fuzzing nil)
+         (org-fc-algo-fsrs6-desired-retention 0.9)
+         (mock-now 0)
+         (file (org-fc-file :path "mock-path"))
+         ;; Make all calls to `time-to-seconds' now because we will overwrite it
+         (reviews
+          (cl-loop
+           for (card-id pos-name plist alist date rating) in org-fc-algo-fsrs-test--history-multi
+           collect (list card-id pos-name (time-to-seconds (date-to-time date)) rating))))
+
+    (with-temp-buffer
+      (org-fc-test-with-overwrites
+       (org-fc-test-overwrite-fun time-to-seconds (lambda () mock-now))
+       (org-fc-test-overwrite-fun org-fc-select-algo (lambda () "fsrs6"))
+
+       (org-mode)
+       (org-fc-algo-fsrs6-test--create-mock-cards)
+       (org-fc-algo-fsrs6-test--replay-reviews)
+
+       ;; Migrate one card, then the other
+       ;;
+       ;; The recomputed data should be exactly the same
+       (dolist (search '("card-id1" "card-id2"))
+         (goto-char (point-min))
+         (search-forward search)
+         (let ((buffer-before (buffer-substring-no-properties (point-min) (point-max))))
+           (message (buffer-substring-no-properties (point-min) (point-max)))
+           (org-fc-algo-fsrs6-migrate)
+           (message (buffer-substring-no-properties (point-min) (point-max)))
+           (should (string=
+                    buffer-before
+                    (buffer-substring-no-properties (point-min) (point-max))))))))))
