@@ -151,7 +151,7 @@ def review():
 
     print(json.dumps(card_to_dict(new_card), indent=2))
 
-def replay_reviews(targets: list[Indentifier], reviews: list[Review], scheduler: fsrs.Scheduler) -> dict[Indentifier, fsrs.Card]:
+def replay_reviews(targets: list[Indentifier], reviews: list[Review], scheduler: fsrs.Scheduler, quantize: bool = False) -> dict[Indentifier, fsrs.Card]:
     fsrs_cards = {}
     targets = set(targets)
 
@@ -160,17 +160,25 @@ def replay_reviews(targets: list[Indentifier], reviews: list[Review], scheduler:
 
     for review in reviews:
         if review.identifier in targets:
-            fsrs_cards[review.identifier], _revlog = scheduler.review_card(
+            next_card, _revlog = scheduler.review_card(
                 card=fsrs_cards[review.identifier],
                 rating=RATINGS[review.rating],
                 review_datetime=review.datetime.astimezone(tz=timezone.utc),
             )
+
+            # Optionally account for the loss in precision when org-fc tracks these values
+            if quantize:
+                next_card.stability = float(f"{next_card.stability:.6f}") if next_card.stability is not None else None
+                next_card.difficulty = float(f"{next_card.difficulty:.6f}") if next_card.difficulty is not None else None
+
+            fsrs_cards[review.identifier] = next_card
 
     return fsrs_cards
 
 def from_history():
     parser = argparse.ArgumentParser(description="Recompute FSRS card from history")
     parser.add_argument("--history_file", type=str, help="TSV review history file", required=True)
+    parser.add_argument("--quantize", action="store_true", help="Quantize stability & difficulty to 6 decimal points")
 
     args, _ = parser.parse_known_args(sys.argv[2:])
 
@@ -198,7 +206,7 @@ def from_history():
         sys.exit(1)
 
     targets = [Indentifier(card_id=target_id, name=pos) for pos in positions]
-    cards = replay_reviews(targets, reader.read_reviews(), scheduler)
+    cards = replay_reviews(targets, reader.read_reviews(), scheduler, quantize=args.quantize)
 
     print(
         json.dumps([card_to_dict(cards[ident], position=ident.name) for ident in targets], indent=2)
