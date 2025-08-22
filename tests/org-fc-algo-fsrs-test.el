@@ -75,6 +75,28 @@
 
 ;;; E2E Tests
 
+;; Create two fresh cards, one double and one normal
+(defun org-fc-algo-fsrs6-test--create-mock-cards ()
+  (insert "* card-id1")
+  (org-set-property "ID" "id1")
+  (org-fc-type-double-init)
+
+  (goto-char (point-max))
+  (insert "* card-id2")
+  (org-set-property "ID" "id2")
+  (org-fc-type-normal-init))
+
+(defun org-fc-algo-fsrs6-test--replay-reviews ()
+  (cl-loop
+   for (card-id pos-name new-now rating) in reviews do
+   ;; We need to create these manually because we can't index the temp file here
+   (let* ((card (org-fc-card :file file :id card-id :algo (org-fc-algo-fsrs6)))
+          (position (org-fc-position :card card :name pos-name)))
+     (setq mock-now new-now)
+     (goto-char (point-min))
+     (search-forward (format "card-%s" card-id))
+     (org-fc-review-update-data position (intern rating) 0))))
+
 ;; Currently setting up everything we need to simulate reviews at
 ;; different times requires a lot of effort, we do it once and run
 ;; multiple tests afterwards.
@@ -87,7 +109,6 @@
          (org-fc-algo-fsrs6-enable-fuzzing nil)
          (org-fc-algo-fsrs6-desired-retention 0.9)
          (mock-now 0)
-         (mock-id "mock-id")
          (file (org-fc-file :path "mock-path"))
          ;; Make all calls to `time-to-seconds' now because we will overwrite it
          (reviews
@@ -99,29 +120,10 @@
       (org-fc-test-with-overwrites
        (org-fc-test-overwrite-fun time-to-seconds (lambda () mock-now))
        (org-fc-test-overwrite-fun org-fc-select-algo (lambda () "fsrs6"))
-       (org-fc-test-overwrite-fun org-id-get (lambda (&rest _args) (org-entry-put (point) "ID" mock-id) mock-id))
 
-       ;; Create two fresh cards, one double and one normal
        (org-mode)
-       (insert "* card-id1")
-       (setq mock-id "id1")
-       (org-fc-type-double-init)
-
-       (goto-char (point-max))
-       (insert "* card-id2")
-       (setq mock-id "id2")
-       (org-fc-type-normal-init)
-
-       ;; Replay all reviews
-       (cl-loop
-        for (card-id pos-name new-now rating) in reviews do
-        ;; We need to create these manually because we can't index the temp file here
-        (let* ((card (org-fc-card :file file :id card-id :algo (org-fc-algo-fsrs6)))
-               (position (org-fc-position :card card :name pos-name)))
-          (setq mock-now new-now)
-          (goto-char (point-min))
-          (search-forward (format "card-%s" card-id))
-          (org-fc-review-update-data position (intern rating) 0)))))
+       (org-fc-algo-fsrs6-test--create-mock-cards)
+       (org-fc-algo-fsrs6-test--replay-reviews reviews)))
 
     ;; Make sure the review history looks like we would expect
     (assert
