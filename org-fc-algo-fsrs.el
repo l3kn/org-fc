@@ -272,8 +272,8 @@ Returns nil if there is no history file."
          (review-data (org-fc-review-data
                        :headers (org-fc-algo-headers (org-fc-algo-fsrs6))
                        :rows (mapcar (lambda (row) (cons (plist-get row 'position) row)) formatted-data))))
-    (org-set-property org-fc-algo-property "fsrs6")
-    (org-fc-review-data-write review-data)))
+    (org-fc-review-data-write review-data)
+    (org-set-property org-fc-algo-property "fsrs6")))
 
 ;;; Footer
 
