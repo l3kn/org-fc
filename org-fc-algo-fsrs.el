@@ -261,6 +261,15 @@ Returns nil if there is no history file."
 
 ;;; Card Migration
 
+;; NOTE: If we migrate a cards that already uses FSRS 6 and none of
+;; the scheduler settings changed, the new review data should be
+;; exactly the same as the old review data.
+;;
+;; This requires some extra care:
+;; 1. When replaying the review history in Python, we need to simulate the small loss in accuracy
+;; due to limiting the stability & difficulty values to 6 decimal places when writing the review data
+;; 2. We need to pass along the original due date because the Python CLI has no other way of determining it
+;; for cards without reviews
 (defun org-fc-algo-fsrs6-migrate ()
   (interactive)
   (unless (org-fc-entry-p)
