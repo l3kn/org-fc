@@ -86,7 +86,7 @@
   (org-set-property "ID" "id2")
   (org-fc-type-normal-init))
 
-(defun org-fc-algo-fsrs6-test--replay-reviews ()
+(defun org-fc-algo-fsrs6-test--replay-reviews (reviews)
   (cl-loop
    for (card-id pos-name new-now rating) in reviews do
    ;; We need to create these manually because we can't index the temp file here
@@ -164,7 +164,7 @@
 
        (org-mode)
        (org-fc-algo-fsrs6-test--create-mock-cards)
-       (org-fc-algo-fsrs6-test--replay-reviews)
+       (org-fc-algo-fsrs6-test--replay-reviews reviews)
 
        ;; Migrate one card, then the other
        ;;
