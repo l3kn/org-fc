@@ -162,8 +162,7 @@ def replay_reviews(
 
     for identifier, original_due in targets:
         fsrs_cards[identifier] = fsrs.Card()
-        if original_due is not None:
-            fsrs_cards[identifier].due = original_due
+        fsrs_cards[identifier].due = original_due
 
     for review in reviews:
         if review.identifier in valid_identifiers:
