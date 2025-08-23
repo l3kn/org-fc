@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Iterator
 import csv
 import logging
 
@@ -9,7 +10,7 @@ class TSVReader:
     def __init__(self, file_path):
         self.file_path = file_path
 
-    def read_reviews(self) -> list[Review]:
+    def read_reviews(self) -> Iterator[Review]:
         reviews = []
         with open(self.file_path, "r") as file:
             reader = csv.reader(file, delimiter="\t")
@@ -33,6 +34,4 @@ class TSVReader:
                         continue
 
                 position = Indentifier(card_id=card_id, name=pos_name)
-                review = Review(identifier=position, rating=rating, datetime=dt, duration=duration)
-                reviews.append(review)
-        return reviews
+                yield Review(identifier=position, rating=rating, datetime=dt, duration=duration)

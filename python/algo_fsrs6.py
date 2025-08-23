@@ -18,12 +18,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from pathlib import Path
 from datetime import datetime, timezone
-import sys
-import logging
-import json
+from typing import Iterator
+from pathlib import Path
 import argparse
+import json
+import logging
+import sys
 
 from models import Indentifier, Review
 from review_history import TSVReader
@@ -153,7 +154,7 @@ def review():
 
 def replay_reviews(
         targets: list[tuple[Indentifier, datetime]],
-        reviews: list[Review],
+        reviews: Iterator[Review],
         scheduler: fsrs.Scheduler,
         quantize: bool = False,
 ) -> dict[Indentifier, fsrs.Card]:
