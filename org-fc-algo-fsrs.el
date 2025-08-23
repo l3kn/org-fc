@@ -170,13 +170,15 @@ then return the parsed json response."
   (if (equalp v "nil") nil (string-to-number v)))
 
 (defun org-fc-algo-fsrs--format-review-data (data &optional include-position)
-  (let ((result (list
-                 'state (format "%d" (plist-get data 'state))
-                 'step (format "%s" (plist-get data 'step))
-                 'stability (format "%.6f" (plist-get data 'stability))
-                 'difficulty (format "%.6f" (plist-get data 'difficulty))
-                 'due (plist-get data 'due)
-                 'last-review (plist-get data 'last-review))))
+  (let* ((stability (plist-get data 'stability))
+         (difficulty (plist-get data 'difficulty))
+         (result (list
+                  'state (format "%d" (plist-get data 'state))
+                  'step (format "%s" (plist-get data 'step))
+                  'stability (if stability (format "%.6f" stability) "nil")
+                  'difficulty (if difficulty (format "%.6f" difficulty) "nil")
+                  'due (plist-get data 'due)
+                  'last-review (plist-get data 'last-review))))
     (if include-position
         (list* 'position (plist-get data 'position) result)
       result)))
