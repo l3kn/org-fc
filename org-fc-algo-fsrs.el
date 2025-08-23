@@ -257,6 +257,45 @@ Returns nil if there is no history file."
           (read output)
         (error "Org-fc shell error: %s" output)))))
 
+(defun org-fc-algo-fsrs6-review-stats ()
+  "Statistics for all card reviews.
+Returns nil if there is no history file."
+  (when (file-exists-p org-fc-review-history-file)
+    (let ((output
+           (shell-command-to-string
+            (org-fc-awk--command
+             "awk/review_stats_fsrs6.awk"
+             :input org-fc-review-history-file))))
+      (if (string-prefix-p "(" output)
+          (read output)
+        (error "Org-fc shell error: %s" output)))))
+
+(defun org-fc-algo-fsrs6-dashboard-review-history (_cards)
+  (let ((reviews-stats (org-fc-algo-fsrs6-review-stats)))
+    (insert "\n")
+    (if reviews-stats
+	(progn
+	  (dolist (scope '((:day . "day")
+			   (:week . "week")
+			   (:month . "month")
+			   (:all . "all")))
+	    (when-let (stat (plist-get reviews-stats (car scope)))
+	      (when (cl-plusp (plist-get stat :total))
+		(insert "  ")
+		(if (and (display-graphic-p)
+			 (memq 'svg (and (boundp 'image-types) image-types)))
+		    (insert-image (org-fc-dashboard-bar-chart stat))
+		  (insert (org-fc-dashboard-text-bar-chart stat)))
+		(insert (propertize (format " %s (%d)\n" (cdr scope) (plist-get stat :total)) 'face 'org-level-1)))))
+	  (insert "\n"))
+      (insert "  No reviews yet\n\n"))))
+
+(org-fc-dashboard-add-section
+ (org-fc-dashboard-section
+  :title "FSRS Review History (All Cards)"
+  :start-visible t
+  :inserter #'org-fc-algo-fsrs6-dashboard-review-history))
+
 (org-fc-register-algo 'fsrs6 org-fc-algo-fsrs6)
 
 ;;; Card Migration
