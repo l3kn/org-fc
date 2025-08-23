@@ -179,3 +179,36 @@
            (should (string=
                     buffer-before
                     (buffer-substring-no-properties (point-min) (point-max))))))))))
+
+(ert-deftest org-fc-algo-fsrs6-test-migration-empty ()
+  (let* ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
+         (org-fc-algo-fsrs6-enable-fuzzing nil)
+         (org-fc-algo-fsrs6-desired-retention 0.9)
+         (mock-now 0)
+         (next-now (time-to-seconds (date-to-time "2000-01-01T12:34:56Z")))
+         (file (org-fc-file :path "mock-path")))
+
+    (with-temp-buffer
+      (org-fc-test-with-overwrites
+       (org-fc-test-overwrite-fun time-to-seconds (lambda () mock-now))
+       (org-fc-test-overwrite-fun org-fc-select-algo (lambda () "fsrs6"))
+
+       (org-mode)
+       (org-fc-algo-fsrs6-test--create-mock-cards)
+
+       ;; Move time ahead
+       (setq mock-now next-now)
+
+       ;; Migrate one card, then the other
+       ;;
+       ;; The recomputed data should be exactly the same
+       (dolist (search '("card-id1" "card-id2"))
+         (goto-char (point-min))
+         (search-forward search)
+         (let ((buffer-before (buffer-substring-no-properties (point-min) (point-max))))
+           (message (buffer-substring-no-properties (point-min) (point-max)))
+           (org-fc-algo-fsrs6-migrate)
+           (message (buffer-substring-no-properties (point-min) (point-max)))
+           (should (string=
+                    buffer-before
+                    (buffer-substring-no-properties (point-min) (point-max))))))))))

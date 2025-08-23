@@ -268,7 +268,10 @@ Returns nil if there is no history file."
   (let* ((card-id (org-id-get))
          (review-data (org-fc-review-data-parse (org-fc-algo-headers (org-fc-algo-fsrs6))))
          (position-names
-          (mapcar (lambda (r) (car r)) (oref review-data rows)))
+          (mapcar
+           (lambda (r) `((name . ,(car r))
+                    (original-due . ,(plist-get (cdr r) 'due))))
+           (oref review-data rows)))
          (next-data (org-fc-algo-fsrs6--cli-from-history card-id position-names 'quantize))
          (formatted-data (mapcar (lambda (row) (org-fc-algo-fsrs--format-review-data row 'include-position)) next-data))
          (review-data (org-fc-review-data

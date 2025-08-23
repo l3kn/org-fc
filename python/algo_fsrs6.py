@@ -151,15 +151,22 @@ def review():
 
     print(json.dumps(card_to_dict(new_card), indent=2))
 
-def replay_reviews(targets: list[Indentifier], reviews: list[Review], scheduler: fsrs.Scheduler, quantize: bool = False) -> dict[Indentifier, fsrs.Card]:
+def replay_reviews(
+        targets: list[tuple[Indentifier, datetime]],
+        reviews: list[Review],
+        scheduler: fsrs.Scheduler,
+        quantize: bool = False,
+) -> dict[Indentifier, fsrs.Card]:
     fsrs_cards = {}
-    targets = set(targets)
+    valid_identifiers = set(identifier for identifier, _original_due in targets)
 
-    for identifier in targets:
+    for identifier, original_due in targets:
         fsrs_cards[identifier] = fsrs.Card()
+        if original_due is not None:
+            fsrs_cards[identifier].due = original_due
 
     for review in reviews:
-        if review.identifier in targets:
+        if review.identifier in valid_identifiers:
             next_card, _revlog = scheduler.review_card(
                 card=fsrs_cards[review.identifier],
                 rating=RATINGS[review.rating],
@@ -205,11 +212,14 @@ def from_history():
         logging.error("No positions provided in request.")
         sys.exit(1)
 
-    targets = [Indentifier(card_id=target_id, name=pos) for pos in positions]
+    targets = [(
+        Indentifier(card_id=target_id, name=pos["name"]),
+        datetime.fromisoformat(pos["original-due"]),
+    ) for pos in positions]
     cards = replay_reviews(targets, reader.read_reviews(), scheduler, quantize=args.quantize)
 
     print(
-        json.dumps([card_to_dict(cards[ident], position=ident.name) for ident in targets], indent=2)
+        json.dumps([card_to_dict(cards[ident], position=ident.name) for ident, _original_due in targets], indent=2)
     )
 
 if __name__ == "__main__":
