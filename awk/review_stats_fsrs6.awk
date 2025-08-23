@@ -3,18 +3,14 @@ BEGIN {
     t_day = time_days_ago(1);
     t_week = time_days_ago(7);
     t_month = time_days_ago(30);
-    min_box = or_default(min_box, 0);
 }
 
 {
     date = $1;
-    box = $6;
     rating = $8;
 
-    # Ensure the algorithm used is a sm2 variant, accounting for
-    # review entries produced by old versions of org-fc where this
-    # column is missing
-    if (box >= min_box && (NF < 10 || (NF == 10 && $10 ~ /^sm2/))) {
+    # Ensure the algorithm used is a fsrs variant
+    if (NF == 10 && $10 ~ /^fsrs6/) {
         if (date > t_day) {
             ratings_day[rating]++;
             n_day++;
