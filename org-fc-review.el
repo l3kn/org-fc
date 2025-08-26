@@ -353,8 +353,8 @@ Pauses the review, unnarrows the buffer and activates
          (current (oref org-fc-review--session current-item))
          (title
           (unless (or org-fc-review-hide-title-in-header-line
-                      (member "notitle" (plist-get current :tags)))
-            (plist-get current :filetitle))))
+                      (member "notitle" (oref (oref current card) tags)))
+            (oref (oref (oref current card) file) title))))
     (setq org-fc-original-header-line-format header-line-format)
     (setq-local
      header-line-format
