@@ -69,35 +69,31 @@
 
 (cl-defmethod org-fc-review-data-write ((review-data org-fc-review-data))
   (save-excursion
-    (let ((headers (oref review-data headers))
-          (position (org-fc-review-data-position 'create)))
+    (let* ((headers (oref review-data headers))
+           (position (org-fc-review-data-position 'create))
+           (rows
+            (cl-list*
+             ;; Header
+             (format "| %s |\n" (mapconcat (lambda (header) (format "%s" header)) headers " | "))
+             ;; Separator
+             (format "|%s|\n" (mapconcat (lambda (_header) "-") headers "+"))
+             ;; Data Rows
+             (mapcar
+              (lambda (row-assoc)
+                (let ((row
+                       ;; Convert back to a list in the same order as the
+                       ;; headers
+                       (mapcar
+                        (lambda (header) (plist-get (cdr row-assoc) header))
+                        headers)))
+                  (format "| %s |\n" (mapconcat (lambda (x) (format "%s" x)) row " | "))))
+              (oref review-data rows)))))
       (delete-region (car position) (cdr position))
       (goto-char (car position))
-      ;; Write header
-      (insert
-       "| "
-       (mapconcat (lambda (header) (format "%s" header)) headers " | ")
-       " |\n")
-
-      ;; Write separator row
-      (insert
-       "|"
-       (mapconcat (lambda (_header) "-") headers "+")
-       "|\n")
-
-      ;; Write rows for each position
-      (dolist (row-assoc (oref review-data rows))
-        (let ((row
-               ;; Convert back to a list in the same order as the
-               ;; headers
-               (mapcar
-                (lambda (header)
-                  (plist-get (cdr row-assoc) header))
-                headers)))
-          (insert
-           "| "
-           (mapconcat (lambda (x) (format "%s" x)) row " | ")
-           " |\n")))
+      ;; We insert the whole drawer at once so there's no moment where
+      ;; the buffer contains an invalidly formatted table that might
+      ;; confuse org-mode.
+      (insert (mapconcat #'identity rows ""))
       (org-table-align))))
 
 (cl-defmethod org-fc-review-data-get-row ((review-data org-fc-review-data) name)
