@@ -80,13 +80,9 @@
              ;; Data Rows
              (mapcar
               (lambda (row-assoc)
-                (let ((row
-                       ;; Convert back to a list in the same order as the
-                       ;; headers
-                       (mapcar
-                        (lambda (header) (plist-get (cdr row-assoc) header))
-                        headers)))
-                  (format "| %s |\n" (mapconcat (lambda (x) (format "%s" x)) row " | "))))
+                (format "| %s |\n"
+                        (mapconcat (lambda (header) (format "%s" (plist-get (cdr row-assoc) header)))
+                                   headers " | ")))
               (oref review-data rows)))))
       (delete-region (car position) (cdr position))
       (goto-char (car position))
