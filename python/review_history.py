@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Iterator
 import csv
-import logging
 
 from models import Indentifier, Review
 
@@ -21,8 +20,7 @@ class TSVReader:
                 try:
                     dt = datetime.fromisoformat(datetime_str)
                 except ValueError:
-                    logging.error(f"Invalid datetime format: {datetime_str}, skipping entry.")
-                    continue
+                    raise ValueError(f"Invalid datetime format: {datetime_str}.")
 
                 if duration == "":
                     duration = None
@@ -30,8 +28,7 @@ class TSVReader:
                     try:
                         duration = float(duration)
                     except ValueError:
-                        logging.error(f"Invalid duration format: {duration}, skipping entry.")
-                        continue
+                        raise ValueError(f"Invalid duration format: {duration}.")
 
                 position = Indentifier(card_id=card_id, name=pos_name)
                 yield Review(identifier=position, rating=rating, datetime=dt, duration=duration)
