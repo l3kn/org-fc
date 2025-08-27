@@ -1,0 +1,154 @@
+Name: Case 0
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review |
+|----------+-------+------+-----------+------------+----------------------+-------------|
+| front    |     1 |    0 | nil       | nil        | 2000-01-01T12:34:56Z | nil         |
+:END:
+Back
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review          |
+|----------+-------+------+-----------+------------+----------------------+----------------------|
+| front    |     1 |    1 |  3.260200 |   4.884632 | 2000-01-01T12:44:56Z | 2000-01-01T12:34:56Z |
+:END:
+Back
+=-=-=
+
+Name: Case 1, 0 days later
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review          |
+|----------+-------+------+-----------+------------+----------------------+----------------------|
+| front    |     1 |    1 |  3.260200 |   4.884632 | 1999-12-31T15:44:56Z | 1999-12-31T15:34:56Z |
+:END:
+Back
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review          |
+|----------+-------+------+-----------+------------+----------------------+----------------------|
+| front    |     2 | nil  |  3.536244 |   4.868057 | 2000-01-11T12:34:56Z | 2000-01-01T12:34:56Z |
+:END:
+Back
+=-=-=
+
+Name: Case 2, 0 days later
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review          |
+|----------+-------+------+-----------+------------+----------------------+----------------------|
+| front    |     2 | nil  |  3.536244 |   4.868057 | 2000-01-11T08:34:56Z | 2000-01-01T08:34:56Z |
+:END:
+Back
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review          |
+|----------+-------+------+-----------+------------+----------------------+----------------------|
+| front    |     2 | nil  |  3.791123 |   4.851596 | 2000-01-12T12:34:56Z | 2000-01-01T12:34:56Z |
+:END:
+Back
+=-=-=
+
+Name: Case 3, 0 days later
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review          |
+|----------+-------+------+-----------+------------+----------------------+----------------------|
+| front    |     2 | nil  |  3.791123 |   4.851596 | 2000-01-12T11:34:56Z | 2000-01-01T11:34:56Z |
+:END:
+Back
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review          |
+|----------+-------+------+-----------+------------+----------------------+----------------------|
+| front    |     2 | nil  |  4.023927 |   4.835249 | 2000-01-13T12:34:56Z | 2000-01-01T12:34:56Z |
+:END:
+Back
+=-=-=
+
+Name: Case 4, 1 days later
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review          |
+|----------+-------+------+-----------+------------+----------------------+----------------------|
+| front    |     2 | nil  |  4.023927 |   4.835249 | 2000-01-12T12:34:56Z | 1999-12-31T12:34:56Z |
+:END:
+Back
+=-=
+* Front                                                                  :fc:
+:PROPERTIES:
+:FC_CREATED: 1970-01-01T00:00:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  fsrs6
+:ID:       dummy-id
+:END:
+:REVIEW_DATA:
+| position | state | step | stability | difficulty | due                  | last-review          |
+|----------+-------+------+-----------+------------+----------------------+----------------------|
+| front    |     2 | nil  |  7.184600 |   4.819015 | 2000-01-22T12:34:56Z | 2000-01-01T12:34:56Z |
+:END:
+Back
+=-=-=

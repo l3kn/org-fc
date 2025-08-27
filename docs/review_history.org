@@ -10,10 +10,10 @@ Columns:
 2. Filename
 3. Card ID
 4. Position
-5. Ease (before review)
-6. Box (before review)
-7. Interval (before review)
-8. Rating
+5. Ease (before review), used only by the SM2 algorithm
+6. Box (before review), used only by the SM2 algorithm
+7. Interval (before review), used only by the SM2 algorithm
+8. Rating ("again", "hard", "good", "easy")
 9. Seconds spent reviewing the card
 10. [[file:repetition_spacing_algorithm.org][Repetition Spacing Algorithm]] used
 
@@ -21,3 +21,19 @@ More advanced review algorithms might need to use the review history
 of a card. In this case, the card ID + position should be used to look
 up the review history, as the filename can change when moving cards
 from file to file.
+
+Columns 5, 6 and 7 are considered legacy and should be left empty
+by [[file:repetition_spacing_algorithm.org][Repetition Spacing Algorithms]] other than the initial SM2 variant
+implemented by org-fc.
+
+Columns 9 and 10 were added later, so it's possible users have review
+files where these are missing. The review duration is unknown in this
+case and we can assume the algorithm used was "sm2".
+
+* Migrating Between Spacing Algorithms
+
+The contents of the review history file should be sufficient
+to re-computed the state of a card stored in the [[file:review_data.org][Review Data drawer]].
+
+Depending on the spacing algorithm used, this history can also be used
+to migrate the review data to the newer algorithm.
