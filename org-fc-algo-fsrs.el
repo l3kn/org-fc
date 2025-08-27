@@ -328,6 +328,10 @@ Returns nil if there is no history file."
     (org-fc-review-data-write review-data)
     (org-set-property org-fc-algo-property "fsrs6")))
 
+(defun org-fc-algo-fsrs6-migrate-buffer ()
+  (interactive)
+  (org-fc-map-cards #'org-fc-algo-fsrs6-migrate))
+
 ;;; Footer
 
 (provide 'org-fc-algo-fsrs)
