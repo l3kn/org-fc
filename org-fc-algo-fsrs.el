@@ -121,7 +121,9 @@ then return the parsed json response."
                "python" nil t nil "algo_fsrs6.py"
                args))
             (json-read))))
-    return-data))
+    (if (plist-member return-data 'error)
+        (error (plist-get return-data 'error))
+      return-data)))
 
 (defun org-fc-algo-fsrs6--cli-get-initial ()
   (org-fc-algo-fsrs6--cli-wrap-json
