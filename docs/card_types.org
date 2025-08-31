@@ -55,7 +55,29 @@ Positions: =front=
 Similar to normal cards, but reviewed both in the "Front -> Back"
 direction and in the "Back -> Front" direction.
 
+[[file:../images/card_type_double_create.svg]]
+
+=M-x org-fc-type-double-init=
+
+[[file:../images/card_type_double_init.svg]]
+
 Positions: =front=, =back=
+
+During review either the text under the front or under the back
+heading will be hidden.
+
+** Review, Front -> Back
+
+[[file:../images/card_type_double_review.svg]]
+
+[[file:../images/card_type_double_review_flip.svg]]
+
+** Review, Back -> Front
+
+[[file:../images/card_type_double_review2.svg]]
+
+[[file:../images/card_type_double_review2_flip.svg]]
+
 * Cloze Cards
 The cards text contains one or more *holes*.  During review, one hole
 is hidden while the text of (some) remaining ones is shown.
