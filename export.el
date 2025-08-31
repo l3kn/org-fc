@@ -64,6 +64,34 @@
 
     (org-fc-save-svg  (file-name-concat org-fc-source-path "images/dashboard.svg"))))
 
+;; Normal card type
+(let* ((tempdir (make-temp-file "org-fc-test" 'dir-flag))
+       (tempfile (expand-file-name "test.org" tempdir)))
+  (setq org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
+  (setq org-fc-directories (list tempdir))
+  (setq org-fc-bury-siblings t)
+  (with-current-buffer (find-file tempfile)
+    (insert-file-contents (file-name-concat org-fc-source-path "demo/card_type_normal.org"))
+    (org-mode)
+
+    (message "")
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_normal_create.svg"))
+
+    (org-fc-type-normal-init)
+    (save-buffer)
+
+    (message "")
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_normal_init.svg"))
+
+    (org-fc-review 'buffer)
+
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_normal_review.svg"))
+
+    (org-fc-review-flip)
+
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_normal_review_flip.svg"))
+    ))
+
 (kill-emacs)
 ;;; Tests
 

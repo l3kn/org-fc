@@ -3,11 +3,30 @@
 #+KEYWORDS: fc
 
 * Normal Cards
-During review, the heading is shown with its "Back" subheading
-collapsed, when flipping the card, the back heading is shown,
-then the user is asked to rate the review performance.
 
-Positions: =front=
+The simplest type of card has a front side with a question and a back
+side with an answer.
+
+[[file:../images/card_type_normal_create.svg]]
+
+The "Front" heading can have any title but the "Back" heading must
+have one of a defined set of titles ~org-fc-back-heading-titles~. By
+default only "Back" is allowed.
+
+The card can be initialized with ~M-x org-fc-type-normal-init~.
+
+[[file:../images/card_type_normal_init.svg]]
+Cards of this type have one position: =front=
+
+During review, the "Back" heading is collapsed and will be expanded
+when flipping the card.
+
+[[file:../images/card_type_normal_review.svg]]
+
+Flipping the card via the =[RET]= key or ~M-x org-fc-review-flip~
+
+[[file:../images/card_type_normal_review_flip.svg]]
+
 * Text-Input Cards
 If the card has a "Back" heading, the first line of its contents is
 considered as the expected answer.
