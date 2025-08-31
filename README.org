@@ -2,13 +2,25 @@
 
 Org-fc is a spaced-repetition system for Emacs' org-mode.
 
-Headings in a file can be marked as question-answer tests:
+Write a card
 
-[[file:images/file.svg]]
+[[file:images/create.svg]]
 
-These can then be reviewed at regular intervals:
+Mark as flashcard
+
+[[file:images/mark.svg]]
+
+Review (front)
 
 [[file:images/review.svg]]
+
+Review (back)
+
+[[file:images/review_flip.svg]]
+
+Updated buffer
+
+[[file:images/review_rate.svg]]
 
 With a dashboard to show some statistics:
 

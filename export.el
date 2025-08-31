@@ -25,30 +25,44 @@
 (add-to-list 'load-path org-fc-source-path)
 
 (require 'org-fc)
+(require 'org-fc-keymap-hint)
 ;; (require 'org-fc-algo-fsrs)
 
-(setq org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
-(setq org-fc-directories (list (file-name-concat org-fc-source-path "demo")))
+(let* ((tempdir (make-temp-file "org-fc-test" 'dir-flag))
+       (tempfile (expand-file-name "test.org" tempdir)))
+  (setq org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
+  (setq org-fc-directories (list tempdir))
+  (setq org-fc-bury-siblings t)
+  (with-current-buffer (find-file tempfile)
+    (insert-file-contents (file-name-concat org-fc-source-path "demo/demo.org"))
+    (org-mode)
 
-(with-current-buffer (find-file (make-temp-file "org-fc-test" nil ".org"))
-  (insert-file-contents (file-name-concat org-fc-source-path "demo/demo.org"))
-  (org-mode)
+    (message "")
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/create.svg"))
 
-  (org-fc-save-svg  (file-name-concat org-fc-source-path "images/file.svg"))
+    (org-fc-type-cloze-init 'deletion)
+    (save-buffer)
 
-  (org-fc-type-cloze-init 'deletion)
+    (message "")
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/mark.svg"))
 
-  (save-buffer)
+    (org-fc-review 'buffer)
 
-  (org-fc-review 'buffer)
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/review.svg"))
 
-  (org-fc-save-svg  (file-name-concat org-fc-source-path "images/review.svg"))
+    (org-fc-review-flip)
 
-  (org-fc-review-quit)
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/review_flip.svg"))
 
-  (org-fc-dashboard 'all)
+    (org-fc-review-rate 'good)
 
-  (org-fc-save-svg  (file-name-concat org-fc-source-path "images/dashboard.svg")))
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/review_rate.svg"))
+
+    (org-fc-review-quit)
+
+    (org-fc-dashboard 'all)
+
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/dashboard.svg"))))
 
 (kill-emacs)
 ;;; Tests
