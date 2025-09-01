@@ -82,14 +82,24 @@ heading will be hidden.
 The cards text contains one or more *holes*.  During review, one hole
 is hidden while the text of (some) remaining ones is shown.
 
+[[file:../images/card_type_cloze_create.svg]]
+
+=M-x org-fc-type-double-init=
+
+[[file:../images/card_type_cloze_init.svg]]
+
+Positions are numbered, starting from =0=. During review one of the
+holes is hidden. The behavior of the other holes depends on the
+sub-type of the card.
+
+[[file:../images/card_type_cloze_review.svg]]
+
 Flipping the card reveals the text of the hidden hole,
 using ~org-fc-type-cloze-hole-face~ to highlight it.
 
+[[file:../images/card_type_cloze_review_flip.svg]]
+
 Card titles can contain holes, too.
-
-Positions: =0=, =1=, ...
-
-Cloze cards can have a number of sub-types.
 
 ** Deletion ~'deletion~
 Only one hole is hidden.

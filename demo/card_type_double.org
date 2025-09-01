@@ -1,0 +1,9 @@
+#+TITLE: English <-> French Dictionary
+
+* Entry
+
+spaced repetition
+
+** Back
+
+répétition espacée
