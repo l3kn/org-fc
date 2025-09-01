@@ -121,7 +121,9 @@ then return the parsed json response."
                "python" nil t nil "algo_fsrs6.py"
                args))
             (json-read))))
-    return-data))
+    (if (plist-member return-data 'error)
+        (error (plist-get return-data 'error))
+      return-data)))
 
 (defun org-fc-algo-fsrs6--cli-get-initial ()
   (org-fc-algo-fsrs6--cli-wrap-json
@@ -158,7 +160,7 @@ then return the parsed json response."
 
 (cl-defmethod org-fc-algo-initial-review-data ((_algo org-fc-algo-fsrs6) name)
   "Initial FSRS_6 review data for position NAME."
-  (list*
+  (cl-list*
    'position
    name
    (org-fc-algo-fsrs6--cli-get-initial)))
@@ -180,7 +182,7 @@ then return the parsed json response."
                   'due (plist-get data 'due)
                   'last-review (plist-get data 'last-review))))
     (if include-position
-        (list* 'position (plist-get data 'position) result)
+        (cl-list* 'position (plist-get data 'position) result)
       result)))
 
 (cl-defmethod org-fc-algo-next-review-data
@@ -327,6 +329,10 @@ Returns nil if there is no history file."
                        :rows (mapcar (lambda (row) (cons (plist-get row 'position) row)) formatted-data))))
     (org-fc-review-data-write review-data)
     (org-set-property org-fc-algo-property "fsrs6")))
+
+(defun org-fc-algo-fsrs6-migrate-buffer ()
+  (interactive)
+  (org-fc-map-cards #'org-fc-algo-fsrs6-migrate))
 
 ;;; Footer
 

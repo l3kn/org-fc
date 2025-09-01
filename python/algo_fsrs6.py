@@ -23,7 +23,6 @@ from typing import Iterator
 from pathlib import Path
 import argparse
 import json
-import logging
 import sys
 
 from models import Indentifier, Review
@@ -33,11 +32,6 @@ from review_history import TSVReader
 base = Path(__file__).resolve().parent
 sys.path.insert(0, str(base / "py_fsrs"))
 from py_fsrs import fsrs
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
 
 def value_from_emacs(value: str):
     if value == "nil":
@@ -98,8 +92,7 @@ def initial():
             # Parse ISO formatted string to datetime and back to ISO string
             card.due = datetime.fromisoformat(args.now)
         except ValueError:
-            logging.error("Invalid date format for --now. Use ISO format (YYYY-MM-DDTHH:MM:SS).")
-            sys.exit(1)
+            raise ValueError("Invalid date format for --now. Use ISO format (YYYY-MM-DDTHH:MM:SS).")
 
     print(json.dumps(card_to_dict(card), indent=2))
 
@@ -117,15 +110,13 @@ def review():
             # Parse ISO formatted string to datetime and back to ISO string
             now = datetime.fromisoformat(args.now)
         except ValueError:
-            logging.error("Invalid date format for --now. Use ISO format (YYYY-MM-DDTHH:MM:SSZ).")
-            sys.exit(1)
+            raise ValueError("Invalid date format for --now. Use ISO format (YYYY-MM-DDTHH:MM:SSZ).")
 
     json_str = sys.stdin.read()
     try:
         request = json.loads(json_str)
     except json.JSONDecodeError as e:
-        logging.error(f"Failed to parse JSON: {e}")
-        sys.exit(1)
+        raise ValueError(f"Failed to parse JSON: {e}")
 
     scheduler_dict = request["scheduler"]
     scheduler_dict = keys_from_emacs(scheduler_dict)
@@ -146,7 +137,7 @@ def review():
     try:
         rating = RATINGS[request["rating"]]
     except KeyError:
-        logging.error(f"Invalid or missing rating: %s", request.get("rating"))
+        raise KeyError(f"Invalid or missing rating: %s", request.get("rating"))
 
     new_card, _revlog = scheduler.review_card(card, rating, review_datetime=now)
 
@@ -195,8 +186,7 @@ def from_history():
     try:
         request = json.loads(json_str)
     except json.JSONDecodeError as e:
-        logging.error(f"Failed to parse JSON: {e}")
-        sys.exit(1)
+        raise ValueError(f"Failed to parse JSON: {e}")
 
     scheduler_dict = request["scheduler"]
     scheduler_dict = keys_from_emacs(scheduler_dict)
@@ -204,13 +194,11 @@ def from_history():
 
     target_id = request.get("card-id")
     if target_id is None:
-        logging.error("Missing 'card-id' in request.")
-        sys.exit(1)
+        raise ValueError("Missing 'card-id' in request.")
 
     positions = request.get("positions", [])
     if not positions:
-        logging.error("No positions provided in request.")
-        sys.exit(1)
+        raise ValueError("No positions provided in request.")
 
     targets = [(
         Indentifier(card_id=target_id, name=pos["name"]),
@@ -223,18 +211,20 @@ def from_history():
     )
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        logging.error("Usage: python algo_fsrs6.py [initial|review|from_history]")
-        sys.exit(1)
+    try:
+        if len(sys.argv) < 2:
+            raise ValueError("Not enough arguments")
 
-    command = sys.argv[1]
-    if command == "initial":
-        initial()
-    elif command == "review":
-        review()
-    elif command == "from_history":
-        from_history()
-    else:
-        logging.error(f"Unknown command: {command}")
-        logging.info("Available commands: initial, review, from_history")
+        command = sys.argv[1]
+        if not command in ("initial", "review", "from_history"):
+            raise ValueError(f"Unknown command: {command}")
+
+        if command == "initial":
+            initial()
+        elif command == "review":
+            review()
+        elif command == "from_history":
+            from_history()
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
         sys.exit(1)
