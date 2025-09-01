@@ -166,10 +166,10 @@ then return the parsed json response."
    (org-fc-algo-fsrs6--cli-get-initial)))
 
 (defun org-fc-algo-fsrs--parse-optional-str (v)
-  (if (equalp v "nil") nil v))
+  (if (cl-equalp v "nil") nil v))
 
 (defun org-fc-algo-fsrs--parse-optional-number (v)
-  (if (equalp v "nil") nil (string-to-number v)))
+  (if (cl-equalp v "nil") nil (string-to-number v)))
 
 (defun org-fc-algo-fsrs--format-review-data (data &optional include-position)
   (let* ((stability (plist-get data 'stability))

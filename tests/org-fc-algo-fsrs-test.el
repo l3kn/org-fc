@@ -147,7 +147,7 @@
        ;; The CLI output includes an extra position entry not present in the data
        ;; so we need to do a bit of cleaning up before comparing
        (cl-remf output 'position)
-       (should (equalp card-plist output))))))
+       (should (cl-equalp card-plist output))))))
 
 (ert-deftest org-fc-algo-fsrs6-test-migration ()
   (let* ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
