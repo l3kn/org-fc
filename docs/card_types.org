@@ -104,9 +104,21 @@ Card titles can contain holes, too.
 ** Deletion ~'deletion~
 Only one hole is hidden.
 ** Enumerations ~'enumeration~
-All holes *behind* the currently review one are hidden, too.
+All holes *after* the currently reviewed one are hidden, too.
+This can be useful for memorizing lists where the order of items is important.
 
-Useful for memorizing lists where the order of items is important.
+Reviewing the first position:
+
+[[file:../images/card_type_cloze_enumeration_review.svg]] [[file:../images/card_type_cloze_enumeration_review_flip.svg]]
+
+Reviewing the second position, which includes a hint:
+
+[[file:../images/card_type_cloze_enumeration_review2.svg]] [[file:../images/card_type_cloze_enumeration_review2_flip.svg]]
+
+Reviewing the third position:
+
+[[file:../images/card_type_cloze_enumeration_review3.svg]] [[file:../images/card_type_cloze_enumeration_review3_flip.svg]]
+
 ** Single ~'single~
 All holes besides the current one are hidden.
 

@@ -149,6 +149,42 @@
     (org-fc-review-quit)
     ))
 
+(let* ((tempdir (make-temp-file "org-fc-test" 'dir-flag))
+       (tempfile (expand-file-name "test.org" tempdir))
+       (org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
+       (org-fc-directories (list tempdir)))
+  (with-current-buffer (find-file tempfile)
+    (insert-file-contents (file-name-concat org-fc-source-path "demo/card_type_cloze_enumeration.org"))
+    (org-mode)
+    (outline-next-heading)
+
+    (message "")
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_cloze_enumeration_create.svg"))
+
+    (org-fc-type-cloze-init 'enumeration)
+    (save-buffer)
+
+    (message "")
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_cloze_enumeration_init.svg"))
+
+    (org-fc-review 'buffer)
+
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_cloze_enumeration_review.svg"))
+    (org-fc-review-flip)
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_cloze_enumeration_review_flip.svg"))
+    (org-fc-review-rate 'good)
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_cloze_enumeration_review2.svg"))
+    (org-fc-review-flip)
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_cloze_enumeration_review2_flip.svg"))
+    (org-fc-review-rate 'good)
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_cloze_enumeration_review3.svg"))
+    (org-fc-review-flip)
+    (org-fc-save-svg  (file-name-concat org-fc-source-path "images/card_type_cloze_enumeration_review3_flip.svg"))
+    (org-fc-review-rate 'good)
+
+    (org-fc-review-quit)
+    ))
+
 (kill-emacs)
 ;;; Tests
 

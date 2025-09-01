@@ -1,0 +1,9 @@
+* Proof: Infinitude of Primes
+
+Assume {{there are only finitely many primes $p_1, \ldots, p_n$}}.
+
+Calculate {{the product $Q = p_1 \cdots p_n + 1$, which is not
+divisible by any of the $p_i$}{quantity & property}}.
+
+Therefore {{$Q$ itself is a prime not in the list, or it has a prime
+factor not in the list}}.
