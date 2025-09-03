@@ -196,17 +196,25 @@ def from_history():
     if targets is None:
         raise ValueError("Missing 'targets' in request.")
 
+    # Flatten to FSRS-card identifiers
     flat_targets = []
     for card_id, positions in targets.items():
         for pos in positions:
             ident = Indentifier(card_id=card_id, name=pos["name"])
             flat_targets.append((ident, datetime.fromisoformat(pos["original-due"])))
 
-    cards = replay_reviews(flat_targets, reader.read_reviews(), scheduler, quantize=args.quantize)
+    flat_cards = replay_reviews(flat_targets, reader.read_reviews(), scheduler, quantize=args.quantize)
 
-    print(
-        json.dumps([card_to_dict(cards[ident], position=ident.name) for ident, _original_due in flat_targets], indent=2)
-    )
+    # Convert to result dictionary {card_id: review_data}
+    result = {}
+    for card_id, positions in targets.items():
+        result[card_id] = []
+        for pos in positions:
+            ident = Indentifier(card_id=card_id, name=pos["name"])
+            review_data_row = card_to_dict(flat_cards[ident], position=pos["name"])
+            result[card_id].append(review_data_row)
+
+    print(json.dumps(result, indent=2))
 
 if __name__ == "__main__":
     try:

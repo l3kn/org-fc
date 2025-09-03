@@ -321,7 +321,11 @@ Returns nil if there is no history file."
            (lambda (r) `((name . ,(car r))
                     (original-due . ,(plist-get (cdr r) 'due))))
            (oref review-data rows)))
-         (next-data (org-fc-algo-fsrs6--cli-from-history card-id position-names 'quantize))
+         (result (org-fc-algo-fsrs6--cli-from-history card-id position-names 'quantize))
+         ;; TODO: Given on how we parse json, plist keys will be converted to symbols
+         ;; so the symbol table gets polluted with UUIDs.
+         ;; With more control over formatting/parsing, we could switch to string keys
+         (next-data (plist-get result (intern card-id)))
          (formatted-data (mapcar (lambda (row) (org-fc-algo-fsrs--format-review-data row 'include-position)) next-data))
          (review-data (org-fc-review-data
                        :headers (org-fc-algo-headers (org-fc-algo-fsrs6))
