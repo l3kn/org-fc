@@ -192,22 +192,20 @@ def from_history():
     scheduler_dict = keys_from_emacs(scheduler_dict)
     scheduler = fsrs.Scheduler.from_dict(scheduler_dict)
 
-    target_id = request.get("card-id")
-    if target_id is None:
-        raise ValueError("Missing 'card-id' in request.")
+    targets = request.get("targets")
+    if targets is None:
+        raise ValueError("Missing 'targets' in request.")
 
-    positions = request.get("positions", [])
-    if not positions:
-        raise ValueError("No positions provided in request.")
+    flat_targets = []
+    for card_id, positions in targets.items():
+        for pos in positions:
+            ident = Indentifier(card_id=card_id, name=pos["name"])
+            flat_targets.append((ident, datetime.fromisoformat(pos["original-due"])))
 
-    targets = [(
-        Indentifier(card_id=target_id, name=pos["name"]),
-        datetime.fromisoformat(pos["original-due"]),
-    ) for pos in positions]
-    cards = replay_reviews(targets, reader.read_reviews(), scheduler, quantize=args.quantize)
+    cards = replay_reviews(flat_targets, reader.read_reviews(), scheduler, quantize=args.quantize)
 
     print(
-        json.dumps([card_to_dict(cards[ident], position=ident.name) for ident, _original_due in targets], indent=2)
+        json.dumps([card_to_dict(cards[ident], position=ident.name) for ident, _original_due in flat_targets], indent=2)
     )
 
 if __name__ == "__main__":

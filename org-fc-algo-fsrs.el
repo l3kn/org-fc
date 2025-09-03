@@ -144,8 +144,7 @@ then return the parsed json response."
 (defun org-fc-algo-fsrs6--cli-from-history (card-id positions &optional quantize)
   (org-fc-algo-fsrs6--cli-wrap-json
    `((scheduler . ,(org-fc-algo-fsrs6--scheduler-alist))
-     (card-id . ,card-id)
-     (positions . ,positions))
+     (targets . ((,card-id . ,positions))))
    `("from_history"
      "--history_file"
      ,(expand-file-name org-fc-review-history-file)
