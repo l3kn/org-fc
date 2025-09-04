@@ -5,6 +5,15 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.6.5
+
+*** Changed
+
+The review data table is now written to the file with a single
+~insert~. This should fix the occasional incorrect display of the
+review data drawers in org versions >= 9.7, as described in [[https://github.com/l3kn/org-fc/issues/131][Github
+Issue 131]].
+
 ** 0.6.4
 
 *** Fixed
