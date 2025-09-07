@@ -34,9 +34,6 @@
 	        (org-fc-test-overwrite-fun
 	         time-to-seconds
 	         (lambda () 0))
-	        (org-fc-test-overwrite-fun
-	         org-fc-review-history-add
-	         (lambda (data) nil))
 
 	        (org-mode)
 	        (goto-char (point-min))
@@ -74,9 +71,6 @@
           (org-fc-test-overwrite-fun
            time-to-seconds
            (lambda () 0))
-          (org-fc-test-overwrite-fun
-           org-fc-review-history-add
-           (lambda (data) nil))
 
           (org-mode)
           (goto-char (point-min))
