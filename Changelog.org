@@ -5,6 +5,13 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.6.6
+
+*** Fixed
+
+Tests involving the rating of cards now use temporary review history
+files.
+
 ** 0.6.5
 
 *** Changed
