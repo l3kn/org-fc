@@ -23,23 +23,24 @@
       (org-fc-type-normal-init)))))
 
 (ert-deftest org-fc-test-card-rate-normal ()
-  (ert-test-erts-file
-   (org-fc-test-fixture "erts/card_rate_normal_sm2.erts")
-   (lambda ()
-     (let* ((file (org-fc-file :path "mock-path"))
-	          (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-sm2)))
-	          (position (org-fc-position :card card :name "front")))
-       (org-fc-test-with-overwrites
-	      (org-fc-test-overwrite-fun
-	       time-to-seconds
-	       (lambda () 0))
-	      (org-fc-test-overwrite-fun
-	       org-fc-review-history-add
-	       (lambda (data) nil))
+  (let ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv")))
+    (ert-test-erts-file
+     (org-fc-test-fixture "erts/card_rate_normal_sm2.erts")
+     (lambda ()
+       (let* ((file (org-fc-file :path "mock-path"))
+	            (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-sm2)))
+	            (position (org-fc-position :card card :name "front")))
+         (org-fc-test-with-overwrites
+	        (org-fc-test-overwrite-fun
+	         time-to-seconds
+	         (lambda () 0))
+	        (org-fc-test-overwrite-fun
+	         org-fc-review-history-add
+	         (lambda (data) nil))
 
-	      (org-mode)
-	      (goto-char (point-min))
-	      (org-fc-review-update-data position 'good 0))))))
+	        (org-mode)
+	        (goto-char (point-min))
+	        (org-fc-review-update-data position 'good 0)))))))
 
 (ert-deftest org-fc-test-card-init-double ()
   (ert-test-erts-file
@@ -62,23 +63,24 @@
       (org-fc-type-double-init)))))
 
 (ert-deftest org-fc-test-card-rate-double ()
-  (ert-test-erts-file
-   (org-fc-test-fixture "erts/card_rate_double_sm2.erts")
-   (lambda ()
-     (let* ((file (org-fc-file :path "mock-path"))
-	          (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-sm2)))
-	          (position (org-fc-position :card card :name "front")))
-       (org-fc-test-with-overwrites
-	      (org-fc-test-overwrite-fun
-	       time-to-seconds
-	       (lambda () 0))
-	      (org-fc-test-overwrite-fun
-	       org-fc-review-history-add
-	       (lambda (data) nil))
+  (let ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv")))
+    (ert-test-erts-file
+     (org-fc-test-fixture "erts/card_rate_double_sm2.erts")
+     (lambda ()
+       (let* ((file (org-fc-file :path "mock-path"))
+              (card (org-fc-card :file file :id "mock-id" :algo (org-fc-algo-sm2)))
+              (position (org-fc-position :card card :name "front")))
+         (org-fc-test-with-overwrites
+          (org-fc-test-overwrite-fun
+           time-to-seconds
+           (lambda () 0))
+          (org-fc-test-overwrite-fun
+           org-fc-review-history-add
+           (lambda (data) nil))
 
-	      (org-mode)
-	      (goto-char (point-min))
-	      (org-fc-review-update-data position  'easy 0))))))
+          (org-mode)
+          (goto-char (point-min))
+          (org-fc-review-update-data position 'easy 0)))))))
 
 (ert-deftest org-fc-test-card-history ()
   (let* ((org-file (make-temp-file "org-fc-" nil ".org"))
