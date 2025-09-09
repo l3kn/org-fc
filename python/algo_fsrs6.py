@@ -17,13 +17,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+# Minimal imports to switch to JSON-based exception handling
+import sys, json, traceback
 
+def json_excepthook(exc_type, exc_value, exc_traceback):
+    error_info = {
+        "error": str(exc_value),
+        "type": exc_type.__name__,
+        "traceback": "".join(traceback.format_exception(exc_type, exc_value, exc_traceback)),
+    }
+    # Always write to stdout as JSON
+    print(json.dumps(error_info))
+    sys.exit(1)
+
+# Install our hook
+sys.excepthook = json_excepthook
+
+# remaining imports
 from datetime import datetime, timezone
 from typing import Iterator
 from pathlib import Path
 import argparse
-import json
-import sys
 
 from models import Indentifier, Review
 from review_history import TSVReader
@@ -217,20 +231,16 @@ def from_history():
     print(json.dumps(result, indent=2))
 
 if __name__ == "__main__":
-    try:
-        if len(sys.argv) < 2:
-            raise ValueError("Not enough arguments")
+    if len(sys.argv) < 2:
+        raise ValueError("Not enough arguments")
 
-        command = sys.argv[1]
-        if not command in ("initial", "review", "from_history"):
-            raise ValueError(f"Unknown command: {command}")
+    command = sys.argv[1]
+    if not command in ("initial", "review", "from_history"):
+        raise ValueError(f"Unknown command: {command}")
 
-        if command == "initial":
-            initial()
-        elif command == "review":
-            review()
-        elif command == "from_history":
-            from_history()
-    except Exception as e:
-        print(json.dumps({"error": str(e)}))
-        sys.exit(1)
+    if command == "initial":
+        initial()
+    elif command == "review":
+        review()
+    elif command == "from_history":
+        from_history()
