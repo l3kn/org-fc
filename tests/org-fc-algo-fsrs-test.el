@@ -9,7 +9,7 @@
 (ert-deftest org-fc-algo-fsrs-test-initial ()
   (org-fc-test-with-overwrites
    (org-fc-test-overwrite-fun time-to-seconds (lambda () 0))
-   (assert
+   (should
     (equal (org-fc-algo-initial-review-data (org-fc-algo-fsrs6) "name")
            '(position "name" state 1 step 0 stability nil difficulty nil due "1970-01-01T00:00:00Z" last-review nil)))))
 
@@ -23,7 +23,7 @@
      do
      (cl-destructuring-bind (c1-card-id c1-pos-name c1-plist c1-alist c1-date c1-rating) (car history)
        (cl-destructuring-bind (c2-card-id c2-pos-name c2-plist c2-alist c2-date c2-rating) (cadr history)
-         (assert (equal (org-fc-algo-fsrs6--cli-get-next c1-alist c1-rating c1-date) c2-plist)))))))
+         (should (equal (org-fc-algo-fsrs6--cli-get-next c1-alist c1-rating c1-date) c2-plist)))))))
 
 ;;; File-based tests
 
@@ -64,7 +64,7 @@
           (goto-char (point-min))
           (org-fc-review-update-data position 'good 0)))))
 
-    (assert
+    (should
      (equal
       (mapcar (lambda (l) (split-string l "\t")) (split-string (org-file-contents org-fc-review-history-file) "\n" 'omit-nulls))
       '(("2000-01-01T12:34:56Z" "mock-path" "mock-id" "front" "" "" "" "good" "0.00" "fsrs6")
@@ -126,7 +126,7 @@
        (org-fc-algo-fsrs6-test--replay-reviews reviews)))
 
     ;; Make sure the review history looks like we would expect
-    (assert
+    (should
      (equal
       (mapcar
        (lambda (l) (split-string l "\t"))
