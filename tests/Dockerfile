@@ -1,4 +1,5 @@
-FROM debian:stable-slim
+ARG DEBIAN_VERSION=stable-slim
+FROM debian:${DEBIAN_VERSION}
 
 RUN apt-get update && apt-get install -y emacs gawk git
 
