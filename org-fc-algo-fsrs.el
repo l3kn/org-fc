@@ -28,6 +28,7 @@
 (require 'cl-lib)
 (require 'eieio)
 (require 'eieio-base)
+(require 'json)
 
 (require 'org-fc-core)
 (require 'org-fc-awk)
