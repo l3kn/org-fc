@@ -141,9 +141,11 @@
      for (card-id pos-name card-plist card-alist) in org-fc-algo-fsrs-test--results-multi do
      (let ((output
             (aref
-             (org-fc-algo-fsrs6--cli-from-history
-              card-id
-              `(((name . ,pos-name) (original-due . "2000-01-01T12:34:56Z")))) 0)))
+             (plist-get
+              (org-fc-algo-fsrs6--cli-from-history
+               card-id
+               `(((name . ,pos-name) (original-due . "2000-01-01T12:34:56Z"))))
+              (intern card-id)) 0)))
        ;; The CLI output includes an extra position entry not present in the data
        ;; so we need to do a bit of cleaning up before comparing
        (cl-remf output 'position)
