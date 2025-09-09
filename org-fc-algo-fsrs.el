@@ -118,7 +118,7 @@ then return the parsed json response."
               (apply
                #'call-process-region
                (point-min) (point-max)
-               "python" nil t nil "algo_fsrs6.py"
+               "python3" nil t nil "algo_fsrs6.py"
                args))
             (json-read))))
     (if (plist-member return-data 'error)
