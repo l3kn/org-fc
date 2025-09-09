@@ -179,9 +179,7 @@
          (goto-char (point-min))
          (search-forward search)
          (let ((buffer-before (buffer-substring-no-properties (point-min) (point-max))))
-           (message (buffer-substring-no-properties (point-min) (point-max)))
            (org-fc-algo-fsrs6-migrate)
-           (message (buffer-substring-no-properties (point-min) (point-max)))
            (should (string=
                     buffer-before
                     (buffer-substring-no-properties (point-min) (point-max))))))))))
@@ -212,9 +210,7 @@
          (goto-char (point-min))
          (search-forward search)
          (let ((buffer-before (buffer-substring-no-properties (point-min) (point-max))))
-           (message (buffer-substring-no-properties (point-min) (point-max)))
            (org-fc-algo-fsrs6-migrate)
-           (message (buffer-substring-no-properties (point-min) (point-max)))
            (should (string=
                     buffer-before
                     (buffer-substring-no-properties (point-min) (point-max))))))))))
