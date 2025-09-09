@@ -23,7 +23,7 @@ test-clone: docker-build
 	@for v in $(DEBIAN_VERSIONS); do \
 		echo "# Testing clone on debian:$$v"; \
 		docker run --rm -it -v $$PWD:/src org-fc-test:$$v \
-			bash -c "$(MAKE) -s print-versions && \
-				git clone --recurse-submodules file:///src . && \
+			bash -c "git clone --recurse-submodules file:///src . && \
+				$(MAKE) -s print-versions && \
 				emacs -Q --batch --load tests/org-fc-test-init.el -f org-fc-test-entrypoint"; \
 	done
