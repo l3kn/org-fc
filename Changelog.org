@@ -5,6 +5,17 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.6.7
+
+*** Added
+
+The installation and setup of org-fc can now be tested against
+multiple software versions in docker containers.
+
+~make test-local~ runs the test suite in a container against a copy of
+the local repository while ~make test-clone~ tests against a git clone
+of the local repository.
+
 ** 0.6.6
 
 *** Fixed
