@@ -15,4 +15,6 @@
   (load "tests/org-fc-filter-test.el")
   (load "tests/org-fc-review-data-test.el")
   (load "tests/org-fc-card-test.el")
+  (load "tests/org-fc-algo-fsrs-test.el")
+  (load "tests/org-fc-algo-fsrs-test-reference.el")
   (ert-run-tests-batch-and-exit))

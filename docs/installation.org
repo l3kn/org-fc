@@ -133,3 +133,8 @@ Setting the variable ~org-fc-awk-mixed-line-endings~ to a non-nil
 value should alleviate at least some of this problem by configuring
 the AWK indexer to recognize both =\n= and =\r\n= as valid line
 endings.
+
+* FSRS
+
+Org-fc has experimental support for the [[https://github.com/open-spaced-repetition][FSRS]] repetition spacing
+algorithm: [[./fsrs.org][Setup Instructions]].

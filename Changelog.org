@@ -5,6 +5,13 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.7.0...
+
+*** Added
+
+Org-fc now has experimental support for the [[https://github.com/open-spaced-repetition][FSRS]] repetition spacing
+algorithm.
+
 ** 0.6.7
 
 *** Added

@@ -1,0 +1,46 @@
+#+TITLE: FSRS
+#+DATE: [2025-09-09 Tue 23:09]
+#+KEYWORDS: fc
+
+- [[https://github.com/open-spaced-repetition][Open Spaced Repetition]]
+
+* Requirements
+
+- python >= 3.10
+
+* Installation
+
+The only dependency [[https://github.com/open-spaced-repetition/py-fsrs][py-fsrs]] is included in org-fc as a git submodule.
+
+For a new installation:
+~git clone --recurse-submodules <repo_url>~.
+
+To load the submodule for a previously cloned repo:
+
+~git pull~
+~git submodule update --init --recursive~
+
+* Setup
+
+#+begin_src emacs-lisp
+(require 'org-fc)
+(require 'org-fc-algo-fsrs)
+#+end_src
+
+When created new cards, you can now select between the new "fsrs6"
+algorithm and the old "sm2" variant.
+
+* Migrating Cards
+
+Cards can be migrated to the new algorithm, but a similar migration to
+the old algorithm is not possible. Make sure to back up files before
+migrating their cards if you want to preserve a copy of the old
+~:REVIEW_DATA:~.
+
+~M-x org-fc-algo-fsrs6-migrate~ migrates the card at point to FSRS.
+~M-x org-fc-algo-fsrs6-migrate-buffer~ migrates all cards in the
+current buffer to FSRS.
+
+Both commands will also affect cards that already use FSRS and should
+not change any parameters of the card except for random fluctuations
+in the due dates which are to be expected.
