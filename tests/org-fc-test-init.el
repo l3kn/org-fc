@@ -14,6 +14,7 @@
   (load "tests/org-fc-indexer-test.el")
   (load "tests/org-fc-filter-test.el")
   (load "tests/org-fc-review-data-test.el")
+  (load "tests/org-fc-review-test.el")
   (load "tests/org-fc-card-test.el")
   (load "tests/org-fc-algo-fsrs-test.el")
   (load "tests/org-fc-algo-fsrs-test-reference.el")
