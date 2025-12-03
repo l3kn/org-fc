@@ -121,12 +121,6 @@ Used to generate absolute paths to the awk scripts.")
   :type '(choice (const sm2-v1) (const sm2-v2))
   :group 'org-fc)
 
-(defcustom org-fc-bury-siblings nil
-  "If non-nil, show at most one position of a card per review.
-Does not apply to cloze single and cloze enumeration cards."
-  :type 'boolean
-  :group 'org-fc)
-
 ;;; Helper Functions
 
 (defun org-fc-member-p (path)
@@ -439,7 +433,7 @@ Should only be used by the init functions of card TYPEs."
 
   (let ((algo (org-fc-select-algo)))
     (when (null algo)
-        (error "No algorithm selected"))
+      (error "No algorithm selected"))
     (org-back-to-heading)
     (org-set-property
      org-fc-created-property
@@ -721,7 +715,7 @@ use `(and (type double) (tag \"math\"))'."
 	      `(eq ',(if (stringp (cadr filter))
 			 (intern (cadr filter))
 		       (cadr filter))
-		   (oref ,card-var type))))))
+		(oref ,card-var type))))))
       `(lambda (,card-var)
 	 ,(compile-inner filter)))))
 
@@ -759,10 +753,6 @@ Cards with no positions are removed from the index."
                   (time-less-p (oref pos due) now))
                 (oref card positions))))
           (unless (null due)
-            (oset card positions
-                  (if (or (not org-fc-bury-siblings)
-                          (member (oref card cloze-type) '(single enumeration)))
-                      due (list (car due))))
             (push card res)))))
     (reverse res)))
 

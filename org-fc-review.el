@@ -65,6 +65,8 @@
   :type 'hook
   :group 'org-fc)
 
+;;; Variables
+
 (defcustom org-fc-review-hide-title-in-header-line nil
   "Whether or not to hide the file title in review header line.
 
@@ -72,7 +74,19 @@ Hide title for individual cards by adding the :notitle: tag."
   :type 'boolean
   :group 'org-fc)
 
-;;; Variables
+(defcustom org-fc-review-card-filters '(#'org-fc-review--maybe-bury-siblings
+                                        #'org-fc-review--bury-cloze-siblings-except-single-or-enumeration)
+  "List of filter functions for removing cards from review.
+Filters are functions which take a single argument: a list of cards in the
+review. They return a list of cards which should remain in the review."
+  :type '(repeat function)
+  :group 'org-fc)
+
+(defcustom org-fc-bury-siblings nil
+  "If non-nil, show at most one position of a card per review.
+Does not apply to cloze single and cloze enumeration cards."
+  :type 'boolean
+  :group 'org-fc)
 
 (defvar org-fc-review--session nil
   "Current review session.")
@@ -104,12 +118,15 @@ Valid contexts:
 	   (order
 	    (or
 	     (plist-get context :order)
-	    (if org-fc-shuffle-positions 'shuffled 'ordered)))
+	     (if org-fc-shuffle-positions 'shuffled 'ordered)))
 	   (scheduler
 	    (cl-case order
 	      (ordered (org-fc-scheduler))
 	      (shuffled (org-fc-scheduler-shuffled))
 	      (t (error "Unknown review order %s" order)))))
+      (dolist (filter-fn org-fc-review-card-filters)
+        (setq
+         cards (funcall filter-fn cards)))
       (if (null cards)
           (message "No cards due right now")
         (progn
@@ -204,11 +221,11 @@ Before evaluating BODY, check if the heading at point has the
 same ID as the current card in the session."
   (declare (indent defun))
   `(when org-fc-review--session
-       (if-let ((,var (oref org-fc-review--session current-item)))
-           (if (string= (oref (oref ,var card) id) (org-id-get))
-               (progn ,@body)
-             (message "Flashcard ID mismatch"))
-         (message "No flashcard review is in progress"))))
+     (if-let ((,var (oref org-fc-review--session current-item)))
+         (if (string= (oref (oref ,var card) id) (org-id-get))
+             (progn ,@body)
+           (message "Flashcard ID mismatch"))
+       (message "No flashcard review is in progress"))))
 
 (defun org-fc-review-flip ()
   "Flip the current flashcard."
@@ -444,6 +461,31 @@ Pauses the review, unnarrows the buffer and activates
     ;; Make sure we're in org mode and there is an active review session
     (unless (and (derived-mode-p 'org-mode) org-fc-review--session)
       (org-fc-review-edit-mode -1))))
+
+;;; Filters
+
+(defun org-fc-review--maybe-bury-siblings (cards)
+  "Return modified CARDS without sibling positions based on `org-fc-bury-siblings'."
+  (if org-fc-bury-siblings
+      (mapcar
+       (lambda (card)
+         (oset card positions
+               (list (cl-first (oref card positions))))
+         card)
+       cards)
+    cards))
+
+(defun org-fc-review--bury-cloze-siblings-except-single-or-enumeration (cards)
+  "Return modified CARDS without sibling positions for non-single/enum cloze cards."
+  (mapcar
+   (lambda (card)
+     (if (member (oref card cloze-type) '(single enumeration))
+         card
+       (progn
+         (oset card positions
+               (list (cl-first (oref card positions))))
+         card)))
+   cards))
 
 ;;; Footer
 
