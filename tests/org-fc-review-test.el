@@ -48,7 +48,7 @@ It has CLOZE-TYPE and NUM-POSITIONS positions."
 Should not bury any siblings."
   (let* ((card (org-fc--make-cloze-test-card 'single 3))
          (cards (list card))
-         (result (org-fc-review--bury-siblings-for-deletion-and-context cards)))
+         (result (org-fc-review--bury-cloze-siblings-except-single-or-enumeration cards)))
     (should (= (length (oref (car result) positions)) 3))))
 
 (ert-deftest org-fc-review--bury-siblings-for-cloze-enumeration ()
@@ -56,7 +56,7 @@ Should not bury any siblings."
 Should not bury any siblings."
   (let* ((card (org-fc--make-cloze-test-card 'enumeration 3))
          (cards (list card))
-         (result (org-fc-review--bury-siblings-for-deletion-and-context cards)))
+         (result (org-fc-review--bury-cloze-siblings-except-single-or-enumeration cards)))
     (should (= (length (oref (car result) positions)) 3))))
 
 (ert-deftest org-fc-review--bury-siblings-for-cloze-deletion ()
@@ -64,7 +64,7 @@ Should not bury any siblings."
 Should bury all siblings, leaving one position."
   (let* ((card (org-fc--make-cloze-test-card 'deletion 3))
          (cards (list card))
-         (result (org-fc-review--bury-siblings-for-deletion-and-context cards)))
+         (result (org-fc-review--bury-cloze-siblings-except-single-or-enumeration cards)))
     (should (= (length (oref (car result) positions)) 1))))
 
 (ert-deftest org-fc-review--bury-siblings-for-cloze-context ()
@@ -72,5 +72,5 @@ Should bury all siblings, leaving one position."
 Should bury all siblings, leaving one position."
   (let* ((card (org-fc--make-cloze-test-card 'context 3))
          (cards (list card))
-         (result (org-fc-review--bury-siblings-for-deletion-and-context cards)))
+         (result (org-fc-review--bury-cloze-siblings-except-single-or-enumeration cards)))
     (should (= (length (oref (car result) positions)) 1))))
