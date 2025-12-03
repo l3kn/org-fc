@@ -5,7 +5,15 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
-** 0.7.0...
+** 0.8.0
+
+*** Added
+
+Thanks to @cashpw the filters applied to lists of cards before
+reviewing them is now stored in ~org-fc-review-card-filters~, so users
+to add custom filters.
+
+** 0.7.0
 
 *** Added
 
