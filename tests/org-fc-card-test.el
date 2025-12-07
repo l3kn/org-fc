@@ -82,6 +82,7 @@
 	       (org-fc-directories (list org-file))
 	       (org-fc-review-history-file log-file)
 	       (org-fc-append-failed-cards nil)
+	       (org-fc-review-card-filters (list))
 	       (mock-id 0)
 	       (mock-time 0)
 	       (buffer-string ""))
