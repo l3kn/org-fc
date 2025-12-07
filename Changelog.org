@@ -5,6 +5,13 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.8.1
+
+*** Changed
+
+Filtering out non-due positions before starting a review now is
+implemented as a filter in ~org-fc-review-card-filters~.
+
 ** 0.8.0
 
 *** Added

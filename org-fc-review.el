@@ -74,8 +74,10 @@ Hide title for individual cards by adding the :notitle: tag."
   :type 'boolean
   :group 'org-fc)
 
-(defcustom org-fc-review-card-filters '(#'org-fc-review--maybe-bury-siblings
-                                        #'org-fc-review--bury-cloze-siblings-except-single-or-enumeration)
+(defcustom org-fc-review-card-filters (list
+                                       #'org-fc-index-filter-due
+                                       #'org-fc-review--maybe-bury-siblings
+                                       #'org-fc-review--bury-cloze-siblings-except-single-or-enumeration)
   "List of filter functions for removing cards from review.
 Filters are functions which take a single argument: a list of cards in the
 review. They return a list of cards which should remain in the review."
@@ -113,24 +115,23 @@ Valid contexts:
   (if org-fc-review--session
       (when (yes-or-no-p "Flashcards are already being reviewed. Resume? ")
         (org-fc-review-resume))
-    (let* ((index (org-fc-index context))
-           (cards (org-fc-index-filter-due index))
-	   (order
-	    (or
-	     (plist-get context :order)
-	     (if org-fc-shuffle-positions 'shuffled 'ordered)))
-	   (scheduler
-	    (cl-case order
-	      (ordered (org-fc-scheduler))
-	      (shuffled (org-fc-scheduler-shuffled))
-	      (t (error "Unknown review order %s" order)))))
+    (let* ((cards (org-fc-index context))
+           (order
+            (or
+             (plist-get context :order)
+             (if org-fc-shuffle-positions 'shuffled 'ordered)))
+           (scheduler
+            (cl-case order
+              (ordered (org-fc-scheduler))
+              (shuffled (org-fc-scheduler-shuffled))
+              (t (error "Unknown review order %s" order)))))
       (dolist (filter-fn org-fc-review-card-filters)
         (setq
          cards (funcall filter-fn cards)))
       (if (null cards)
           (message "No cards due right now")
         (progn
-	  (org-fc-scheduler-init scheduler cards)
+          (org-fc-scheduler-init scheduler cards)
           (setq org-fc-review--session
                 (org-fc-make-review-session scheduler))
           (run-hooks 'org-fc-before-review-hook)
