@@ -5,6 +5,11 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.8.2...
+
+*** Fixed
+
+Filtering of due positions was broken in both v0.8.0 and v0.8.1.
 ** 0.8.1
 
 *** Changed
