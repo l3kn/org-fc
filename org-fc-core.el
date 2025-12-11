@@ -753,6 +753,7 @@ Cards with no positions are removed from the index."
                   (time-less-p (oref pos due) now))
                 (oref card positions))))
           (unless (null due)
+            (oset card positions due)
             (push card res)))))
     (reverse res)))
 
