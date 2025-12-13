@@ -28,24 +28,22 @@
 ;;; File-based tests
 
 (ert-deftest org-fc-algo-fsrs6-test-card-init-normal ()
-  (ert-test-erts-file
-   (org-fc-test-fixture "erts/card_init_normal_fsrs6.erts")
-   (lambda ()
-     (org-fc-test-with-overwrites
-      (org-fc-test-overwrite-fun
-       org-fc-select-algo
-       (lambda () "fsrs6"))
-      (org-fc-test-overwrite-fun
-       time-to-seconds
-       (lambda () 0))
-      (org-fc-test-overwrite-fun
-       org-id-get
-       (lambda (&rest _args)
-	       (org-entry-put (point) "ID" "dummy-id")
-	       "dummy-id"))
-      (org-mode)
-      (goto-char (point-min))
-      (org-fc-type-normal-init)))))
+  (let ((org-fc-default-algo 'fsrs6))
+    (ert-test-erts-file
+     (org-fc-test-fixture "erts/card_init_normal_fsrs6.erts")
+     (lambda ()
+       (org-fc-test-with-overwrites
+        (org-fc-test-overwrite-fun
+         time-to-seconds
+         (lambda () 0))
+        (org-fc-test-overwrite-fun
+         org-id-get
+         (lambda (&rest _args)
+           (org-entry-put (point) "ID" "dummy-id")
+           "dummy-id"))
+        (org-mode)
+        (goto-char (point-min))
+        (org-fc-type-normal-init))))))
 
 (ert-deftest org-fc-algo-fsrs6-test-card-rate-normal ()
   (let ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv")))
@@ -106,6 +104,7 @@
 ;; expected result
 (ert-deftest org-fc-algo-fsrs6-test-from-history ()
   (let* ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
+         (org-fc-default-algo 'fsrs6)
          (org-fc-algo-fsrs6-enable-fuzzing nil)
          (org-fc-algo-fsrs6-desired-retention 0.9)
          (mock-now 0)
@@ -119,7 +118,6 @@
     (with-temp-buffer
       (org-fc-test-with-overwrites
        (org-fc-test-overwrite-fun time-to-seconds (lambda () mock-now))
-       (org-fc-test-overwrite-fun org-fc-select-algo (lambda () "fsrs6"))
 
        (org-mode)
        (org-fc-algo-fsrs6-test--create-mock-cards)
@@ -154,6 +152,7 @@
 (ert-deftest org-fc-algo-fsrs6-test-migration ()
   (let* ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
          (org-fc-algo-fsrs6-enable-fuzzing nil)
+         (org-fc-default-algo 'fsrs6)
          (org-fc-algo-fsrs6-desired-retention 0.9)
          (mock-now 0)
          (file (org-fc-file :path "mock-path"))
@@ -166,7 +165,6 @@
     (with-temp-buffer
       (org-fc-test-with-overwrites
        (org-fc-test-overwrite-fun time-to-seconds (lambda () mock-now))
-       (org-fc-test-overwrite-fun org-fc-select-algo (lambda () "fsrs6"))
 
        (org-mode)
        (org-fc-algo-fsrs6-test--create-mock-cards)
@@ -186,6 +184,7 @@
 
 (ert-deftest org-fc-algo-fsrs6-test-migration-empty ()
   (let* ((org-fc-review-history-file (make-temp-file "org-fc-test" nil ".tsv"))
+         (org-fc-default-algo 'fsrs6)
          (org-fc-algo-fsrs6-enable-fuzzing nil)
          (org-fc-algo-fsrs6-desired-retention 0.9)
          (mock-now 0)
@@ -195,7 +194,6 @@
     (with-temp-buffer
       (org-fc-test-with-overwrites
        (org-fc-test-overwrite-fun time-to-seconds (lambda () mock-now))
-       (org-fc-test-overwrite-fun org-fc-select-algo (lambda () "fsrs6"))
 
        (org-mode)
        (org-fc-algo-fsrs6-test--create-mock-cards)
