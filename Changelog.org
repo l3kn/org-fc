@@ -5,6 +5,14 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.9.0
+
+*** Added
+
+Thanks to @cashpw users of the FSRS (or any other non-SM2) spacing
+algorithm can now avoid being prompted for which algorithm to use on
+card creation by setting a ~org-fc-default-algo~.
+
 ** 0.8.2...
 
 *** Fixed
