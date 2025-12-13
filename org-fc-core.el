@@ -403,6 +403,12 @@ If point is not inside a flashcard entry, an error is raised."
 Entries should be lists (name constructor).
 Use `org-fc-register-algo' for adding algorithms.")
 
+(defcustom org-fc-default-algo nil
+  "Algorithm to use by default when creating new cards.
+Must be one of `org-fc-algos'."
+  :group 'org-fc
+  :type 'symbol)
+
 (defun org-fc-register-algo (name constructor)
   "Register a new spacing algorithm NAME using CONSTRUCTOR."
   (push (list name constructor) org-fc-algos))
@@ -419,9 +425,13 @@ Use `org-fc-register-algo' for adding algorithms.")
 	 (cl-remove-if
 	  (lambda (name) (eq name 'noop))
 	  (mapcar #'car org-fc-algos))))
-    (if (= (length choices) 1)
-	(symbol-name (car choices))
-      (completing-read "Algorithm: " choices nil :require-match))))
+    (cond
+     (org-fc-default-algo
+      (symbol-name org-fc-default-algo))
+     ((= (length choices) 1)
+      (symbol-name (car choices)))
+     (t
+      (completing-read "Algorithm: " choices nil :require-match)))))
 
 ;;; Card Initialization
 
