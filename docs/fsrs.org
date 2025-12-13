@@ -27,8 +27,10 @@ To load the submodule for a previously cloned repo:
 (require 'org-fc-algo-fsrs)
 #+end_src
 
-When created new cards, you can now select between the new "fsrs6"
-algorithm and the old "sm2" variant.
+If you want to use only the new "fsrs6" algorithm, you can set it as
+default with ~(setq org-fc-default-algo 'fsrs6)~, otherwise you'll be
+prompted for which algorithm (currently "sm2" or "fsrs6") each time
+you create a new card.
 
 * Migrating Cards
 
