@@ -5,6 +5,13 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.9.1
+
+*** Changed
+
+Thanks to @cashpw the review folding behavior of the ~vocab~ card
+type is now more consistent with the other card types.
+
 ** 0.9.0
 
 *** Added
