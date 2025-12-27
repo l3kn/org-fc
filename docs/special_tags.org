@@ -1,0 +1,37 @@
+#+TITLE: Special Tags
+#+DATE: [2025-12-26 Fri 23:24]
+#+KEYWORDS: fc
+
+During review, org-fc shows both heading of the current card
+and (if set) the ~#+TITLE:~ of the current file.
+
+Either can be hidden by adding the ~:noheading:~ and/or ~:notitle:~
+tag to the heading.
+
+* Example, Hiding the Heading
+
+[[./images/tags_noheading_create.svg]]
+
+Let's say we want use flashcards to memorize what different modes of
+Emacs do. But if we review this card, the heading already contains the
+solution!
+
+[[./images/tags_noheading_before.svg]]
+
+To also hide the heading during review, we can add the ~:noheading:~
+tag to the card.
+
+[[./images/tags_noheading_after.svg]]
+
+* Example, Hiding the Title
+
+[[./images/tags_notitle_create.svg]]
+
+A similar issue arises if we use a separate file for notes about org
+mode.
+
+[[./images/tags_notitle_before.svg]]
+
+Here the title can be hidden with the ~:notitle:~ tag.
+
+[[./images/tags_notitle_after.svg]]
