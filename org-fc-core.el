@@ -144,9 +144,16 @@ Used to generate absolute paths to the awk scripts.")
      "UTC0")))
 
 (defun org-fc-show-latex ()
-  "Show latex fragments of heading at point."
-  (let ((inhibit-message t))
-    (org-latex-preview 4)))
+  "Show latex fragments of heading at point.
+Any errors are converted to warnings."
+  (condition-case err
+      (let ((inhibit-message t))
+        (org-latex-preview 4))
+    (error
+     (display-warning
+      'org-fc
+      (format "Error during org-latex-preview: %s" (error-message-string err))
+      :warning))))
 
 (defun org-fc-back-heading-position ()
   "Return point at the beginning of an entries `Back' subheading.
