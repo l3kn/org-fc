@@ -5,6 +5,20 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.9.2
+
+*** Added
+
+The readme now shows some images of org-fc in action and a new
+documentation page explains the [[file:docs/special_tags.org][Special Tags]] supported by org-fc.
+
+*** Changed
+
+Thank to @djliden any errors caused by ~org-latex-preview~ are now
+converted to warnings instead of causing org-fc to abort the review
+session. This might be useful for users who don't have LaTeX
+installed.
+
 ** 0.9.1
 
 *** Changed
