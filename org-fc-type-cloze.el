@@ -105,6 +105,16 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
     (outline-next-heading)
     (1- (point))))
 
+(defun org-fc-type-cloze--string-pad-width (string width)
+  "Pad STRING to WIDTH."
+  (concat string (make-string (- width (string-width string)) ? )))
+
+(defun org-fc-type-cloze--pom-at-table-p (point-or-marker)
+  "Non-nil if POINT-OR-MARKER is inside an Org table."
+  (save-excursion
+    (goto-char point-or-marker)
+    (org-at-table-p)))
+
 (defun org-fc-type-cloze-hide-holes (position)
   "Hide holes of a card of TYPE in relation to POSITION."
   (org-fc-with-point-at-entry
@@ -130,13 +140,24 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
           (remove-overlays text-beg text-end)
           (setq org-fc-type-cloze--text
                 (org-fc-make-overlay text-beg text-end 'invisible t))
+          (when (org-fc-type-cloze--pom-at-table-p hole-beg)
+            (overlay-put
+             org-fc-type-cloze--text 'org-fc-type-cloze-hole-width
+             (string-width (buffer-substring hole-beg hole-end))))
           (org-fc-hide-region text-end hint-beg "")
           (setq org-fc-type-cloze--hint
-                (org-fc-overlay-surround
-                 (org-fc-make-overlay hint-beg hint-end)
-                 (concat "[" org-fc-type-cloze-hint-prefix)
-                 "]"
-                 'org-fc-type-cloze-hole-face))
+                (let ((prefix (concat "[" org-fc-type-cloze-hint-prefix))
+                      (suffix "]"))
+                  (org-fc-overlay-surround
+                   (org-fc-make-overlay hint-beg hint-end)
+                   prefix
+                   (if (org-fc-type-cloze--pom-at-table-p hole-beg)
+                       (org-fc-type-cloze--string-pad-width
+                        suffix (- (string-width (buffer-substring hole-beg hole-end))
+                                  (string-width (buffer-substring hint-beg hint-end))
+                                  (string-width prefix)))
+                     suffix)
+                   'org-fc-type-cloze-hole-face)))
           (org-fc-hide-region hint-end hole-end "")
           (org-fc-make-overlay
            hole-beg hole-end
@@ -148,7 +169,13 @@ CURRENT-INDEX is the index of the current position in the list of all holes."
           (org-fc-hide-region text-end hole-end))
          ;; If the text of another hole should not be visible,
          ;; hide the whole hole
-         (t (org-fc-hide-region hole-beg hole-end "..."))))))))
+         (t (org-fc-hide-region
+             hole-beg hole-end
+             (let ((ellipsis "..."))
+               (if (org-fc-type-cloze--pom-at-table-p hole-beg)
+                   (org-fc-type-cloze--string-pad-width
+                    ellipsis (string-width (buffer-substring hole-beg hole-end)))
+                 ellipsis))))))))))
 
 ;;; Setup / Flipping
 
@@ -175,7 +202,13 @@ Processes all holes in the card text."
 (defun org-fc-type-cloze-flip ()
   "Flip a cloze card."
   (org-fold-show-children)
-  (overlay-put org-fc-type-cloze--text 'invisible nil)
+  (let ((overlay org-fc-type-cloze--text))
+    (overlay-put overlay 'invisible nil)
+    (when-let ((hole-width (overlay-get overlay 'org-fc-type-cloze-hole-width)))
+      (overlay-put
+       overlay 'display
+       (org-fc-type-cloze--string-pad-width
+        (buffer-substring (overlay-start overlay) (overlay-end overlay)) hole-width))))
   (org-fc-show-latex)
   ;; Remove all overlays in the region of the hint to get rid of
   ;; latex overlays in the hint, then hide the region again.
