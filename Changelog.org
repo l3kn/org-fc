@@ -5,6 +5,13 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.9.3
+
+*** Fixed
+
+Fixed a bug where ~org-fc-hide-drawers~ would hang indefinitely on
+whitelisted drawers.
+
 ** 0.9.2
 
 *** Added

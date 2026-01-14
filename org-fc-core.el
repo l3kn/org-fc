@@ -559,7 +559,9 @@ make it bold."
               (setq end (point))
             (error "No :END: found for drawer"))
           (if (member name org-fc-drawer-whitelist)
-	      (org-fold-hide-drawer-toggle)
+              ;; Make sure point is unchanged after calling other org
+              ;; functions, otherwise the while-loop will get stuck
+              (save-excursion (org-fold-hide-drawer-toggle))
             (org-fc-hide-region start end)))))))
 
 ;;;; Hiding Headings / Section Contents
