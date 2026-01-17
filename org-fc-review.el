@@ -137,6 +137,15 @@ Valid contexts:
           (run-hooks 'org-fc-before-review-hook)
           (org-fc-review-next-card))))))
 
+(defun org-fc-review-early ()
+  "Behaves like `org-fc-review' but includes cards that are not due
+for review yet.  Card review data will still be updated so it's
+recommended to use the FSRS spacing algorithm."
+  (interactive)
+  (let ((org-fc-review-card-filters
+         (remove #'org-fc-index-filter-due org-fc-review-card-filters)))
+    (call-interactively #'org-fc-review)))
+
 (defun org-fc-review-resume ()
   "Resume review session, if it was paused."
   (interactive)

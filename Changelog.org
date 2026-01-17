@@ -5,6 +5,13 @@ upcoming changes.
 In case a update to the org sources is needed, I'll add a changelog
 entry with updating instructions.
 
+** 0.10.0
+
+*** Added
+
+A new interactive function ~org-fc-review-early~ can be used to review
+cards in a context before they are due.
+
 ** 0.9.3
 
 *** Fixed

@@ -100,3 +100,10 @@ org-fc-append-failed-cards nil)~.
 | s   | suspend card             |
 | p   | pause review for editing |
 | q   | quit review              |
+* Reviewing Cards Early
+
+~M-x org-fc-review-early~ will start a review session including all
+cards in the [[file:review_contexts.org][Review Context]], even if they are not due yet.
+
+To keep the review intervals accurate, it is recommended to use this
+only with the [[file:fsrs.org][FSRS]] algorithm.
